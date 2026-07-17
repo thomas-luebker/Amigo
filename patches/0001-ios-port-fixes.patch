@@ -55,7 +55,7 @@ index 89704c0e..07470b5d 100644
  void unix_input_joystick_device_changed(void);
  
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..d115793f 100644
+index 13e88b9d..f62bf1d8 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -107,17 +107,94 @@ index 13e88b9d..d115793f 100644
  static bool make_video_layout(const struct unix_video_frame *frame, const struct gfx_filterdata *filter,
      int output_width, int output_height, struct unix_video_layout *layout)
  {
-@@ -723,6 +758,9 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -684,10 +719,32 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+     get_window_pixel_scale(output_width, output_height, &layout->pixel_scale_x, &layout->pixel_scale_y);
  
+     int status_height = std::max(1, (int)(statusbar_display_height() * layout->pixel_scale_y + 0.5f));
+-    if (status_height >= output_height) {
+-        status_height = std::max(0, output_height - 1);
++    /* Keep the picture inside the display's safe area (iPad rounded
++     * corners, status bar) — otherwise screen corners crop the emulated
++     * image. Safe area is reported in window coordinates; convert to
++     * output (pixel) coordinates. */
++    int safe_x = 0, safe_y = 0;
++    int safe_w = output_width, safe_h = output_height;
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++    if (s_window) {
++        SDL_Rect sa;
++        int ww = 0, wh = 0;
++        if (SDL_GetWindowSafeArea(s_window, &sa) && SDL_GetWindowSize(s_window, &ww, &wh) &&
++            ww > 0 && wh > 0 && sa.w > 0 && sa.h > 0) {
++            const float px = (float)output_width / (float)ww;
++            const float py = (float)output_height / (float)wh;
++            safe_x = (int)(sa.x * px);
++            safe_y = (int)(sa.y * py);
++            safe_w = (int)(sa.w * px);
++            safe_h = (int)(sa.h * py);
++        }
++    }
++#endif
++
++    if (status_height >= safe_h) {
++        status_height = std::max(0, safe_h - 1);
+     }
+-    const int frame_area_height = std::max(1, output_height - status_height);
++    const int frame_area_height = std::max(1, safe_h - status_height);
+ 
+     SDL_FRect source_rect = filtered_frame_rect(frame, filter);
+     SDL_FRect dst = {};
+@@ -696,18 +753,18 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+     if (frame->filter_index == GF_RTG && mode == 2) { /* center */
+         dst.w = source_rect.w * layout->pixel_scale_x;
+         dst.h = source_rect.h * layout->pixel_scale_y;
+-        dst.x = ((float)output_width - dst.w) / 2.0f + source_rect.x * layout->pixel_scale_x;
++        dst.x = ((float)safe_w - dst.w) / 2.0f + source_rect.x * layout->pixel_scale_x;
+         dst.y = ((float)frame_area_height - dst.h) / 2.0f + source_rect.y * layout->pixel_scale_y;
+     } else if (frame->filter_index == GF_RTG && mode == 3) { /* integer */
+-        int ix = std::max(1, output_width / frame->width);
++        int ix = std::max(1, safe_w / frame->width);
+         int iy = std::max(1, frame_area_height / frame->height);
+         int scale = std::max(1, std::min(ix, iy));
+         dst.w = source_rect.w * scale;
+         dst.h = source_rect.h * scale;
+-        dst.x = ((float)output_width - (float)frame->width * scale) / 2.0f + source_rect.x * scale;
++        dst.x = ((float)safe_w - (float)frame->width * scale) / 2.0f + source_rect.x * scale;
+         dst.y = ((float)frame_area_height - (float)frame->height * scale) / 2.0f + source_rect.y * scale;
+     } else {
+-        const float sx = (float)output_width / (float)frame->width;
++        const float sx = (float)safe_w / (float)frame->width;
+         const float sy = (float)frame_area_height / (float)frame->height;
+         float draw_sx = sx;
+         float draw_sy = sy;
+@@ -717,16 +774,22 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+         }
+         dst.w = source_rect.w * draw_sx;
+         dst.h = source_rect.h * draw_sy;
+-        dst.x = ((float)output_width - (float)frame->width * draw_sx) / 2.0f + source_rect.x * draw_sx;
++        dst.x = ((float)safe_w - (float)frame->width * draw_sx) / 2.0f + source_rect.x * draw_sx;
+         dst.y = ((float)frame_area_height - (float)frame->height * draw_sy) / 2.0f + source_rect.y * draw_sy;
+     }
+ 
++    dst.x += (float)safe_x;
++    dst.y += (float)safe_y;
++
      layout->frame_dst = dst;
-     layout->frame_clip = { 0, 0, output_width, frame_area_height };
+-    layout->frame_clip = { 0, 0, output_width, frame_area_height };
++    layout->frame_clip = { safe_x, safe_y, safe_w, frame_area_height };
 +    s_present_src = source_rect;
 +    s_present_dst = dst;
 +    s_present_map_valid = source_rect.w > 0.0f && source_rect.h > 0.0f;
      layout->status_dst = {
-         0.0f,
-         (float)frame_area_height,
-@@ -1790,6 +1828,32 @@ void unix_video_shutdown(void)
+-        0.0f,
+-        (float)frame_area_height,
+-        (float)output_width,
++        (float)safe_x,
++        (float)(safe_y + frame_area_height),
++        (float)safe_w,
+         (float)status_height
+     };
+     return true;
+@@ -1790,6 +1853,47 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -138,11 +215,26 @@ index 13e88b9d..d115793f 100644
 +static int s_touch_pending_click = -1;
 +static Uint64 s_touch_release_at = 0;
 +
++/* Second finger in 1:1 mode: undecided until it moves (scroll wheel) or
++ * rests ~170ms (RMB hold, for Intuition menus); a quick lift is an RMB
++ * click. */
++static SDL_FingerID s_touch_second_finger;
++static bool s_touch_second_active = false;
++static int s_touch_second_mode = 0;   /* 0 undecided, 1 RMB held, 2 scroll */
++static float s_touch_second_start_x, s_touch_second_start_y, s_touch_second_last_y;
++static Uint64 s_touch_second_down_ticks = 0;
++static float s_touch_scroll_accum = 0.0f;
++
 +static void touch_process_pending_click(void)
 +{
 +    if (s_touch_pending_click >= 0 && SDL_GetTicks() >= s_touch_release_at) {
 +        unix_input_mouse_button(s_touch_pending_click, false);
 +        s_touch_pending_click = -1;
++    }
++    if (s_touch_second_active && s_touch_second_mode == 0 &&
++        SDL_GetTicks() - s_touch_second_down_ticks >= 170) {
++        s_touch_second_mode = 1;
++        unix_input_mouse_button(1, true);
 +    }
 +}
 +#endif
@@ -150,7 +242,7 @@ index 13e88b9d..d115793f 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +1887,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +1927,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -161,7 +253,7 @@ index 13e88b9d..d115793f 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1881,6 +1949,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +1989,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -176,7 +268,7 @@ index 13e88b9d..d115793f 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1915,7 +1991,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2031,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -186,7 +278,17 @@ index 13e88b9d..d115793f 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1934,6 +2011,105 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2043,156 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+             if (!input_events) {
+                 break;
+             }
+-            if (!s_mouse_grabbed &&
++            if (!s_mouse_grabbed && currprefs.input_tablet == 0 &&
+                 !unix_mouse_event_in_client(event.wheel.windowID, event.wheel.mouse_x, event.wheel.mouse_y)) {
+                 break;
+             }
+-            if (s_mouse_grabbed) {
++            if (s_mouse_grabbed || currprefs.input_tablet > 0) {
                  unix_input_mouse_wheel(event.wheel.integer_x, event.wheel.integer_y);
              }
              break;
@@ -210,12 +312,25 @@ index 13e88b9d..d115793f 100644
 +                if (!s_touch_primary_active) {
 +                    s_touch_primary_active = true;
 +                    s_touch_primary_finger = event.tfinger.fingerID;
++                    s_touch_down_ticks = SDL_GetTicks();
 +                    if (window_point_to_emulated(event.tfinger.x * win_w, event.tfinger.y * win_h, &bx, &by)) {
 +                        unix_input_mouse_motion_abs(bx, by);
 +                    }
 +                    unix_input_mouse_button(0, true);
-+                } else {
-+                    unix_input_mouse_button(1, true);
++                } else if (!s_touch_second_active) {
++                    s_touch_second_active = true;
++                    s_touch_second_finger = event.tfinger.fingerID;
++                    s_touch_second_mode = 0;
++                    s_touch_second_start_x = event.tfinger.x;
++                    s_touch_second_start_y = event.tfinger.y;
++                    s_touch_second_last_y = event.tfinger.y;
++                    s_touch_second_down_ticks = SDL_GetTicks();
++                    s_touch_scroll_accum = 0.0f;
++                    /* Two fingers landing together = a gesture, not a
++                     * click — undo the primary press. */
++                    if (SDL_GetTicks() - s_touch_down_ticks < 250) {
++                        unix_input_mouse_button(0, false);
++                    }
 +                }
 +                break;
 +            }
@@ -253,6 +368,27 @@ index 13e88b9d..d115793f 100644
 +                s_touch_last_y = event.tfinger.y;
 +                s_touch_travel += SDL_fabsf(dx) + SDL_fabsf(dy);
 +                unix_input_mouse_motion((int)lroundf(dx), (int)lroundf(dy));
++            } else if (currprefs.input_tablet > 0 && s_touch_second_active &&
++                       event.tfinger.fingerID == s_touch_second_finger) {
++                int win_w = 0, win_h = 0;
++                SDL_Window *win = SDL_GetWindowFromID(event.tfinger.windowID);
++                if (win) {
++                    SDL_GetWindowSize(win, &win_w, &win_h);
++                }
++                const float moved_x = SDL_fabsf((event.tfinger.x - s_touch_second_start_x) * (float)win_w);
++                const float moved_y = SDL_fabsf((event.tfinger.y - s_touch_second_start_y) * (float)win_h);
++                if (s_touch_second_mode == 0 && (moved_x > 12.0f || moved_y > 12.0f)) {
++                    s_touch_second_mode = 2;
++                }
++                if (s_touch_second_mode == 2) {
++                    s_touch_scroll_accum += (event.tfinger.y - s_touch_second_last_y) * (float)win_h;
++                    int ticks = (int)(s_touch_scroll_accum / 40.0f);
++                    if (ticks != 0) {
++                        unix_input_mouse_wheel(0, ticks);
++                        s_touch_scroll_accum -= (float)ticks * 40.0f;
++                    }
++                }
++                s_touch_second_last_y = event.tfinger.y;
 +            }
 +            break;
 +        case SDL_EVENT_FINGER_UP: {
@@ -263,8 +399,17 @@ index 13e88b9d..d115793f 100644
 +                if (s_touch_primary_active && event.tfinger.fingerID == s_touch_primary_finger) {
 +                    s_touch_primary_active = false;
 +                    unix_input_mouse_button(0, false);
-+                } else {
-+                    unix_input_mouse_button(1, false);
++                } else if (s_touch_second_active && event.tfinger.fingerID == s_touch_second_finger) {
++                    if (s_touch_second_mode == 1) {
++                        unix_input_mouse_button(1, false);
++                    } else if (s_touch_second_mode == 0 && s_touch_pending_click < 0) {
++                        /* quick second-finger tap = right click */
++                        unix_input_mouse_button(1, true);
++                        s_touch_pending_click = 1;
++                        s_touch_release_at = SDL_GetTicks() + 60;
++                    }
++                    s_touch_second_active = false;
++                    s_touch_second_mode = 0;
 +                }
 +                if (s_touch_finger_count > 0) {
 +                    s_touch_finger_count--;
