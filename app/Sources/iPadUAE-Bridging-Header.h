@@ -6,3 +6,4 @@ void ipaduae_eject_floppy(int drive);
 void ipaduae_reset(int hard);
 void ipaduae_send_key(int sdl_scancode, int pressed);
 void ipaduae_restart_with_config(const char *configpath);
+void ipaduae_set_tablet_runtime(int on);

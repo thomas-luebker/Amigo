@@ -14,4 +14,8 @@ target_compile_definitions(winuae_core PRIVATE NO_MAIN_IN_MAIN_C=1)
 # is portable SDL audio, safe on iOS.
 target_sources(winuae_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../vendor/WinUAE/od-unix/cda_play.cpp")
 
+# iPad-specific glue (runtime toggles etc.) compiled with the core's
+# include context — avoids upstream patches for app-facing helpers.
+target_sources(winuae_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ios_glue.cpp")
+
 add_library(uaecore STATIC $<TARGET_OBJECTS:winuae_core>)

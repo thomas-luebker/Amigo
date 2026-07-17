@@ -78,12 +78,14 @@ enum ConfigStore {
     }
 
     static func setTabletMode(_ on: Bool) {
+        // Live toggle — the mousehack driver engages on the next touch;
+        // the config write only persists the choice for future boots.
+        ipaduae_set_tablet_runtime(on ? 1 : 0)
         if on {
             set("absolute_mouse", "mousehack")
         } else {
             removeAll("absolute_mouse")
         }
-        restart()
     }
 
     private static func restart() {
