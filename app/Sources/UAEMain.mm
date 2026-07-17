@@ -41,9 +41,15 @@ extern "C" void ipaduae_install_overlay(void);
 
 int main(int argc, char *argv[])
 {
+    // Device consoles only see flushed stdio; make the core's write_log
+    // stream immediately so stalls show their exact location.
+    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stderr, NULL, _IONBF, 0);
+    fprintf(stderr, "iPadUAE: main() entered\n");
     @autoreleasepool {
         prepare_data_directories();
     }
+    fprintf(stderr, "iPadUAE: data dirs ready\n");
     // Touches feed the patched finger-event path in video_sdl.cpp
     // (trackpad-style); disabling SDL's synthesis keeps hardware
     // (GCMouse/trackpad) pointers on the regular mouse path.
@@ -57,6 +63,7 @@ int main(int argc, char *argv[])
     const int early_exit = target_main_handle_early(argc, argv);
     if (early_exit >= 0)
         return early_exit;
+    fprintf(stderr, "iPadUAE: entering real_main\n");
     real_main(argc, argv);
     return 0;
 }

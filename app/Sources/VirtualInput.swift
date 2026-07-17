@@ -134,6 +134,7 @@ struct VirtualJoystickView: View {
                 .fill(.white.opacity(0.12))
                 .frame(width: 150, height: 150)
                 .overlay(Circle().stroke(.red.opacity(0.5), lineWidth: 2))
+                .interactiveArea("joy-dpad")
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { v in
@@ -153,6 +154,7 @@ struct VirtualJoystickView: View {
                 .fill(.red.opacity(0.55))
                 .frame(width: 110, height: 110)
                 .overlay(Text("FIRE").font(.headline).foregroundStyle(.white))
+                .interactiveArea("joy-fire")
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { _ in

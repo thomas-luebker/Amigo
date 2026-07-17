@@ -12,18 +12,52 @@ import UIKit
 
 @_cdecl("ipaduae_install_overlay")
 public func ipaduae_install_overlay() {
+    FileHandle.standardError.write("iPadUAE: overlay install dispatched\n".data(using: .utf8)!)
     DispatchQueue.main.async { OverlayInstaller.shared.installWhenReady() }
 }
 
 /// A window that only claims touches landing on actual overlay content;
 /// everything else falls through to SDL's window below.
+///
+/// SwiftUI hosts all controls in one flat _UIHostingView (gestures, not
+/// subviews), so hit-view identity cannot distinguish a button from empty
+/// background. Instead, the SwiftUI content reports the global frames of
+/// its interactive elements (see .interactiveArea) and the window claims
+/// only touches inside those rects.
 final class PassthroughWindow: UIWindow {
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        let v = super.hitTest(point, with: event)
-        // Taps on the hosting view's transparent background return the
-        // hosting view itself; taps on real controls return inner views.
-        if v === rootViewController?.view { return nil }
-        return v
+        let rects = OverlayState.shared.interactiveRects
+        guard rects.values.contains(where: { $0.insetBy(dx: -8, dy: -8).contains(point) }) else {
+            return nil
+        }
+        return super.hitTest(point, with: event)
+    }
+}
+
+/// Reports a view's global frame into OverlayState so PassthroughWindow can
+/// route touches; removes it when the view disappears.
+struct InteractiveArea: ViewModifier {
+    let id: String
+    func body(content: Content) -> some View {
+        content
+            .background(
+                GeometryReader { geo -> Color in
+                    let frame = geo.frame(in: .global)
+                    DispatchQueue.main.async {
+                        OverlayState.shared.interactiveRects[id] = frame
+                    }
+                    return Color.clear
+                }
+            )
+            .onDisappear {
+                OverlayState.shared.interactiveRects.removeValue(forKey: id)
+            }
+    }
+}
+
+extension View {
+    func interactiveArea(_ id: String) -> some View {
+        modifier(InteractiveArea(id: id))
     }
 }
 
@@ -39,6 +73,7 @@ final class OverlayInstaller {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.installWhenReady() }
             return
         }
+        FileHandle.standardError.write("iPadUAE: overlay installing on scene\n".data(using: .utf8)!)
         NSLog("iPadUAE overlay: installing overlay window on scene")
         let host = UIHostingController(rootView: OverlayRoot { _ in })
         host.view.backgroundColor = .clear
@@ -127,6 +162,10 @@ final class OverlayState: ObservableObject {
     @Published var expanded = false
     @Published var showKeyboard = false
     @Published var showJoystick = false
+    /// Global frames of touch-interactive overlay elements, keyed by id.
+    /// Read by PassthroughWindow.hitTest on every touch; written from
+    /// SwiftUI geometry callbacks. Main-thread only.
+    var interactiveRects: [String: CGRect] = [:]
 }
 
 /// Sends a scancode press+release with a small gap so the emulated 50Hz
@@ -162,12 +201,14 @@ struct OverlayRoot: View {
                         .shadow(radius: 3)
                 }
                 .buttonStyle(.plain)
+                .interactiveArea("gear")
 
                 if expanded {
                     ControlPanel()
                         .frame(width: 352)
                         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
                         .shadow(radius: 8)
+                        .interactiveArea("panel")
                 }
                 Spacer(minLength: 0)
             }
@@ -184,6 +225,7 @@ struct OverlayRoot: View {
                 VStack {
                     Spacer()
                     AmigaKeyboardView()
+                        .interactiveArea("keyboard")
                         .padding(.bottom, state.showJoystick ? 200 : 12)
                         .padding(.horizontal, 12)
                 }
