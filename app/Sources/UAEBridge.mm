@@ -34,3 +34,14 @@ extern "C" void ipaduae_send_key(int sdl_scancode, int pressed)
 {
     unix_input_keyboard_key(sdl_scancode, pressed != 0, 0);
 }
+
+// Restart the emulator with a (rewritten) config file. real_main's outer
+// loop re-runs real_main2, which loads restart_config — same mechanism the
+// desktop GUI uses for machine changes (Kickstart, mounted hardfiles, ...).
+struct uae_prefs;
+extern void uae_restart(struct uae_prefs *p, int opengui, const char *cfgfile);
+
+extern "C" void ipaduae_restart_with_config(const char *configpath)
+{
+    uae_restart(nullptr, -1, configpath);
+}

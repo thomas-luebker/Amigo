@@ -94,6 +94,19 @@ final class OverlayInstaller {
             DispatchQueue.main.async { OverlayState.shared.showJoystick.toggle() }
         }, joyName, nil, .deliverImmediately)
 
+        let hdfName = "de.amiga-imager.uae.mountFirstHDF" as CFString
+        CFNotificationCenterAddObserver(center, nil, { _, _, _, _, _ in
+            DispatchQueue.main.async {
+                if let first = ConfigStore.files(in: ConfigStore.hardDrivesDir,
+                                                 extensions: ["hdf", "hdz", "vhd"]).first {
+                    NSLog("iPadUAE overlay: debug mount HDF %@", first.path)
+                    ConfigStore.mountHardfile(url: first)
+                } else {
+                    NSLog("iPadUAE overlay: debug mount HDF — none found")
+                }
+            }
+        }, hdfName, nil, .deliverImmediately)
+
         let typeName = "de.amiga-imager.uae.typeDirTest" as CFString
         CFNotificationCenterAddObserver(center, nil, { _, _, _, _, _ in
             DispatchQueue.main.async {
@@ -181,7 +194,7 @@ struct OverlayRoot: View {
 }
 
 struct ControlPanel: View {
-    enum Submenu { case none, df0, df1 }
+    enum Submenu { case none, df0, df1, kickstart, harddrive }
     @State private var submenu: Submenu = .none
     @ObservedObject private var state = OverlayState.shared
 
@@ -191,6 +204,8 @@ struct ControlPanel: View {
             case .none: mainMenu
             case .df0: FloppyPicker(drive: 0) { submenu = .none }
             case .df1: FloppyPicker(drive: 1) { submenu = .none }
+            case .kickstart: KickstartPicker { submenu = .none }
+            case .harddrive: HardDrivePicker { submenu = .none }
             }
         }
         .padding(12)
@@ -203,6 +218,9 @@ struct ControlPanel: View {
             MenuRow(icon: "opticaldiscdrive", title: "Insert DF1…") { submenu = .df1 }
             MenuRow(icon: "eject", title: "Eject DF0") { ipaduae_eject_floppy(0) }
             MenuRow(icon: "eject", title: "Eject DF1") { ipaduae_eject_floppy(1) }
+            Divider().padding(.vertical, 4)
+            MenuRow(icon: "memorychip", title: "Kickstart ROM…") { submenu = .kickstart }
+            MenuRow(icon: "internaldrive", title: "Hard Drive…") { submenu = .harddrive }
             Divider().padding(.vertical, 4)
             MenuRow(icon: "keyboard", title: state.showKeyboard ? "Hide Amiga Keyboard" : "Amiga Keyboard") {
                 state.showKeyboard.toggle()
@@ -238,6 +256,97 @@ struct MenuRow: View {
             .padding(.horizontal, 4)
         }
         .buttonStyle(.plain)
+    }
+}
+
+struct KickstartPicker: View {
+    let onDone: () -> Void
+    private var roms: [URL] {
+        ConfigStore.files(in: ConfigStore.kickstartsDir,
+                          extensions: ["rom", "bin", "zip", "a500", "a600", "a1200", "a4000"])
+    }
+    private var current: String { ConfigStore.currentValue("kickstart_rom_file") ?? ":AROS" }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Button(action: onDone) { Label("Back", systemImage: "chevron.left") }
+                    .buttonStyle(.plain)
+                Spacer()
+                Text("Kickstart").font(.headline)
+            }
+            .padding(.bottom, 6)
+            Text("Changing the ROM restarts the Amiga.")
+                .font(.footnote).foregroundStyle(.secondary).padding(.bottom, 4)
+
+            MenuRow(icon: current == ":AROS" ? "checkmark.circle.fill" : "circle",
+                    title: "Built-in AROS ROM") {
+                ConfigStore.selectBuiltInAROS()
+                onDone()
+            }
+            if roms.isEmpty {
+                Text("No ROM files found.\nDrop Kickstart images into Files › iPadUAE › WinUAE › Kickstarts.")
+                    .font(.footnote).foregroundStyle(.secondary).padding(.vertical, 8)
+            }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(roms, id: \.self) { url in
+                        MenuRow(icon: current == url.path ? "checkmark.circle.fill" : "memorychip",
+                                title: url.lastPathComponent) {
+                            ConfigStore.selectKickstart(path: url.path)
+                            onDone()
+                        }
+                    }
+                }
+            }
+            .frame(maxHeight: 420)
+        }
+    }
+}
+
+struct HardDrivePicker: View {
+    let onDone: () -> Void
+    private var images: [URL] {
+        ConfigStore.files(in: ConfigStore.hardDrivesDir, extensions: ["hdf", "hdz", "vhd"])
+    }
+    private var mounted: String? { ConfigStore.currentValue("hardfile2") }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Button(action: onDone) { Label("Back", systemImage: "chevron.left") }
+                    .buttonStyle(.plain)
+                Spacer()
+                Text("Hard Drive").font(.headline)
+            }
+            .padding(.bottom, 6)
+            Text("Mounts as DH0: and restarts the Amiga.")
+                .font(.footnote).foregroundStyle(.secondary).padding(.bottom, 4)
+
+            if mounted != nil {
+                MenuRow(icon: "eject", title: "Unmount Hard Drive") {
+                    ConfigStore.unmountHardfile()
+                    onDone()
+                }
+                Divider().padding(.vertical, 4)
+            }
+            if images.isEmpty {
+                Text("No HDF images found.\nDrop .hdf files into Files › iPadUAE › WinUAE › HardDrives.")
+                    .font(.footnote).foregroundStyle(.secondary).padding(.vertical, 8)
+            }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(images, id: \.self) { url in
+                        MenuRow(icon: mounted?.contains(url.path) == true ? "checkmark.circle.fill" : "internaldrive",
+                                title: url.lastPathComponent) {
+                            ConfigStore.mountHardfile(url: url)
+                            onDone()
+                        }
+                    }
+                }
+            }
+            .frame(maxHeight: 420)
+        }
     }
 }
 
