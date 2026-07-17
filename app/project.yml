@@ -36,3 +36,5 @@ targets:
     dependencies:
       - framework: ../vendor/SDL3/SDL3.xcframework
         embed: true
+      - sdk: CoreGraphics.framework
+      - sdk: ImageIO.framework
