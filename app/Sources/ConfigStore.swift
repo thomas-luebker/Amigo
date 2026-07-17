@@ -71,6 +71,21 @@ enum ConfigStore {
         restart()
     }
 
+    /// 1:1 pointer sync (WinUAE tablet/mousehack mode): the Amiga pointer
+    /// follows the finger/mouse position absolutely. Needs Kickstart 2.0+.
+    static var tabletMode: Bool {
+        currentValue("absolute_mouse") == "mousehack"
+    }
+
+    static func setTabletMode(_ on: Bool) {
+        if on {
+            set("absolute_mouse", "mousehack")
+        } else {
+            removeAll("absolute_mouse")
+        }
+        restart()
+    }
+
     private static func restart() {
         NSLog("iPadUAE: restarting with config %@", configURL.path)
         ipaduae_restart_with_config(configURL.path)

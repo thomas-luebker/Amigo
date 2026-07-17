@@ -23,8 +23,39 @@ index 19edeeef..880e1afe 100644
      uint32_t block_size = 512;
      uint64_t block_count = 0;
      if (ioctl(fd, DKIOCGETBLOCKSIZE, &block_size) == 0 && block_size > 0 && blocksize) {
+diff --git a/od-unix/input.cpp b/od-unix/input.cpp
+index 71889a1d..8e425ff6 100644
+--- a/od-unix/input.cpp
++++ b/od-unix/input.cpp
+@@ -1198,6 +1198,14 @@ void unix_input_mouse_motion(int dx, int dy)
+     }
+ }
+ 
++/* Absolute pointer position in emulated frame-buffer coordinates; drives
++ * mousehack/tablet mode (absolute_mouse=mousehack) for 1:1 pointer sync. */
++void unix_input_mouse_motion_abs(int x, int y)
++{
++    setmousestate(0, 0, x, 1);
++    setmousestate(0, 1, y, 1);
++}
++
+ void unix_input_mouse_button(int button, bool pressed)
+ {
+     if (button >= 0 && button < 3) {
+diff --git a/od-unix/input.h b/od-unix/input.h
+index 89704c0e..07470b5d 100644
+--- a/od-unix/input.h
++++ b/od-unix/input.h
+@@ -12,6 +12,7 @@ enum {
+     UNIX_INPUT_LOCK_SCROLL = 1 << 2
+ };
+ void unix_input_keyboard_key(int scancode, bool pressed, int lockstate);
++void unix_input_mouse_motion_abs(int x, int y);
+ void unix_input_release_keys(void);
+ void unix_input_joystick_device_changed(void);
+ 
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..09e6d36d 100644
+index 13e88b9d..d115793f 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -37,7 +68,56 @@ index 13e88b9d..09e6d36d 100644
  
  #ifdef WINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE
  #if defined(__APPLE__)
-@@ -1790,6 +1793,32 @@ void unix_video_shutdown(void)
+@@ -672,6 +675,38 @@ static bool get_renderer_output_size(int *width, int *height)
+     return get_window_pixel_size(width, height);
+ }
+ 
++/* Last presented frame mapping (source rect in emulated-buffer pixels →
++ * destination rect in renderer output pixels), for absolute pointer
++ * positioning (tablet/mousehack mode). Updated on every present. */
++static SDL_FRect s_present_src;
++static SDL_FRect s_present_dst;
++static bool s_present_map_valid = false;
++
++/* Map a window-coordinate point to emulated frame-buffer coordinates
++ * (the space mousehack's get_mouse_position expects, since the Unix
++ * getgfxoffset is identity). */
++static bool window_point_to_emulated(float wx, float wy, int *bx, int *by)
++{
++    if (!s_present_map_valid || !s_window ||
++        s_present_dst.w <= 0.0f || s_present_dst.h <= 0.0f) {
++        return false;
++    }
++    int ww = 0, wh = 0, pw = 0, ph = 0;
++    SDL_GetWindowSize(s_window, &ww, &wh);
++    SDL_GetWindowSizeInPixels(s_window, &pw, &ph);
++    float px = (ww > 0) ? wx * (float)pw / (float)ww : wx;
++    float py = (wh > 0) ? wy * (float)ph / (float)wh : wy;
++    float fx = (px - s_present_dst.x) / s_present_dst.w;
++    float fy = (py - s_present_dst.y) / s_present_dst.h;
++    if (fx < 0.0f) fx = 0.0f;
++    if (fx > 1.0f) fx = 1.0f;
++    if (fy < 0.0f) fy = 0.0f;
++    if (fy > 1.0f) fy = 1.0f;
++    *bx = (int)(s_present_src.x + fx * s_present_src.w);
++    *by = (int)(s_present_src.y + fy * s_present_src.h);
++    return true;
++}
++
+ static bool make_video_layout(const struct unix_video_frame *frame, const struct gfx_filterdata *filter,
+     int output_width, int output_height, struct unix_video_layout *layout)
+ {
+@@ -723,6 +758,9 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+ 
+     layout->frame_dst = dst;
+     layout->frame_clip = { 0, 0, output_width, frame_area_height };
++    s_present_src = source_rect;
++    s_present_dst = dst;
++    s_present_map_valid = source_rect.w > 0.0f && source_rect.h > 0.0f;
+     layout->status_dst = {
+         0.0f,
+         (float)frame_area_height,
+@@ -1790,6 +1828,32 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -70,7 +150,7 @@ index 13e88b9d..09e6d36d 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +1852,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +1887,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -81,18 +161,63 @@ index 13e88b9d..09e6d36d 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1934,6 +1967,65 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +1949,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+                 s_suppressed_mouse_buttons &= event.motion.state;
+                 break;
+             }
++            if (currprefs.input_tablet > 0) {
++                /* Absolute pointer (tablet/mousehack): no capture needed. */
++                int bx = 0, by = 0;
++                if (window_point_to_emulated(event.motion.x, event.motion.y, &bx, &by)) {
++                    unix_input_mouse_motion_abs(bx, by);
++                }
++                break;
++            }
+             if (s_mouse_grabbed) {
+                 unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
+             }
+@@ -1915,7 +1991,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+                     s_status_click_button = 0;
+                     break;
+                 }
+-                if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && !s_mouse_grabbed) {
++                if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN && !s_mouse_grabbed &&
++                    currprefs.input_tablet == 0) {
+                     unix_video_set_mouse_grab(true);
+                 }
+                 unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
+@@ -1934,6 +2011,105 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  unix_input_mouse_wheel(event.wheel.integer_x, event.wheel.integer_y);
              }
              break;
 +#if defined(__APPLE__) && TARGET_OS_IPHONE
-+        case SDL_EVENT_FINGER_DOWN:
++        case SDL_EVENT_FINGER_DOWN: {
 +            if (!input_events) {
 +                break;
 +            }
 +            s_touch_finger_count++;
 +            if (s_touch_finger_count > s_touch_max_fingers) {
 +                s_touch_max_fingers = s_touch_finger_count;
++            }
++            if (currprefs.input_tablet > 0) {
++                /* 1:1 mode: finger = pointer. Primary finger presses LMB at
++                 * its position; a second finger holds RMB (Amiga menus). */
++                int win_w = 0, win_h = 0, bx = 0, by = 0;
++                SDL_Window *win = SDL_GetWindowFromID(event.tfinger.windowID);
++                if (win) {
++                    SDL_GetWindowSize(win, &win_w, &win_h);
++                }
++                if (!s_touch_primary_active) {
++                    s_touch_primary_active = true;
++                    s_touch_primary_finger = event.tfinger.fingerID;
++                    if (window_point_to_emulated(event.tfinger.x * win_w, event.tfinger.y * win_h, &bx, &by)) {
++                        unix_input_mouse_motion_abs(bx, by);
++                    }
++                    unix_input_mouse_button(0, true);
++                } else {
++                    unix_input_mouse_button(1, true);
++                }
++                break;
 +            }
 +            if (!s_touch_primary_active) {
 +                s_touch_primary_active = true;
@@ -104,6 +229,7 @@ index 13e88b9d..09e6d36d 100644
 +                s_touch_max_fingers = s_touch_finger_count;
 +            }
 +            break;
++        }
 +        case SDL_EVENT_FINGER_MOTION:
 +            if (!input_events) {
 +                break;
@@ -113,6 +239,13 @@ index 13e88b9d..09e6d36d 100644
 +                SDL_Window *win = SDL_GetWindowFromID(event.tfinger.windowID);
 +                if (win) {
 +                    SDL_GetWindowSize(win, &win_w, &win_h);
++                }
++                if (currprefs.input_tablet > 0) {
++                    int bx = 0, by = 0;
++                    if (window_point_to_emulated(event.tfinger.x * win_w, event.tfinger.y * win_h, &bx, &by)) {
++                        unix_input_mouse_motion_abs(bx, by);
++                    }
++                    break;
 +                }
 +                float dx = (event.tfinger.x - s_touch_last_x) * (float)win_w;
 +                float dy = (event.tfinger.y - s_touch_last_y) * (float)win_h;
@@ -124,6 +257,18 @@ index 13e88b9d..09e6d36d 100644
 +            break;
 +        case SDL_EVENT_FINGER_UP: {
 +            if (!input_events) {
++                break;
++            }
++            if (currprefs.input_tablet > 0) {
++                if (s_touch_primary_active && event.tfinger.fingerID == s_touch_primary_finger) {
++                    s_touch_primary_active = false;
++                    unix_input_mouse_button(0, false);
++                } else {
++                    unix_input_mouse_button(1, false);
++                }
++                if (s_touch_finger_count > 0) {
++                    s_touch_finger_count--;
++                }
 +                break;
 +            }
 +            bool tap = false;

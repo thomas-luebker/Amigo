@@ -266,6 +266,10 @@ struct ControlPanel: View {
             MenuRow(icon: "internaldrive", title: "Hard Drive…") { submenu = .harddrive }
             MenuRow(icon: "cpu", title: "Machine (CPU / RAM / RTG / Net)…") { submenu = .machine }
             Divider().padding(.vertical, 4)
+            MenuRow(icon: ConfigStore.tabletMode ? "hand.point.up.left.fill" : "hand.point.up.left",
+                    title: ConfigStore.tabletMode ? "1:1 Mouse: On (restart to relative)" : "1:1 Mouse (pointer follows touch)") {
+                ConfigStore.setTabletMode(!ConfigStore.tabletMode)
+            }
             MenuRow(icon: "keyboard", title: state.showKeyboard ? "Hide Amiga Keyboard" : "Amiga Keyboard") {
                 state.showKeyboard.toggle()
             }
