@@ -25,6 +25,16 @@ static void prepare_data_directories(void)
                                                  attributes:nil
                                                       error:NULL];
     }
+
+    // First run: boot an A1200 with the built-in open-source AROS ROM so the
+    // app shows a living Amiga before the user imports any Kickstart.
+    NSString *defaultConfig = [base stringByAppendingPathComponent:@"Configuration/default.uae"];
+    if (![NSFileManager.defaultManager fileExistsAtPath:defaultConfig]) {
+        NSString *bundled = [NSBundle.mainBundle pathForResource:@"default" ofType:@"uae"];
+        if (bundled) {
+            [NSFileManager.defaultManager copyItemAtPath:bundled toPath:defaultConfig error:NULL];
+        }
+    }
 }
 
 int main(int argc, char *argv[])

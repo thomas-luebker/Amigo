@@ -18,6 +18,8 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: Sources
+      - path: Resources
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: de.amiga-imager.uae
@@ -30,7 +32,8 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         SUPPORTS_MACCATALYST: NO
         OTHER_LDFLAGS: "-lz -luaecore"
-        LIBRARY_SEARCH_PATHS: "$(PROJECT_DIR)/../build/ios"
+        "LIBRARY_SEARCH_PATHS[sdk=iphoneos*]": "$(PROJECT_DIR)/../build/ios"
+        "LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*]": "$(PROJECT_DIR)/../build/ios-sim"
         HEADER_SEARCH_PATHS: "$(PROJECT_DIR)/../vendor/WinUAE $(PROJECT_DIR)/../vendor/WinUAE/od-unix $(PROJECT_DIR)/../vendor/WinUAE/od-unix/include $(PROJECT_DIR)/../vendor/WinUAE/include"
         CLANG_CXX_LANGUAGE_STANDARD: "c++17"
     dependencies:

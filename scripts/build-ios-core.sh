@@ -1,11 +1,29 @@
 #!/bin/bash
-# Cross-compile the WinUAE core as a static library for iOS (arm64 device).
-# Output: build/ios/libuaecore.a
+# Cross-compile the WinUAE core as a static library for iOS.
+#   ./build-ios-core.sh [device|simulator]   (default: device)
+# Output: build/ios/libuaecore.a  or  build/ios-sim/libuaecore.a
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BUILD="$ROOT/build/ios"
-SDL_FRAMEWORK="$ROOT/vendor/SDL3/SDL3.xcframework/ios-arm64/SDL3.framework"
+PLATFORM="${1:-device}"
+if [[ $# -gt 0 ]]; then shift; fi
+
+case "$PLATFORM" in
+  device)
+    BUILD="$ROOT/build/ios"
+    SYSROOT=iphoneos
+    ARCHS=arm64
+    SDL_FRAMEWORK="$ROOT/vendor/SDL3/SDL3.xcframework/ios-arm64/SDL3.framework"
+    ;;
+  simulator)
+    BUILD="$ROOT/build/ios-sim"
+    SYSROOT=iphonesimulator
+    ARCHS="$(uname -m)"
+    SDL_FRAMEWORK="$ROOT/vendor/SDL3/SDL3.xcframework/ios-arm64_x86_64-simulator/SDL3.framework"
+    ;;
+  *)
+    echo "usage: $0 [device|simulator]" >&2; exit 1 ;;
+esac
 
 # The upstream SDL3 fallback discovery wants a directory containing SDL3/SDL.h;
 # frameworks keep headers in SDL3.framework/Headers, so shim it with a symlink.
@@ -16,8 +34,8 @@ ln -sfn "$SDL_FRAMEWORK/Headers" "$SHIM/SDL3"
 cmake -S "$ROOT/core-ios" -B "$BUILD" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCMAKE_SYSTEM_NAME=iOS \
-  -DCMAKE_OSX_SYSROOT=iphoneos \
-  -DCMAKE_OSX_ARCHITECTURES=arm64 \
+  -DCMAKE_OSX_SYSROOT="$SYSROOT" \
+  -DCMAKE_OSX_ARCHITECTURES="$ARCHS" \
   -DCMAKE_OSX_DEPLOYMENT_TARGET=17.0 \
   -DBUILD_TESTING=OFF \
   -DWINUAE_UNIX_SDL3_INCLUDE_DIR="$SHIM" \

@@ -1,0 +1,15 @@
+config_description=iPadUAE default: A1200, built-in AROS ROM
+kickstart_rom_file=:AROS
+chipset=aga
+chipset_compatible=A1200
+cpu_type=68ec020
+cpu_model=68020
+chipmem_size=4
+fastmem_size=8
+cpu_speed=max
+sound_output=exact
+gfx_width=720
+gfx_height=568
+gfx_lores=false
+gfx_linemode=double
+show_leds=true
