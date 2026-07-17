@@ -236,7 +236,7 @@ struct OverlayRoot: View {
 }
 
 struct ControlPanel: View {
-    enum Submenu { case none, df0, df1, kickstart, harddrive }
+    enum Submenu { case none, df0, df1, kickstart, harddrive, machine }
     @State private var submenu: Submenu = .none
     @ObservedObject private var state = OverlayState.shared
 
@@ -248,6 +248,7 @@ struct ControlPanel: View {
             case .df1: FloppyPicker(drive: 1) { submenu = .none }
             case .kickstart: KickstartPicker { submenu = .none }
             case .harddrive: HardDrivePicker { submenu = .none }
+            case .machine: MachinePanel { submenu = .none }
             }
         }
         .padding(12)
@@ -263,6 +264,7 @@ struct ControlPanel: View {
             Divider().padding(.vertical, 4)
             MenuRow(icon: "memorychip", title: "Kickstart ROM…") { submenu = .kickstart }
             MenuRow(icon: "internaldrive", title: "Hard Drive…") { submenu = .harddrive }
+            MenuRow(icon: "cpu", title: "Machine (CPU / RAM / RTG / Net)…") { submenu = .machine }
             Divider().padding(.vertical, 4)
             MenuRow(icon: "keyboard", title: state.showKeyboard ? "Hide Amiga Keyboard" : "Amiga Keyboard") {
                 state.showKeyboard.toggle()

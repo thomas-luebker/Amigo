@@ -76,6 +76,73 @@ enum ConfigStore {
         ipaduae_restart_with_config(configURL.path)
     }
 
+    // MARK: Machine configuration (CPU / RAM / RTG / network)
+
+    struct Machine: Equatable {
+        var chipset: String   // "ocs" | "ecs_agnus" | "aga"
+        var cpu: Int          // 68000, 68020, 68030, 68040, 68060
+        var chipHalfMB: Int   // chipmem in 0.5MB units: 1, 2, 4
+        var fastMB: Int       // 0, 4, 8
+        var z3MB: Int         // 0, 64, 128, 256
+        var rtgMB: Int        // 0, 8, 16, 32
+        var network: Bool     // bsdsocket_emu
+
+        static let a500 = Machine(chipset: "ecs_agnus", cpu: 68000, chipHalfMB: 2,
+                                  fastMB: 0, z3MB: 0, rtgMB: 0, network: false)
+        static let a1200 = Machine(chipset: "aga", cpu: 68020, chipHalfMB: 4,
+                                   fastMB: 8, z3MB: 0, rtgMB: 0, network: false)
+        static let turbo = Machine(chipset: "aga", cpu: 68060, chipHalfMB: 4,
+                                   fastMB: 8, z3MB: 64, rtgMB: 0, network: false)
+        static let rtgStation = Machine(chipset: "aga", cpu: 68040, chipHalfMB: 4,
+                                        fastMB: 8, z3MB: 128, rtgMB: 16, network: true)
+    }
+
+    static func currentMachine() -> Machine {
+        func intVal(_ key: String, _ def: Int) -> Int {
+            currentValue(key).flatMap { Int($0) } ?? def
+        }
+        return Machine(
+            chipset: currentValue("chipset") ?? "aga",
+            cpu: intVal("cpu_model", 68020),
+            chipHalfMB: intVal("chipmem_size", 4),
+            fastMB: intVal("fastmem_size", 8),
+            z3MB: intVal("z3mem_size", 0),
+            rtgMB: intVal("gfxcard_size", 0),
+            network: currentValue("bsdsocket_emu") == "true")
+    }
+
+    static func apply(machine m: Machine) {
+        // cpu_type would fight cpu_model/fpu_model — manage the explicit
+        // keys only. 24-bit addressing only for small 68000/EC020 setups.
+        removeAll("cpu_type")
+        set("chipset", m.chipset)
+        set("chipset_compatible", "-")
+        set("cpu_model", String(m.cpu))
+        let fpu: Int = switch m.cpu {
+        case 68000, 68020: 0
+        case 68030: 68882
+        default: m.cpu   // 040/060 internal FPU
+        }
+        set("fpu_model", String(fpu))
+        let wants32bit = m.cpu >= 68030 || m.z3MB > 0 || m.rtgMB > 0
+        set("cpu_24bit_addressing", wants32bit ? "false" : "true")
+        set("cpu_compatible", m.cpu >= 68030 ? "false" : "true")
+        set("cpu_speed", "max")
+        set("cachesize", "0")  // no JIT on iOS
+        set("chipmem_size", String(m.chipHalfMB))
+        set("fastmem_size", String(m.fastMB))
+        set("z3mem_size", String(m.z3MB))
+        if m.rtgMB > 0 {
+            set("gfxcard_size", String(m.rtgMB))
+            set("gfxcard_type", "ZorroIII")
+        } else {
+            removeAll("gfxcard_size")
+            removeAll("gfxcard_type")
+        }
+        set("bsdsocket_emu", m.network ? "true" : "false")
+        restart()
+    }
+
     /// A Rigid Disk Block ("RDSK") may sit in any of the first 16 blocks.
     private static func isRDB(url: URL) -> Bool {
         guard let fh = try? FileHandle(forReadingFrom: url),
