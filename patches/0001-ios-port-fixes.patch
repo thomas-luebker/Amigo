@@ -55,7 +55,7 @@ index 89704c0e..07470b5d 100644
  void unix_input_joystick_device_changed(void);
  
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..f62bf1d8 100644
+index 13e88b9d..1beff357 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -68,7 +68,7 @@ index 13e88b9d..f62bf1d8 100644
  
  #ifdef WINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE
  #if defined(__APPLE__)
-@@ -672,6 +675,38 @@ static bool get_renderer_output_size(int *width, int *height)
+@@ -672,6 +675,43 @@ static bool get_renderer_output_size(int *width, int *height)
      return get_window_pixel_size(width, height);
  }
  
@@ -78,6 +78,11 @@ index 13e88b9d..f62bf1d8 100644
 +static SDL_FRect s_present_src;
 +static SDL_FRect s_present_dst;
 +static bool s_present_map_valid = false;
++
++/* iOS: lay the picture out inside the display safe area (rounded corners,
++ * status bar). Toggled at runtime by the iPad app; layout recomputes every
++ * present, so changes apply on the next frame. */
++bool unix_video_use_safe_area = true;
 +
 +/* Map a window-coordinate point to emulated frame-buffer coordinates
 + * (the space mousehack's get_mouse_position expects, since the Unix
@@ -107,7 +112,7 @@ index 13e88b9d..f62bf1d8 100644
  static bool make_video_layout(const struct unix_video_frame *frame, const struct gfx_filterdata *filter,
      int output_width, int output_height, struct unix_video_layout *layout)
  {
-@@ -684,10 +719,32 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -684,10 +724,32 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      get_window_pixel_scale(output_width, output_height, &layout->pixel_scale_x, &layout->pixel_scale_y);
  
      int status_height = std::max(1, (int)(statusbar_display_height() * layout->pixel_scale_y + 0.5f));
@@ -120,7 +125,7 @@ index 13e88b9d..f62bf1d8 100644
 +    int safe_x = 0, safe_y = 0;
 +    int safe_w = output_width, safe_h = output_height;
 +#if defined(__APPLE__) && TARGET_OS_IPHONE
-+    if (s_window) {
++    if (s_window && unix_video_use_safe_area) {
 +        SDL_Rect sa;
 +        int ww = 0, wh = 0;
 +        if (SDL_GetWindowSafeArea(s_window, &sa) && SDL_GetWindowSize(s_window, &ww, &wh) &&
@@ -143,7 +148,7 @@ index 13e88b9d..f62bf1d8 100644
  
      SDL_FRect source_rect = filtered_frame_rect(frame, filter);
      SDL_FRect dst = {};
-@@ -696,18 +753,18 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -696,18 +758,18 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      if (frame->filter_index == GF_RTG && mode == 2) { /* center */
          dst.w = source_rect.w * layout->pixel_scale_x;
          dst.h = source_rect.h * layout->pixel_scale_y;
@@ -166,7 +171,7 @@ index 13e88b9d..f62bf1d8 100644
          const float sy = (float)frame_area_height / (float)frame->height;
          float draw_sx = sx;
          float draw_sy = sy;
-@@ -717,16 +774,22 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -717,16 +779,22 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
          }
          dst.w = source_rect.w * draw_sx;
          dst.h = source_rect.h * draw_sy;
@@ -194,7 +199,7 @@ index 13e88b9d..f62bf1d8 100644
          (float)status_height
      };
      return true;
-@@ -1790,6 +1853,47 @@ void unix_video_shutdown(void)
+@@ -1790,6 +1858,47 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -242,7 +247,7 @@ index 13e88b9d..f62bf1d8 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +1927,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +1932,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -253,7 +258,7 @@ index 13e88b9d..f62bf1d8 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1881,6 +1989,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +1994,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -268,7 +273,7 @@ index 13e88b9d..f62bf1d8 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1915,7 +2031,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2036,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -278,7 +283,7 @@ index 13e88b9d..f62bf1d8 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2043,156 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2048,156 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }

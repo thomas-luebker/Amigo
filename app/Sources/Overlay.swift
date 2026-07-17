@@ -75,6 +75,8 @@ final class OverlayInstaller {
         }
         FileHandle.standardError.write("iPadUAE: overlay installing on scene\n".data(using: .utf8)!)
         NSLog("iPadUAE overlay: installing overlay window on scene")
+        // Apply the persisted display-layout preference to the core.
+        ipaduae_set_safe_area(OverlayState.shared.fullscreenDisplay ? 0 : 1)
         let host = UIHostingController(rootView: OverlayRoot { _ in })
         host.view.backgroundColor = .clear
         let window = PassthroughWindow(windowScene: scene)
@@ -162,6 +164,7 @@ final class OverlayState: ObservableObject {
     @Published var expanded = false
     @Published var showKeyboard = false
     @Published var showJoystick = false
+    @Published var fullscreenDisplay = UserDefaults.standard.bool(forKey: "fullscreenDisplay")
     /// Global frames of touch-interactive overlay elements, keyed by id.
     /// Read by PassthroughWindow.hitTest on every touch; written from
     /// SwiftUI geometry callbacks. Main-thread only.
@@ -266,6 +269,12 @@ struct ControlPanel: View {
             MenuRow(icon: "internaldrive", title: "Hard Drive…") { submenu = .harddrive }
             MenuRow(icon: "cpu", title: "Machine (CPU / RAM / RTG / Net)…") { submenu = .machine }
             Divider().padding(.vertical, 4)
+            MenuRow(icon: state.fullscreenDisplay ? "rectangle.inset.filled" : "rectangle",
+                    title: state.fullscreenDisplay ? "Display: Fullscreen (corners may crop)" : "Display: Safe Area") {
+                state.fullscreenDisplay.toggle()
+                UserDefaults.standard.set(state.fullscreenDisplay, forKey: "fullscreenDisplay")
+                ipaduae_set_safe_area(state.fullscreenDisplay ? 0 : 1)
+            }
             MenuRow(icon: ConfigStore.tabletMode ? "hand.point.up.left.fill" : "hand.point.up.left",
                     title: ConfigStore.tabletMode ? "1:1 Mouse: On (restart to relative)" : "1:1 Mouse (pointer follows touch)") {
                 ConfigStore.setTabletMode(!ConfigStore.tabletMode)

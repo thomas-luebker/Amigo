@@ -14,3 +14,11 @@ extern "C" void ipaduae_set_tablet_runtime(int on)
     currprefs.input_tablet = mode;
     changed_prefs.input_tablet = mode;
 }
+
+/* Live toggle for safe-area layout (applies on the next presented frame). */
+extern bool unix_video_use_safe_area;
+
+extern "C" void ipaduae_set_safe_area(int on)
+{
+    unix_video_use_safe_area = on != 0;
+}
