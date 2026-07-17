@@ -1,0 +1,3 @@
+[submodule "vendor/WinUAE"]
+	path = vendor/WinUAE
+	url = https://github.com/tonioni/WinUAE
