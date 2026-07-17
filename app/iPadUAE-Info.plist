@@ -8,6 +8,8 @@
 	     silently dropped if set as a build setting). -->
 	<key>UIFileSharingEnabled</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>UIRequiresFullScreen</key>
