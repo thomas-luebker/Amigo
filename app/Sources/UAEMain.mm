@@ -37,11 +37,16 @@ static void prepare_data_directories(void)
     }
 }
 
+extern "C" void ipaduae_install_overlay(void);
+
 int main(int argc, char *argv[])
 {
     @autoreleasepool {
         prepare_data_directories();
     }
+    // Mounts the SwiftUI control overlay once SDL's window exists; the
+    // emulator loop pumps the UIKit runloop, so the dispatch fires normally.
+    ipaduae_install_overlay();
     target_main_set_args(argc, argv);
     const int early_exit = target_main_handle_early(argc, argv);
     if (early_exit >= 0)

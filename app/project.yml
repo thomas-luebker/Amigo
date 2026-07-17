@@ -36,6 +36,7 @@ targets:
         "LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*]": "$(PROJECT_DIR)/../build/ios-sim"
         HEADER_SEARCH_PATHS: "$(PROJECT_DIR)/../vendor/WinUAE $(PROJECT_DIR)/../vendor/WinUAE/od-unix $(PROJECT_DIR)/../vendor/WinUAE/od-unix/include $(PROJECT_DIR)/../vendor/WinUAE/include"
         CLANG_CXX_LANGUAGE_STANDARD: "c++17"
+        SWIFT_OBJC_BRIDGING_HEADER: "Sources/iPadUAE-Bridging-Header.h"
     dependencies:
       - framework: ../vendor/SDL3/SDL3.xcframework
         embed: true
