@@ -44,6 +44,12 @@ int main(int argc, char *argv[])
     @autoreleasepool {
         prepare_data_directories();
     }
+    // Touches feed the patched finger-event path in video_sdl.cpp
+    // (trackpad-style); disabling SDL's synthesis keeps hardware
+    // (GCMouse/trackpad) pointers on the regular mouse path.
+    setenv("SDL_TOUCH_MOUSE_EVENTS", "0", 1);
+    setenv("SDL_MOUSE_TOUCH_EVENTS", "0", 1);
+
     // Mounts the SwiftUI control overlay once SDL's window exists; the
     // emulator loop pumps the UIKit runloop, so the dispatch fires normally.
     ipaduae_install_overlay();

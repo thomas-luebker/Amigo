@@ -23,6 +23,130 @@ index 19edeeef..880e1afe 100644
      uint32_t block_size = 512;
      uint64_t block_count = 0;
      if (ioctl(fd, DKIOCGETBLOCKSIZE, &block_size) == 0 && block_size > 0 && blocksize) {
+diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
+index 13e88b9d..09e6d36d 100644
+--- a/od-unix/video_sdl.cpp
++++ b/od-unix/video_sdl.cpp
+@@ -4,6 +4,9 @@
+ #define SDL_MAIN_HANDLED
+ #include <SDL3/SDL.h>
+ #include <SDL3/SDL_main.h>
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#endif
+ 
+ #ifdef WINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE
+ #if defined(__APPLE__)
+@@ -1790,6 +1793,32 @@ void unix_video_shutdown(void)
+     s_available = false;
+ }
+ 
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++/* Touchscreen input (iPadUAE): trackpad-style relative mouse driven by SDL
++ * finger events. Touch-to-mouse synthesis is disabled via the
++ * SDL_TOUCH_MOUSE_EVENTS hint so real (GCMouse) mice keep their own path.
++ * One finger drags the pointer; a quick tap clicks; a two-finger tap is a
++ * right click. Click release is deferred a few frames so the emulated
++ * Amiga's 50Hz input polling can observe the press. */
++static SDL_FingerID s_touch_primary_finger;
++static bool s_touch_primary_active = false;
++static float s_touch_last_x = 0.0f, s_touch_last_y = 0.0f;
++static Uint64 s_touch_down_ticks = 0;
++static float s_touch_travel = 0.0f;
++static int s_touch_finger_count = 0;
++static int s_touch_max_fingers = 0;
++static int s_touch_pending_click = -1;
++static Uint64 s_touch_release_at = 0;
++
++static void touch_process_pending_click(void)
++{
++    if (s_touch_pending_click >= 0 && SDL_GetTicks() >= s_touch_release_at) {
++        unix_input_mouse_button(s_touch_pending_click, false);
++        s_touch_pending_click = -1;
++    }
++}
++#endif
++
+ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+ {
+     SDL_Event event;
+@@ -1823,6 +1852,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+         got = 1;
+     }
+ 
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++    touch_process_pending_click();
++#endif
++
+     while (SDL_PollEvent(&event)) {
+         got = 1;
+         switch (event.type) {
+@@ -1934,6 +1967,65 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+                 unix_input_mouse_wheel(event.wheel.integer_x, event.wheel.integer_y);
+             }
+             break;
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++        case SDL_EVENT_FINGER_DOWN:
++            if (!input_events) {
++                break;
++            }
++            s_touch_finger_count++;
++            if (s_touch_finger_count > s_touch_max_fingers) {
++                s_touch_max_fingers = s_touch_finger_count;
++            }
++            if (!s_touch_primary_active) {
++                s_touch_primary_active = true;
++                s_touch_primary_finger = event.tfinger.fingerID;
++                s_touch_last_x = event.tfinger.x;
++                s_touch_last_y = event.tfinger.y;
++                s_touch_down_ticks = SDL_GetTicks();
++                s_touch_travel = 0.0f;
++                s_touch_max_fingers = s_touch_finger_count;
++            }
++            break;
++        case SDL_EVENT_FINGER_MOTION:
++            if (!input_events) {
++                break;
++            }
++            if (s_touch_primary_active && event.tfinger.fingerID == s_touch_primary_finger) {
++                int win_w = 0, win_h = 0;
++                SDL_Window *win = SDL_GetWindowFromID(event.tfinger.windowID);
++                if (win) {
++                    SDL_GetWindowSize(win, &win_w, &win_h);
++                }
++                float dx = (event.tfinger.x - s_touch_last_x) * (float)win_w;
++                float dy = (event.tfinger.y - s_touch_last_y) * (float)win_h;
++                s_touch_last_x = event.tfinger.x;
++                s_touch_last_y = event.tfinger.y;
++                s_touch_travel += SDL_fabsf(dx) + SDL_fabsf(dy);
++                unix_input_mouse_motion((int)lroundf(dx), (int)lroundf(dy));
++            }
++            break;
++        case SDL_EVENT_FINGER_UP: {
++            if (!input_events) {
++                break;
++            }
++            bool tap = false;
++            if (s_touch_primary_active && event.tfinger.fingerID == s_touch_primary_finger) {
++                Uint64 held = SDL_GetTicks() - s_touch_down_ticks;
++                tap = held < 300 && s_touch_travel < 12.0f;
++                s_touch_primary_active = false;
++            }
++            if (s_touch_finger_count > 0) {
++                s_touch_finger_count--;
++            }
++            if (tap && s_touch_pending_click < 0) {
++                int btn = (s_touch_max_fingers >= 2) ? 1 : 0;
++                unix_input_mouse_button(btn, true);
++                s_touch_pending_click = btn;
++                s_touch_release_at = SDL_GetTicks() + 60;
++            }
++            break;
++        }
++#endif
+         case SDL_EVENT_JOYSTICK_ADDED:
+         case SDL_EVENT_JOYSTICK_REMOVED:
+         case SDL_EVENT_GAMEPAD_ADDED:
 diff --git a/vm.cpp b/vm.cpp
 index d0864118..9a5356b7 100644
 --- a/vm.cpp

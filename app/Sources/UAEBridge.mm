@@ -25,3 +25,12 @@ extern "C" void ipaduae_reset(int hard)
 {
     uae_reset(hard, 1);
 }
+
+// Virtual keyboard/joystick: feed SDL scancodes straight into the Unix
+// input layer (same entry the SDL key-event path uses).
+extern void unix_input_keyboard_key(int scancode, bool pressed, int lockstate);
+
+extern "C" void ipaduae_send_key(int sdl_scancode, int pressed)
+{
+    unix_input_keyboard_key(sdl_scancode, pressed != 0, 0);
+}

@@ -81,6 +81,30 @@ final class OverlayInstaller {
                 }
             }
         }, insertName, nil, .deliverImmediately)
+
+        // Dismisses an Amiga system requester (LAmiga+B) and types "dir\n" —
+        // used to verify the virtual-key path end to end in the simulator.
+        let kbName = "de.amiga-imager.uae.toggleKeyboard" as CFString
+        CFNotificationCenterAddObserver(center, nil, { _, _, _, _, _ in
+            DispatchQueue.main.async { OverlayState.shared.showKeyboard.toggle() }
+        }, kbName, nil, .deliverImmediately)
+
+        let joyName = "de.amiga-imager.uae.toggleJoystick" as CFString
+        CFNotificationCenterAddObserver(center, nil, { _, _, _, _, _ in
+            DispatchQueue.main.async { OverlayState.shared.showJoystick.toggle() }
+        }, joyName, nil, .deliverImmediately)
+
+        let typeName = "de.amiga-imager.uae.typeDirTest" as CFString
+        CFNotificationCenterAddObserver(center, nil, { _, _, _, _, _ in
+            DispatchQueue.main.async {
+                NSLog("iPadUAE overlay: debug typeDirTest")
+                sendKeyTap(SC.b, delay: 0.0, modifier: SC.lamiga)   // cancel requester
+                sendKeyTap(SC.d, delay: 1.0)
+                sendKeyTap(SC.i, delay: 1.3)
+                sendKeyTap(SC.r, delay: 1.6)
+                sendKeyTap(SC.ret, delay: 2.0)
+            }
+        }, typeName, nil, .deliverImmediately)
     }
 }
 
@@ -88,6 +112,21 @@ final class OverlayInstaller {
 final class OverlayState: ObservableObject {
     static let shared = OverlayState()
     @Published var expanded = false
+    @Published var showKeyboard = false
+    @Published var showJoystick = false
+}
+
+/// Sends a scancode press+release with a small gap so the emulated 50Hz
+/// input polling reliably observes it; used by debug hooks and macros.
+func sendKeyTap(_ code: Int, delay: Double, modifier: Int? = nil) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+        if let m = modifier { ipaduae_send_key(Int32(m), 1) }
+        ipaduae_send_key(Int32(code), 1)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+            ipaduae_send_key(Int32(code), 0)
+            if let m = modifier { ipaduae_send_key(Int32(m), 0) }
+        }
+    }
 }
 
 struct OverlayRoot: View {
@@ -96,36 +135,55 @@ struct OverlayRoot: View {
     private var expanded: Bool { state.expanded }
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: 8) {
-            Button {
-                state.expanded.toggle()
-                NSLog("iPadUAE overlay: menu %@", expanded ? "opened" : "closed")
-            } label: {
-                Image(systemName: expanded ? "xmark" : "gearshape.fill")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
-                    .background(.red.opacity(0.75), in: Circle())
-                    .shadow(radius: 3)
-            }
-            .buttonStyle(.plain)
+        ZStack {
+            VStack(alignment: .trailing, spacing: 8) {
+                Button {
+                    state.expanded.toggle()
+                    NSLog("iPadUAE overlay: menu %@", expanded ? "opened" : "closed")
+                } label: {
+                    Image(systemName: expanded ? "xmark" : "gearshape.fill")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                        .background(.red.opacity(0.75), in: Circle())
+                        .shadow(radius: 3)
+                }
+                .buttonStyle(.plain)
 
-            if expanded {
-                ControlPanel()
-                    .frame(width: 352)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-                    .shadow(radius: 8)
+                if expanded {
+                    ControlPanel()
+                        .frame(width: 352)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+                        .shadow(radius: 8)
+                }
+                Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+
+            if state.showJoystick {
+                VStack {
+                    Spacer()
+                    VirtualJoystickView()
+                }
+            }
+
+            if state.showKeyboard {
+                VStack {
+                    Spacer()
+                    AmigaKeyboardView()
+                        .padding(.bottom, state.showJoystick ? 200 : 12)
+                        .padding(.horizontal, 12)
+                }
+            }
         }
         .tint(.red)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
     }
 }
 
 struct ControlPanel: View {
     enum Submenu { case none, df0, df1 }
     @State private var submenu: Submenu = .none
+    @ObservedObject private var state = OverlayState.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -145,6 +203,13 @@ struct ControlPanel: View {
             MenuRow(icon: "opticaldiscdrive", title: "Insert DF1…") { submenu = .df1 }
             MenuRow(icon: "eject", title: "Eject DF0") { ipaduae_eject_floppy(0) }
             MenuRow(icon: "eject", title: "Eject DF1") { ipaduae_eject_floppy(1) }
+            Divider().padding(.vertical, 4)
+            MenuRow(icon: "keyboard", title: state.showKeyboard ? "Hide Amiga Keyboard" : "Amiga Keyboard") {
+                state.showKeyboard.toggle()
+            }
+            MenuRow(icon: "gamecontroller", title: state.showJoystick ? "Hide Joystick" : "Virtual Joystick") {
+                state.showJoystick.toggle()
+            }
             Divider().padding(.vertical, 4)
             MenuRow(icon: "arrow.counterclockwise", title: "Reset") { ipaduae_reset(0) }
             MenuRow(icon: "exclamationmark.arrow.circlepath", title: "Hard Reset") { ipaduae_reset(1) }

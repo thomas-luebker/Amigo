@@ -13,3 +13,5 @@ gfx_height=568
 gfx_lores=false
 gfx_linemode=double
 show_leds=true
+joyport0=mouse
+joyport1=kbd2
