@@ -1,0 +1,50 @@
+#!/bin/bash
+# Cross-compile the WinUAE core as a static library for iOS (arm64 device).
+# Output: build/ios/libuaecore.a
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BUILD="$ROOT/build/ios"
+SDL_FRAMEWORK="$ROOT/vendor/SDL3/SDL3.xcframework/ios-arm64/SDL3.framework"
+
+# The upstream SDL3 fallback discovery wants a directory containing SDL3/SDL.h;
+# frameworks keep headers in SDL3.framework/Headers, so shim it with a symlink.
+SHIM="$BUILD/sdl3-include"
+mkdir -p "$SHIM"
+ln -sfn "$SDL_FRAMEWORK/Headers" "$SHIM/SDL3"
+
+cmake -S "$ROOT/core-ios" -B "$BUILD" \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_SYSTEM_NAME=iOS \
+  -DCMAKE_OSX_SYSROOT=iphoneos \
+  -DCMAKE_OSX_ARCHITECTURES=arm64 \
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=17.0 \
+  -DBUILD_TESTING=OFF \
+  -DWINUAE_UNIX_SDL3_INCLUDE_DIR="$SHIM" \
+  -DWINUAE_UNIX_SDL3_FALLBACK_LIBRARY="$SDL_FRAMEWORK/SDL3" \
+  -DWINUAE_UNIX_BUILD_EXECUTABLE=OFF \
+  -DWINUAE_UNIX_WITH_JIT=OFF \
+  -DWINUAE_UNIX_WITH_QT_UI=OFF \
+  -DWINUAE_UNIX_WITH_INTEGRATED_QT_UI=OFF \
+  -DWINUAE_UNIX_WITH_CHD=OFF \
+  -DWINUAE_UNIX_WITH_CHD_FLAC=OFF \
+  -DWINUAE_UNIX_WITH_LIBMPEG2=OFF \
+  -DWINUAE_UNIX_WITH_LIBPNG=OFF \
+  -DWINUAE_UNIX_WITH_UAENET_PCAP=OFF \
+  -DWINUAE_UNIX_WITH_SANA2=OFF \
+  -DWINUAE_UNIX_WITH_NATIVE_HARDDRIVES=OFF \
+  -DWINUAE_UNIX_WITH_NATIVE_CD=OFF \
+  -DWINUAE_UNIX_WITH_NATIVE_SCSI=OFF \
+  -DWINUAE_UNIX_WITH_UAESCSI=OFF \
+  -DWINUAE_UNIX_WITH_UAESERIAL=OFF \
+  -DWINUAE_UNIX_WITH_MIDI=OFF \
+  -DWINUAE_UNIX_WITH_MIDIEMU=OFF \
+  -DWINUAE_UNIX_WITH_SAMPLER=OFF \
+  -DWINUAE_UNIX_WITH_AVIOUTPUT=OFF \
+  -DWINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE=OFF \
+  -DWINUAE_UNIX_WITH_PPC_QEMU=OFF \
+  -DWINUAE_UNIX_BUILD_QEMU_UAE_PLUGIN=OFF \
+  "$@"
+
+cmake --build "$BUILD" --target uaecore -j "$(sysctl -n hw.ncpu)"
+ls -la "$BUILD"/libuaecore.a
