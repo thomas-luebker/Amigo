@@ -150,9 +150,13 @@ enum ConfigStore {
         if m.rtgMB > 0 {
             set("gfxcard_size", String(m.rtgMB))
             set("gfxcard_type", "ZorroIII")
+            // Host-rendered cursor sprite: pointer moves without VRAM
+            // redraws — noticeably smoother, especially with 1:1 mouse.
+            set("gfxcard_hardware_sprite", "true")
         } else {
             removeAll("gfxcard_size")
             removeAll("gfxcard_type")
+            removeAll("gfxcard_hardware_sprite")
         }
         set("bsdsocket_emu", m.network ? "true" : "false")
         restart()
