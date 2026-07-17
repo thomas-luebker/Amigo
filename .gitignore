@@ -1,5 +1,6 @@
 build/
 DerivedData/
+app/iPadUAE.xcodeproj/
 *.xcuserdatad/
 xcuserdata/
 .DS_Store

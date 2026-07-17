@@ -1,0 +1,38 @@
+# XcodeGen spec — regenerate with: xcodegen -s app/project.yml
+# Generates a classic .xcodeproj (SPM iOSApplication packages cannot be
+# signed for real devices — lesson from AmigaImagerPad).
+name: iPadUAE
+options:
+  minimumXcodeGenVersion: 2.38.0
+  bundleIdPrefix: de.amiga-imager
+settings:
+  base:
+    DEVELOPMENT_TEAM: Y38P2BJ4DM
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: 5.9
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+targets:
+  iPadUAE:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.amiga-imager.uae
+        TARGETED_DEVICE_FAMILY: "2"
+        GENERATE_INFOPLIST_FILE: YES
+        # Xcode 26.6: INFOPLIST_KEY_UIFileSharingEnabled does not exist and is
+        # silently ignored — UIFileSharingEnabled must live in this partial
+        # plist or the app's documents vanish from the Files app.
+        INFOPLIST_FILE: iPadUAE-Info.plist
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        SUPPORTS_MACCATALYST: NO
+        OTHER_LDFLAGS: "-lz -luaecore"
+        LIBRARY_SEARCH_PATHS: "$(PROJECT_DIR)/../build/ios"
+        HEADER_SEARCH_PATHS: "$(PROJECT_DIR)/../vendor/WinUAE $(PROJECT_DIR)/../vendor/WinUAE/od-unix $(PROJECT_DIR)/../vendor/WinUAE/od-unix/include $(PROJECT_DIR)/../vendor/WinUAE/include"
+        CLANG_CXX_LANGUAGE_STANDARD: "c++17"
+    dependencies:
+      - framework: ../vendor/SDL3/SDL3.xcframework
+        embed: true

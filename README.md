@@ -10,6 +10,17 @@ upstream Unix/SDL3 layer (`od-unix/`), targeting iPadOS and App Store distributi
 - `app/` — the iPad application (Xcode project, Swift/SwiftUI shell)
 - `scripts/` — build scripts (iOS cross-compile of the core, dependency builds)
 
+## Building
+
+```sh
+./scripts/build-ios-core.sh      # cross-compiles build/ios/libuaecore.a (arm64 iOS)
+xcodegen -s app/project.yml      # regenerates app/iPadUAE.xcodeproj
+open app/iPadUAE.xcodeproj       # build & run the iPadUAE target on an iPad
+```
+
+Upstream patches needed for iOS live in `patches/` and are also applied in the
+`vendor/WinUAE` submodule working tree.
+
 ## Constraints
 
 - **No JIT** on iPadOS (no writable+executable pages) — CPU emulation runs interpreted.
