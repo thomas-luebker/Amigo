@@ -51,7 +51,18 @@ xcodebuild -create-xcframework \
   -framework "$SIM_FW" \
   -output "$TMP_XC"
 
+# The CMake SDL_FRAMEWORK build omits CFBundleVersion / CFBundle
+# ShortVersionString, which App Store upload requires (ITMS 90056/90057).
+for slice_fw in "$TMP_XC"/*/SDL3.framework; do
+  [ -d "$slice_fw" ] || continue
+  pl="$slice_fw/Info.plist"
+  /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string 3.4.12" "$pl" 2>/dev/null \
+    || /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 3.4.12" "$pl"
+  /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string 3.4.12" "$pl" 2>/dev/null \
+    || /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 3.4.12" "$pl"
+done
+
 rm -rf "$ROOT/vendor/SDL3/SDL3.xcframework"
 cp -R "$TMP_XC" "$ROOT/vendor/SDL3/SDL3.xcframework"
 
-echo "==> vendor/SDL3/SDL3.xcframework rebuilt (SDL_CAMERA=OFF)"
+echo "==> vendor/SDL3/SDL3.xcframework rebuilt (SDL_CAMERA=OFF, versioned)"
