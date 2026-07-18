@@ -104,8 +104,7 @@ final class OverlayInstaller {
         let insertName = "de.amiga-imager.uae.insertFirstFloppy" as CFString
         CFNotificationCenterAddObserver(center, nil, { _, _, _, _, _ in
             DispatchQueue.main.async {
-                let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                    .appendingPathComponent("WinUAE/Floppies")
+                let dir = ConfigStore.winuaeDir.appendingPathComponent("Floppies")
                 let first = ((try? FileManager.default.contentsOfDirectory(
                     at: dir, includingPropertiesForKeys: nil)) ?? [])
                     .filter { ["adf", "adz", "dms"].contains($0.pathExtension.lowercased()) }
@@ -430,8 +429,7 @@ struct FloppyPicker: View {
     let onDone: () -> Void
 
     private var floppyDir: URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("WinUAE/Floppies")
+        ConfigStore.winuaeDir.appendingPathComponent("Floppies")
     }
 
     private var images: [URL] {

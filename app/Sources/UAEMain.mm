@@ -17,22 +17,37 @@ extern int target_main_handle_early(int argc, char **argv);
 // folders users need to drop files into.
 static void prepare_data_directories(void)
 {
-    NSString *docs = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
-    NSString *base = [docs stringByAppendingPathComponent:@"WinUAE"];
+    NSFileManager *fm = NSFileManager.defaultManager;
+    NSString *base = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+
+    // Migrate from the earlier Documents/WinUAE/ layout: move any resource
+    // subfolders up into Documents/ so existing Kickstarts/HDFs aren't lost.
+    NSString *legacy = [base stringByAppendingPathComponent:@"WinUAE"];
+    if ([fm fileExistsAtPath:legacy]) {
+        for (NSString *item in [fm contentsOfDirectoryAtPath:legacy error:NULL]) {
+            NSString *dst = [base stringByAppendingPathComponent:item];
+            if (![fm fileExistsAtPath:dst]) {
+                [fm moveItemAtPath:[legacy stringByAppendingPathComponent:item] toPath:dst error:NULL];
+            }
+        }
+        // Remove the old folder if it's now empty.
+        if ([fm contentsOfDirectoryAtPath:legacy error:NULL].count == 0) {
+            [fm removeItemAtPath:legacy error:NULL];
+        }
+    }
+
     for (NSString *sub in @[ @"Configuration", @"Kickstarts", @"Floppies", @"HardDrives", @"SaveStates", @"SaveImages" ]) {
-        [NSFileManager.defaultManager createDirectoryAtPath:[base stringByAppendingPathComponent:sub]
-                                withIntermediateDirectories:YES
-                                                 attributes:nil
-                                                      error:NULL];
+        [fm createDirectoryAtPath:[base stringByAppendingPathComponent:sub]
+      withIntermediateDirectories:YES attributes:nil error:NULL];
     }
 
     // First run: boot an A1200 with the built-in open-source AROS ROM so the
     // app shows a living Amiga before the user imports any Kickstart.
     NSString *defaultConfig = [base stringByAppendingPathComponent:@"Configuration/default.uae"];
-    if (![NSFileManager.defaultManager fileExistsAtPath:defaultConfig]) {
+    if (![fm fileExistsAtPath:defaultConfig]) {
         NSString *bundled = [NSBundle.mainBundle pathForResource:@"default" ofType:@"uae"];
         if (bundled) {
-            [NSFileManager.defaultManager copyItemAtPath:bundled toPath:defaultConfig error:NULL];
+            [fm copyItemAtPath:bundled toPath:defaultConfig error:NULL];
         }
     }
 }

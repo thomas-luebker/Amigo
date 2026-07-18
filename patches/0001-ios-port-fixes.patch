@@ -1,3 +1,39 @@
+diff --git a/od-unix/config.cpp b/od-unix/config.cpp
+index 9618298b..ff7f421a 100644
+--- a/od-unix/config.cpp
++++ b/od-unix/config.cpp
+@@ -5,6 +5,9 @@
+ #include <cstdlib>
+ #include <string>
+ #include <unistd.h>
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#endif
+ 
+ #include "options.h"
+ #ifdef AVIOUTPUT
+@@ -776,11 +779,21 @@ static void fetch_user_data_path(TCHAR *out, int size, const char *subdir)
+     }
+     const char *home = getenv("HOME");
+     const char *base = home ? home : ".";
++#if defined(__APPLE__) && defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
++    /* iOS: Documents is already the app's (iPadUAE) folder in the Files app,
++     * so place resource subdirs directly there rather than under WinUAE/. */
++    if (subdir && subdir[0]) {
++        snprintf(out, (size_t)size, "%s/Documents/%s", base, subdir);
++    } else {
++        snprintf(out, (size_t)size, "%s/Documents", base);
++    }
++#else
+     if (subdir && subdir[0]) {
+         snprintf(out, (size_t)size, "%s/Documents/WinUAE/%s", base, subdir);
+     } else {
+         snprintf(out, (size_t)size, "%s/Documents/WinUAE", base);
+     }
++#endif
+     fixtrailing(out);
+ }
+ 
 diff --git a/od-unix/hardfile_host.cpp b/od-unix/hardfile_host.cpp
 index 19edeeef..880e1afe 100644
 --- a/od-unix/hardfile_host.cpp
