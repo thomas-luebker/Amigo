@@ -78,6 +78,7 @@ final class OverlayInstaller {
         // Apply persisted display preferences to the core.
         ipaduae_set_safe_area(OverlayState.shared.fullscreenDisplay ? 0 : 1)
         ipaduae_set_rtg_accel(OverlayState.shared.rtgAccel ? 1 : 0)
+        ipaduae_set_vsync(OverlayState.shared.vsync ? 1 : 0)
         let host = UIHostingController(rootView: OverlayRoot { _ in })
         host.view.backgroundColor = .clear
         let window = PassthroughWindow(windowScene: scene)
@@ -167,6 +168,7 @@ final class OverlayState: ObservableObject {
     @Published var fullscreenDisplay = UserDefaults.standard.bool(forKey: "fullscreenDisplay")
     @Published var showLEDs = UserDefaults.standard.object(forKey: "showLEDs") as? Bool ?? true
     @Published var rtgAccel = UserDefaults.standard.object(forKey: "rtgAccel") as? Bool ?? false
+    @Published var vsync = UserDefaults.standard.object(forKey: "vsync") as? Bool ?? false
     /// Global frames of touch-interactive overlay elements, keyed by id.
     /// Read by PassthroughWindow.hitTest on every touch; written from
     /// SwiftUI geometry callbacks. Main-thread only.
@@ -273,6 +275,12 @@ struct ControlPanel: View {
             MenuRow(icon: "cpu", title: "Machine (CPU / RAM / RTG / Net)…") { submenu = .machine }
             MenuRow(icon: "square.stack.3d.up", title: "Configurations (save/load setups)…") { submenu = .configs }
             Divider().padding(.vertical, 4)
+            MenuRow(icon: state.vsync ? "speedometer" : "speedometer",
+                    title: state.vsync ? "Speed: Smooth (vsync on)" : "Speed: Fast (vsync off)") {
+                state.vsync.toggle()
+                UserDefaults.standard.set(state.vsync, forKey: "vsync")
+                ipaduae_set_vsync(state.vsync ? 1 : 0)
+            }
             MenuRow(icon: state.rtgAccel ? "bolt.fill" : "bolt.slash",
                     title: state.rtgAccel ? "RTG Accel: On (fast)" : "RTG Accel: Off (correct >8-bit)") {
                 state.rtgAccel.toggle()

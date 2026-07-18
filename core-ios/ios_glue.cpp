@@ -40,3 +40,14 @@ extern "C" void ipaduae_set_rtg_accel(int on)
 {
     unix_rtg_accel_enabled = on != 0;
 }
+
+/* Present vsync — off decouples emulation throughput from the display
+ * refresh (the emulation thread no longer blocks on vblank). */
+extern bool unix_video_vsync;
+extern void unix_video_apply_vsync(void);
+
+extern "C" void ipaduae_set_vsync(int on)
+{
+    unix_video_vsync = on != 0;
+    unix_video_apply_vsync();
+}
