@@ -35,7 +35,7 @@ index 9618298b..ff7f421a 100644
  }
  
 diff --git a/od-unix/graphics.cpp b/od-unix/graphics.cpp
-index 51e73167..aadc8959 100644
+index 51e73167..4312fb90 100644
 --- a/od-unix/graphics.cpp
 +++ b/od-unix/graphics.cpp
 @@ -165,6 +165,8 @@ static void unix_apply_video_mode_from_prefs(struct uae_prefs *prefs, int monid)
@@ -125,24 +125,6 @@ index 51e73167..aadc8959 100644
      picasso_vidinfo[monid].picasso_active = on != 0;
      unix_apply_video_mode_from_prefs(&currprefs, monid);
      if (on) {
-@@ -1147,6 +1188,17 @@ void picasso_handle_vsync(void)
-         int state = vidinfo->picasso_state_change;
-         bool uaegfx = currprefs.rtgboards[0].rtgmem_type < GFXBOARD_HARDWARE;
- 
-+        /* iPadUAE: the guest's RTG switch register (SwitchState) is the
-+         * source of truth for whether RTG should be on. Something in the
-+         * reset/draw path can clear picasso_requested_on while SwitchState
-+         * stays 1, so the emulator drops RTG even though the guest still
-+         * wants it (RTG intermittently fails to reappear after reboot).
-+         * Resync — only ever restores the request, never clears it, so
-+         * reset (both 0) and RTG-off (both 0) are unaffected. */
-+        if (uaegfx && picasso96_state[monid].SwitchState && !ad->picasso_requested_on) {
-+            ad->picasso_requested_on = true;
-+        }
-+
-         if (state) {
-             atomic_and(&vidinfo->picasso_state_change, ~state);
-             if (state & UNIX_PICASSO_STATE_SETGC) {
 diff --git a/od-unix/hardfile_host.cpp b/od-unix/hardfile_host.cpp
 index 19edeeef..880e1afe 100644
 --- a/od-unix/hardfile_host.cpp
