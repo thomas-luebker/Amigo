@@ -246,7 +246,7 @@ index ce574a41..c06fc4b1 100644
      unix_picasso_bitmap_info bitmap;
      uaecptr bitmap_info = trap_get_areg(ctx, 1);
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..aa9f81e0 100644
+index 13e88b9d..718cafbf 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -271,7 +271,16 @@ index 13e88b9d..aa9f81e0 100644
      return TD_TOTAL_HEIGHT;
  }
  
-@@ -672,6 +680,57 @@ static bool get_renderer_output_size(int *width, int *height)
+@@ -532,6 +540,8 @@ static bool ensure_texture(int width, int height, int pixbytes, int backbuffers)
+         return true;
+     }
+ 
++    write_log(_T("iPadUAE RTG: ensure_texture recreate %dx%d -> %dx%d pixbytes=%d bb=%d\n"),
++        s_texture_width, s_texture_height, width, height, pixbytes, backbuffers);
+     destroy_frame_textures();
+ 
+     for (int i = 0; i < backbuffers; i++) {
+@@ -672,6 +682,57 @@ static bool get_renderer_output_size(int *width, int *height)
      return get_window_pixel_size(width, height);
  }
  
@@ -329,7 +338,7 @@ index 13e88b9d..aa9f81e0 100644
  static bool make_video_layout(const struct unix_video_frame *frame, const struct gfx_filterdata *filter,
      int output_width, int output_height, struct unix_video_layout *layout)
  {
-@@ -684,10 +743,32 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -684,10 +745,32 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      get_window_pixel_scale(output_width, output_height, &layout->pixel_scale_x, &layout->pixel_scale_y);
  
      int status_height = std::max(1, (int)(statusbar_display_height() * layout->pixel_scale_y + 0.5f));
@@ -365,7 +374,7 @@ index 13e88b9d..aa9f81e0 100644
  
      SDL_FRect source_rect = filtered_frame_rect(frame, filter);
      SDL_FRect dst = {};
-@@ -696,18 +777,18 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -696,18 +779,18 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      if (frame->filter_index == GF_RTG && mode == 2) { /* center */
          dst.w = source_rect.w * layout->pixel_scale_x;
          dst.h = source_rect.h * layout->pixel_scale_y;
@@ -388,7 +397,7 @@ index 13e88b9d..aa9f81e0 100644
          const float sy = (float)frame_area_height / (float)frame->height;
          float draw_sx = sx;
          float draw_sy = sy;
-@@ -717,16 +798,22 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -717,16 +800,22 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
          }
          dst.w = source_rect.w * draw_sx;
          dst.h = source_rect.h * draw_sy;
@@ -416,7 +425,7 @@ index 13e88b9d..aa9f81e0 100644
          (float)status_height
      };
      return true;
-@@ -1183,7 +1270,7 @@ static bool unix_gl_ensure_context(int width, int height)
+@@ -1183,7 +1272,7 @@ static bool unix_gl_ensure_context(int width, int height)
          return false;
      }
      SDL_GL_MakeCurrent(s_window, s_gl_context);
@@ -425,7 +434,7 @@ index 13e88b9d..aa9f81e0 100644
      if (!unix_gl_build_program()) {
          SDL_GL_DestroyContext(s_gl_context);
          s_gl_context = NULL;
-@@ -1728,7 +1815,7 @@ bool unix_video_init(int width, int height, int pixbytes)
+@@ -1728,7 +1817,7 @@ bool unix_video_init(int width, int height, int pixbytes)
              s_available = false;
              return false;
          }
@@ -434,7 +443,7 @@ index 13e88b9d..aa9f81e0 100644
          SDL_SetRenderDrawColor(s_renderer, 0, 0, 0, 255);
          SDL_RenderClear(s_renderer);
          SDL_RenderPresent(s_renderer);
-@@ -1790,6 +1877,47 @@ void unix_video_shutdown(void)
+@@ -1790,6 +1879,47 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -482,7 +491,7 @@ index 13e88b9d..aa9f81e0 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +1951,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +1953,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -493,7 +502,7 @@ index 13e88b9d..aa9f81e0 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2002,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2004,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
@@ -524,7 +533,7 @@ index 13e88b9d..aa9f81e0 100644
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2037,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2039,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -539,7 +548,7 @@ index 13e88b9d..aa9f81e0 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1915,7 +2079,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2081,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -549,7 +558,7 @@ index 13e88b9d..aa9f81e0 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2091,156 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2093,156 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -708,6 +717,22 @@ index 13e88b9d..aa9f81e0 100644
          case SDL_EVENT_JOYSTICK_ADDED:
          case SDL_EVENT_JOYSTICK_REMOVED:
          case SDL_EVENT_GAMEPAD_ADDED:
+@@ -2014,6 +2323,15 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+ 
+ void unix_video_present(const struct unix_video_frame *frame)
+ {
++    /* Log frame geometry only when it changes (RTG on/off, mode switch) —
++     * not per-frame — to trace whether RTG frames reach the screen. */
++    static int s_last_w, s_last_h, s_last_fi = -1;
++    if (frame && (frame->width != s_last_w || frame->height != s_last_h ||
++                  frame->filter_index != s_last_fi)) {
++        s_last_w = frame->width; s_last_h = frame->height; s_last_fi = frame->filter_index;
++        write_log(_T("iPadUAE RTG: present frame %dx%d filter=%d\n"),
++            frame->width, frame->height, frame->filter_index);
++    }
+     if (!unix_video_on_event_thread()) {
+         queue_video_frame_for_event_thread(frame);
+         return;
 diff --git a/vm.cpp b/vm.cpp
 index d0864118..9a5356b7 100644
 --- a/vm.cpp
