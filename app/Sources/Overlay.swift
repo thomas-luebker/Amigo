@@ -242,6 +242,11 @@ struct OverlayRoot: View {
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            // Inset from the top-right corner so the gear/close button clears
+            // the rounded corner and is comfortably reachable (was flush in
+            // the corner, too tight on 11" iPads).
+            .padding(.top, 10)
+            .padding(.trailing, 18)
 
             if state.showJoystick {
                 VStack {

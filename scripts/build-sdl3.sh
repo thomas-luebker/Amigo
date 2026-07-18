@@ -15,7 +15,9 @@ common=(
   -DSDL_SHARED=ON -DSDL_STATIC=OFF
   -DSDL_FRAMEWORK=ON
   -DSDL_TEST_LIBRARY=OFF -DSDL_EXAMPLES=OFF -DSDL_TESTS=OFF
-  -DCMAKE_BUILD_TYPE=Release
+  # RelWithDebInfo keeps the -g debug info so a real dSYM can be produced
+  # (a plain Release build strips it → empty dSYM → upload-symbols warning).
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo
   -DCMAKE_OSX_DEPLOYMENT_TARGET=17.0
 )
 
@@ -28,8 +30,13 @@ build() {
     "${common[@]}" >/dev/null
   # CODE_SIGNING_ALLOWED=NO: the Xcode generator's framework code-sign step
   # fails without a signing identity; the xcframework is signed later anyway.
+  # dwarf-with-dsym: produce SDL3.framework.dSYM so App Store upload has
+  # symbols (avoids the "Upload Symbols Failed" warning).
   xcodebuild -project "$OUT/$name/SDL3.xcodeproj" -target SDL3-shared \
-    -configuration Release -sdk "$sysroot" CODE_SIGNING_ALLOWED=NO -quiet
+    -configuration RelWithDebInfo -sdk "$sysroot" CODE_SIGNING_ALLOWED=NO \
+    DEBUG_INFORMATION_FORMAT=dwarf-with-dsym \
+    DEPLOYMENT_POSTPROCESSING=NO STRIP_INSTALLED_PRODUCT=NO COPY_PHASE_STRIP=NO \
+    -quiet
 }
 
 echo "==> Building SDL3 (device, camera off)"
@@ -37,18 +44,29 @@ build device iphoneos arm64
 echo "==> Building SDL3 (simulator, camera off)"
 build sim iphonesimulator "arm64;x86_64"
 
-DEV_FW=$(find "$OUT/device" -name SDL3.framework -type d | head -1)
-SIM_FW=$(find "$OUT/sim" -name SDL3.framework -type d | head -1)
-echo "device: $DEV_FW"
-echo "sim:    $SIM_FW"
+# Locate the dSYM (unambiguous), then derive the real framework as its
+# sibling — avoids matching the EagerLinkingTBDs stub framework.
+DEV_DSYM=$(find "$OUT/device" -name "SDL3.framework.dSYM" -type d | head -1)
+SIM_DSYM=$(find "$OUT/sim" -name "SDL3.framework.dSYM" -type d | head -1)
+DEV_FW="${DEV_DSYM%.dSYM}"
+SIM_FW="${SIM_DSYM%.dSYM}"
+echo "device: $DEV_FW  dSYM: $DEV_DSYM"
+echo "sim:    $SIM_FW  dSYM: $SIM_DSYM"
 [ -d "$DEV_FW" ] && [ -d "$SIM_FW" ] || { echo "framework(s) not found — aborting"; exit 1; }
+[ -d "$DEV_DSYM" ] && [ -d "$SIM_DSYM" ] || { echo "dSYM(s) not found — aborting"; exit 1; }
+
+# dSYMs now hold the debug info; strip it from the shipped binaries so the
+# framework stays small (UUID is preserved, so the dSYM still matches).
+strip -x "$DEV_FW/SDL3" "$SIM_FW/SDL3"
 
 # Build into a temp path first; only replace vendor/ once it succeeds.
+# -debug-symbols bundles the dSYMs into the xcframework so the app archive
+# carries them (no "Upload Symbols Failed" warning).
 TMP_XC="$OUT/SDL3.xcframework"
 rm -rf "$TMP_XC"
 xcodebuild -create-xcframework \
-  -framework "$DEV_FW" \
-  -framework "$SIM_FW" \
+  -framework "$DEV_FW" -debug-symbols "$DEV_DSYM" \
+  -framework "$SIM_FW" -debug-symbols "$SIM_DSYM" \
   -output "$TMP_XC"
 
 # The CMake SDL_FRAMEWORK build omits CFBundleVersion / CFBundle
