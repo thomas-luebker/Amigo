@@ -35,7 +35,7 @@ index 9618298b..ff7f421a 100644
  }
  
 diff --git a/od-unix/graphics.cpp b/od-unix/graphics.cpp
-index 51e73167..cb224ab9 100644
+index 51e73167..d7682241 100644
 --- a/od-unix/graphics.cpp
 +++ b/od-unix/graphics.cpp
 @@ -165,6 +165,8 @@ static void unix_apply_video_mode_from_prefs(struct uae_prefs *prefs, int monid)
@@ -64,7 +64,29 @@ index 51e73167..cb224ab9 100644
  
  bool handle_events(void)
  {
-@@ -402,6 +412,20 @@ void show_screen(int monid, int)
+@@ -318,7 +328,20 @@ void toggle_fullscreen(int monid, int mode)
+ }
+ bool toggle_rtg(int monid, int)
+ {
+-    return monid >= 0 && monid < MAX_AMIGAMONITORS && currprefs.rtgboards[0].rtgmem_size > 0;
++    if (monid < 0 || monid >= MAX_AMIGAMONITORS) {
++        return false;
++    }
++    /* Accept the board if it has memory in either currprefs or changed_prefs.
++     * During a reboot currprefs is rebuilt from changed_prefs and rtgmem_size
++     * momentarily reads 0; the old check then force-disabled RTG (the guest
++     * kept SwitchState=1 while the emulator dropped picasso_on), which is why
++     * RTG intermittently failed to come up after a reset. */
++    if (currprefs.rtgboards[0].rtgmem_size > 0 || changed_prefs.rtgboards[0].rtgmem_size > 0) {
++        return true;
++    }
++    write_log(_T("iPadUAE RTG: toggle_rtg no rtgmem (cur=%u chg=%u)\n"),
++        (unsigned)currprefs.rtgboards[0].rtgmem_size, (unsigned)changed_prefs.rtgboards[0].rtgmem_size);
++    return false;
+ }
+ void close_rtg(int, bool) {}
+ void toggle_mousegrab(void) { unix_video_toggle_mouse_grab(); }
+@@ -402,6 +425,20 @@ void show_screen(int monid, int)
          return;
      }
  
@@ -85,7 +107,7 @@ index 51e73167..cb224ab9 100644
      struct unix_video_frame frame;
      frame.pixels = vb->bufmem;
      frame.width = vb->outwidth;
-@@ -475,6 +499,7 @@ void InitPicasso96(int monid)
+@@ -475,6 +512,7 @@ void InitPicasso96(int monid)
          return;
      }
  
@@ -93,7 +115,7 @@ index 51e73167..cb224ab9 100644
      memset(&picasso96_state[monid], 0, sizeof picasso96_state[monid]);
      memset(&picasso_vidinfo[monid], 0, sizeof picasso_vidinfo[monid]);
      unix_rtg_render_has_output[monid] = false;
-@@ -1063,6 +1088,9 @@ void picasso_enablescreen(int monid, int on)
+@@ -1063,6 +1101,9 @@ void picasso_enablescreen(int monid, int on)
      if (monid < 0 || monid >= MAX_AMIGAMONITORS) {
          return;
      }
