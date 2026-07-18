@@ -35,10 +35,21 @@ index 9618298b..ff7f421a 100644
  }
  
 diff --git a/od-unix/graphics.cpp b/od-unix/graphics.cpp
-index 51e73167..09890d45 100644
+index 51e73167..736f10f1 100644
 --- a/od-unix/graphics.cpp
 +++ b/od-unix/graphics.cpp
-@@ -165,6 +165,8 @@ static void unix_apply_video_mode_from_prefs(struct uae_prefs *prefs, int monid)
+@@ -36,6 +36,10 @@ struct picasso_vidbuf_description picasso_vidinfo[MAX_AMIGAMONITORS];
+ static bool unix_graphics_initialized;
+ static bool unix_video_debug;
+ static bool unix_rtg_render_has_output[MAX_AMIGAMONITORS];
++
++/* True only while an RTG frame is being presented via show_screen, so the
++ * native-frame suppression can never block an RTG frame. */
++bool unix_rtg_present_active = false;
+ static void unix_rtg_stop_render_thread(void);
+ 
+ enum {
+@@ -165,6 +169,8 @@ static void unix_apply_video_mode_from_prefs(struct uae_prefs *prefs, int monid)
      prefs->gfx_monitor[monid].gfx_size = *size;
      int width = size->special == WH_NATIVE ? 0 : size->width;
      int height = size->special == WH_NATIVE ? 0 : size->height;
@@ -47,7 +58,7 @@ index 51e73167..09890d45 100644
      unix_video_set_window_mode(unix_video_mode_from_prefs(ap->gfx_fullscreen),
          ap->gfx_display, width, height, ap->gfx_refreshrate);
  }
-@@ -239,7 +241,15 @@ void graphics_leave(void)
+@@ -239,7 +245,15 @@ void graphics_leave(void)
      unix_graphics_initialized = false;
  }
  
@@ -64,23 +75,23 @@ index 51e73167..09890d45 100644
  
  bool handle_events(void)
  {
-@@ -396,6 +406,15 @@ void show_screen(int monid, int)
+@@ -396,6 +410,15 @@ void show_screen(int monid, int)
          return;
      }
  
 +    /* iPadUAE: while the guest has RTG switched on, suppress native chipset
-+     * frames. The native draw path and the RTG path both feed show_screen;
-+     * a native frame presented after an RTG frame clobbers the RTG texture
-+     * (seen as RTG intermittently failing to appear after a reboot). RTG
-+     * frames carry gf_index==GF_RTG and are never blocked. */
-+    if (adisplays[monid].gf_index != GF_RTG && picasso96_state[monid].SwitchState) {
++     * frames — they otherwise race with and clobber the RTG display. The
++     * flag (set only around RTG presents, below) guarantees RTG frames are
++     * never blocked, so this can't freeze the display. */
++    extern bool unix_rtg_present_active;
++    if (!unix_rtg_present_active && picasso96_state[monid].SwitchState) {
 +        return;
 +    }
 +
      struct vidbuf_description *vidinfo = &adisplays[monid].gfxvidinfo;
      struct vidbuffer *vb = vidinfo->inbuffer ? vidinfo->inbuffer : &vidinfo->drawbuffer;
      if (!vb->bufmem || vb->outwidth <= 0 || vb->outheight <= 0) {
-@@ -475,6 +494,7 @@ void InitPicasso96(int monid)
+@@ -475,6 +498,7 @@ void InitPicasso96(int monid)
          return;
      }
  
@@ -88,7 +99,7 @@ index 51e73167..09890d45 100644
      memset(&picasso96_state[monid], 0, sizeof picasso96_state[monid]);
      memset(&picasso_vidinfo[monid], 0, sizeof picasso_vidinfo[monid]);
      unix_rtg_render_has_output[monid] = false;
-@@ -1063,6 +1083,9 @@ void picasso_enablescreen(int monid, int on)
+@@ -1063,6 +1087,9 @@ void picasso_enablescreen(int monid, int on)
      if (monid < 0 || monid >= MAX_AMIGAMONITORS) {
          return;
      }
@@ -98,6 +109,26 @@ index 51e73167..09890d45 100644
      picasso_vidinfo[monid].picasso_active = on != 0;
      unix_apply_video_mode_from_prefs(&currprefs, monid);
      if (on) {
+@@ -1084,7 +1111,9 @@ void picasso_refresh(int monid)
+ #ifdef AVIOUTPUT
+         frame_drawn(monid);
+ #endif
++        unix_rtg_present_active = true;
+         show_screen(monid, 0);
++        unix_rtg_present_active = false;
+     }
+ }
+ void init_hz_p96(int) {}
+@@ -1134,7 +1163,9 @@ void gfx_unlock_picasso(int monid, bool dorender)
+     struct vidbuffer *vb = &adisplays[monid].gfxvidinfo.drawbuffer;
+     vb->locked = false;
+     if (dorender) {
++        unix_rtg_present_active = true;
+         show_screen(monid, 0);
++        unix_rtg_present_active = false;
+     }
+ }
+ void picasso_invalidate(int, int, int, int, int) {}
 diff --git a/od-unix/hardfile_host.cpp b/od-unix/hardfile_host.cpp
 index 19edeeef..880e1afe 100644
 --- a/od-unix/hardfile_host.cpp
