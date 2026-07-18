@@ -1,3 +1,32 @@
+diff --git a/drawing.cpp b/drawing.cpp
+index 9ef4d9dc..5ea6b1e8 100644
+--- a/drawing.cpp
++++ b/drawing.cpp
+@@ -2163,6 +2163,7 @@ void check_prefs_picasso(void)
+ 		devices_unsafeperiod();
+ 
+ 		if (!ad->picasso_requested_on && monid > 0) {
++			write_log(_T("iPadUAE RTG: req_on cleared @2166 (monid>0) mon=%d\n"), monid);
+ 			ad->picasso_requested_on = ad->picasso_on;
+ 			ad->picasso_requested_forced_on = false;
+ 			continue;
+@@ -2170,6 +2171,7 @@ void check_prefs_picasso(void)
+ 
+ 		if (ad->picasso_requested_on) {
+ 			if (!toggle_rtg(monid, -2)) {
++				write_log(_T("iPadUAE RTG: req_on cleared @2175 (toggle_rtg fail) mon=%d\n"), monid);
+ 				ad->picasso_requested_forced_on = false;
+ 				ad->picasso_on = false;
+ 				ad->picasso_requested_on = false;
+@@ -2451,6 +2453,8 @@ void drawing_init(void)
+ 	uae_sem_init(&gui_sem, 0, 1);
+ #ifdef PICASSO96
+ 	if (!isrestore()) {
++		write_log(_T("iPadUAE RTG: req_on cleared @2455 (reset_drawing) was_on=%d req=%d\n"),
++			ad->picasso_on, ad->picasso_requested_on);
+ 		ad->picasso_on = 0;
+ 		ad->picasso_requested_on = 0;
+ 		ad->gf_index = GF_NORMAL;
 diff --git a/od-unix/config.cpp b/od-unix/config.cpp
 index 9618298b..ff7f421a 100644
 --- a/od-unix/config.cpp
