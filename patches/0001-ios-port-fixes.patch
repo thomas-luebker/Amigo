@@ -35,7 +35,7 @@ index 9618298b..ff7f421a 100644
  }
  
 diff --git a/od-unix/graphics.cpp b/od-unix/graphics.cpp
-index 51e73167..e04d53e0 100644
+index 51e73167..cb224ab9 100644
 --- a/od-unix/graphics.cpp
 +++ b/od-unix/graphics.cpp
 @@ -165,6 +165,8 @@ static void unix_apply_video_mode_from_prefs(struct uae_prefs *prefs, int monid)
@@ -64,7 +64,28 @@ index 51e73167..e04d53e0 100644
  
  bool handle_events(void)
  {
-@@ -475,6 +485,7 @@ void InitPicasso96(int monid)
+@@ -402,6 +412,20 @@ void show_screen(int monid, int)
+         return;
+     }
+ 
++    /* DIAGNOSTIC ONLY (no behaviour change): log the display state at each
++     * present, on transition, to explain the RTG/native flip-flop. */
++    {
++        static int s_last_gf = -1, s_last_pon = -1;
++        struct amigadisplay *ad = &adisplays[monid];
++        if (ad->gf_index != s_last_gf || (int)ad->picasso_on != s_last_pon) {
++            s_last_gf = ad->gf_index; s_last_pon = ad->picasso_on;
++            write_log(_T("iPadUAE RTG: show_screen %dx%d gf=%d picasso_on=%d inhibit=0x%x active=%d switch=%d\n"),
++                vb->outwidth, vb->outheight, ad->gf_index, ad->picasso_on,
++                ad->inhibit_frame, picasso_vidinfo[monid].picasso_active,
++                picasso96_state[monid].SwitchState);
++        }
++    }
++
+     struct unix_video_frame frame;
+     frame.pixels = vb->bufmem;
+     frame.width = vb->outwidth;
+@@ -475,6 +499,7 @@ void InitPicasso96(int monid)
          return;
      }
  
@@ -72,7 +93,7 @@ index 51e73167..e04d53e0 100644
      memset(&picasso96_state[monid], 0, sizeof picasso96_state[monid]);
      memset(&picasso_vidinfo[monid], 0, sizeof picasso_vidinfo[monid]);
      unix_rtg_render_has_output[monid] = false;
-@@ -1063,6 +1074,9 @@ void picasso_enablescreen(int monid, int on)
+@@ -1063,6 +1088,9 @@ void picasso_enablescreen(int monid, int on)
      if (monid < 0 || monid >= MAX_AMIGAMONITORS) {
          return;
      }
