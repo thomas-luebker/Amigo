@@ -193,22 +193,43 @@ struct OverlayRoot: View {
     @ObservedObject private var state = OverlayState.shared
     private var expanded: Bool { state.expanded }
 
+    // The gear dims to a subtle ghost when idle so it doesn't block the
+    // Amiga screen, and returns to full opacity on tap. A larger invisible
+    // hit area keeps it easy to find even while faded.
+    @State private var faded = false
+    @State private var fadeWork: DispatchWorkItem?
+
+    private func wake() {
+        fadeWork?.cancel()
+        withAnimation(.easeOut(duration: 0.2)) { faded = false }
+        let work = DispatchWorkItem {
+            withAnimation(.easeInOut(duration: 1.2)) { faded = true }
+        }
+        fadeWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0, execute: work)
+    }
+
     var body: some View {
         ZStack {
             VStack(alignment: .trailing, spacing: 8) {
                 Button {
                     state.expanded.toggle()
                     NSLog("iPadUAE overlay: menu %@", expanded ? "opened" : "closed")
+                    wake()
                 } label: {
                     Image(systemName: expanded ? "xmark" : "gearshape.fill")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 44, height: 44)
-                        .background(.red.opacity(0.75), in: Circle())
-                        .shadow(radius: 3)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.9))
+                        .frame(width: 40, height: 40)
+                        .background((expanded ? Color.red.opacity(0.7)
+                                             : Color.black.opacity(0.35)), in: Circle())
+                        .overlay(Circle().strokeBorder(.white.opacity(0.15), lineWidth: 0.5))
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .opacity(expanded ? 1.0 : (faded ? 0.18 : 0.85))
                 .interactiveArea("gear")
+                .onAppear(perform: wake)
 
                 if expanded {
                     ControlPanel()

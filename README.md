@@ -3,20 +3,38 @@
 An iPad port of [WinUAE](https://github.com/tonioni/WinUAE), built directly on the
 upstream Unix/SDL3 layer (`od-unix/`), targeting iPadOS and App Store distribution.
 
+Runs full **AmigaOS 3.2 Workbench** on device with RTG graphics, networking,
+hard drives, touch and hardware input, and a native SwiftUI control surface.
+
+## Docs
+
+- [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) — how to use the app
+- [`docs/TESTER_GUIDE.md`](docs/TESTER_GUIDE.md) — TestFlight tester guide
+- [`docs/TESTFLIGHT.md`](docs/TESTFLIGHT.md) — release/archive steps
+- [`docs/LICENSING.md`](docs/LICENSING.md) — GPL-2 / App Store plan
+- Deep design notes live in the author's Obsidian vault (`iPadUAE/` folder).
+
 ## Layout
 
 - `vendor/WinUAE` — upstream WinUAE as a git submodule (do not edit in place;
-  patches to upstream live as small commits in the submodule fork or in `patches/`)
-- `app/` — the iPad application (Xcode project, Swift/SwiftUI shell)
-- `scripts/` — build scripts (iOS cross-compile of the core, dependency builds)
+  patches to upstream live in `patches/`, applied via `scripts/apply-patches.sh`)
+- `vendor/SDL3` — official SDL3 xcframework (device + simulator)
+- `core-ios/` — CMake wrapper: builds the core as `libuaecore.a`, adds `ios_glue.cpp`
+- `app/` — the iPad application (XcodeGen project, Swift/SwiftUI + ObjC++ bridge)
+- `scripts/` — `build-ios-core.sh`, `build-release.sh`, `apply-patches.sh`
+- `docs/` — user- and tester-facing documentation
 
 ## Building
 
 ```sh
+git submodule update --init      # vendor/WinUAE
+./scripts/apply-patches.sh       # applies patches/*.patch (idempotent)
 ./scripts/build-ios-core.sh      # cross-compiles build/ios/libuaecore.a (arm64 iOS)
 xcodegen -s app/project.yml      # regenerates app/iPadUAE.xcodeproj
 open app/iPadUAE.xcodeproj       # build & run the iPadUAE target on an iPad
 ```
+
+For a TestFlight/App Store archive: `./scripts/build-release.sh`.
 
 Upstream patches needed for iOS live in `patches/` and are also applied in the
 `vendor/WinUAE` submodule working tree.
