@@ -188,6 +188,48 @@ enum ConfigStore {
         return false
     }
 
+    // MARK: Named configurations (user-created setups)
+    //
+    // A configuration is a full .uae snapshot in Configuration/, so it
+    // captures machine + mounted disks/Kickstart/HDF together. default.uae
+    // is the live config; saving copies it to <name>.uae, loading copies
+    // back and restarts.
+
+    static var configurationsDir: URL { winuaeDir.appendingPathComponent("Configuration") }
+
+    static func savedConfigurations() -> [String] {
+        files(in: configurationsDir, extensions: ["uae"])
+            .map { $0.deletingPathExtension().lastPathComponent }
+            .filter { $0 != "default" }
+    }
+
+    private static func sanitized(_ name: String) -> String {
+        let bad = CharacterSet(charactersIn: "/\\:?%*|\"<>")
+        return name.components(separatedBy: bad).joined().trimmingCharacters(in: .whitespaces)
+    }
+
+    static func saveCurrentConfiguration(name rawName: String) {
+        let name = sanitized(rawName)
+        guard !name.isEmpty, name != "default" else { return }
+        let dest = configurationsDir.appendingPathComponent("\(name).uae")
+        try? FileManager.default.removeItem(at: dest)
+        // Persist any live-only runtime toggles into the config first.
+        try? FileManager.default.copyItem(at: configURL, to: dest)
+    }
+
+    static func loadConfiguration(name: String) {
+        let src = configurationsDir.appendingPathComponent("\(name).uae")
+        guard FileManager.default.fileExists(atPath: src.path) else { return }
+        try? FileManager.default.removeItem(at: configURL)
+        try? FileManager.default.copyItem(at: src, to: configURL)
+        restart()
+    }
+
+    static func deleteConfiguration(name: String) {
+        try? FileManager.default.removeItem(
+            at: configurationsDir.appendingPathComponent("\(name).uae"))
+    }
+
     static func files(in dir: URL, extensions: [String]) -> [URL] {
         let all = (try? FileManager.default.contentsOfDirectory(
             at: dir, includingPropertiesForKeys: nil)) ?? []

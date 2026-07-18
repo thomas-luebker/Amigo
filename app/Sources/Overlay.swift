@@ -240,7 +240,7 @@ struct OverlayRoot: View {
 }
 
 struct ControlPanel: View {
-    enum Submenu { case none, df0, df1, kickstart, harddrive, machine }
+    enum Submenu { case none, df0, df1, kickstart, harddrive, machine, configs }
     @State private var submenu: Submenu = .none
     @ObservedObject private var state = OverlayState.shared
 
@@ -253,6 +253,7 @@ struct ControlPanel: View {
             case .kickstart: KickstartPicker { submenu = .none }
             case .harddrive: HardDrivePicker { submenu = .none }
             case .machine: MachinePanel { submenu = .none }
+            case .configs: ConfigurationsPanel { submenu = .none }
             }
         }
         .padding(12)
@@ -269,6 +270,7 @@ struct ControlPanel: View {
             MenuRow(icon: "memorychip", title: "Kickstart ROM…") { submenu = .kickstart }
             MenuRow(icon: "internaldrive", title: "Hard Drive…") { submenu = .harddrive }
             MenuRow(icon: "cpu", title: "Machine (CPU / RAM / RTG / Net)…") { submenu = .machine }
+            MenuRow(icon: "square.stack.3d.up", title: "Configurations (save/load setups)…") { submenu = .configs }
             Divider().padding(.vertical, 4)
             MenuRow(icon: state.showLEDs ? "circle.grid.2x1.fill" : "circle.grid.2x1",
                     title: state.showLEDs ? "Hide LED Bar" : "Show LED Bar") {
