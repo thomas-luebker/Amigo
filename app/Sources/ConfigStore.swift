@@ -239,12 +239,50 @@ enum ConfigStore {
         guard FileManager.default.fileExists(atPath: src.path) else { return }
         try? FileManager.default.removeItem(at: configURL)
         try? FileManager.default.copyItem(at: src, to: configURL)
+        healPaths(in: configURL)
         restart()
     }
 
     static func deleteConfiguration(name: String) {
         try? FileManager.default.removeItem(
             at: configurationsDir.appendingPathComponent("\(name).uae"))
+    }
+
+    // MARK: Path healing
+    //
+    // Configs store absolute media paths that embed the app-container UUID,
+    // which changes on every reinstall/update — Kickstart and hardfile paths
+    // silently go stale ("settings don't stick"). Rewrite any container-
+    // style path to the *current* Documents folder, and collapse the legacy
+    // Documents/WinUAE/ nesting. Runs at startup (before the core reads
+    // default.uae) and when loading a saved configuration.
+
+    static func healPaths(in url: URL) {
+        guard var text = try? String(contentsOf: url, encoding: .utf8) else { return }
+        let docs = winuaeDir.path  // current Documents
+        let original = text
+
+        // ".../Containers/Data/Application/<UUID>/Documents" → current docs
+        let pattern = "/(?:private/)?var/mobile/Containers/Data/Application/[0-9A-Fa-f-]+/Documents"
+        if let re = try? NSRegularExpression(pattern: pattern) {
+            text = re.stringByReplacingMatches(
+                in: text, range: NSRange(text.startIndex..., in: text),
+                withTemplate: NSRegularExpression.escapedTemplate(for: docs))
+        }
+        // Legacy nesting from before the folder flatten.
+        text = text.replacingOccurrences(of: docs + "/WinUAE/", with: docs + "/")
+
+        if text != original {
+            try? text.write(to: url, atomically: true, encoding: .utf8)
+            NSLog("iPadUAE: healed media paths in %@", url.lastPathComponent)
+        }
+    }
+
+    static func healAllConfigurations() {
+        for url in files(in: configurationsDir, extensions: ["uae"]) {
+            healPaths(in: url)
+        }
+        healPaths(in: configURL)
     }
 
     static func files(in dir: URL, extensions: [String]) -> [URL] {
@@ -254,4 +292,10 @@ enum ConfigStore {
             .filter { extensions.contains($0.pathExtension.lowercased()) }
             .sorted { $0.lastPathComponent.localizedCaseInsensitiveCompare($1.lastPathComponent) == .orderedAscending }
     }
+}
+
+/// Called from main() before real_main reads default.uae.
+@_cdecl("ipaduae_heal_config_paths")
+public func ipaduae_heal_config_paths() {
+    ConfigStore.healAllConfigurations()
 }

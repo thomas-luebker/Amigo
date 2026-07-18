@@ -53,6 +53,7 @@ static void prepare_data_directories(void)
 }
 
 extern "C" void ipaduae_install_overlay(void);
+extern "C" void ipaduae_heal_config_paths(void);
 
 int main(int argc, char *argv[])
 {
@@ -64,6 +65,9 @@ int main(int argc, char *argv[])
     @autoreleasepool {
         prepare_data_directories();
     }
+    // Rewrite stale container-UUID media paths (Kickstart/HDF) before the
+    // core reads default.uae — reinstalls change the container UUID.
+    ipaduae_heal_config_paths();
     fprintf(stderr, "iPadUAE: data dirs ready\n");
     // Touches feed the patched finger-event path in video_sdl.cpp
     // (trackpad-style); disabling SDL's synthesis keeps hardware

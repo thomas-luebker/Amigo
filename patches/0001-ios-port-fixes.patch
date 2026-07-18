@@ -130,7 +130,7 @@ index 89704c0e..07470b5d 100644
  void unix_input_joystick_device_changed(void);
  
 diff --git a/od-unix/rtg.cpp b/od-unix/rtg.cpp
-index ce574a41..6cbc05c0 100644
+index ce574a41..cf28cb71 100644
 --- a/od-unix/rtg.cpp
 +++ b/od-unix/rtg.cpp
 @@ -9,6 +9,7 @@
@@ -244,7 +244,7 @@ index ce574a41..6cbc05c0 100644
      RenderInfo ri;
      unix_picasso_bitmap_info bitmap;
      uaecptr bitmap_info = trap_get_areg(ctx, 1);
-@@ -2718,10 +2759,35 @@ uae_u32 picasso_demux(uae_u32, TrapContext *ctx)
+@@ -2718,10 +2759,46 @@ uae_u32 picasso_demux(uae_u32, TrapContext *ctx)
      }
  }
  
@@ -258,6 +258,17 @@ index ce574a41..6cbc05c0 100644
 +static void unix_picasso_reset(int hardreset)
 +{
 +    if (isrestore()) {
++        return;
++    }
++    /* Nothing to clear on a pristine start (app launch): keep initial-boot
++     * behaviour identical to the pre-handler code. Only reboots with live
++     * RTG state need the cleanup. */
++    bool dirty = unix_uaegfx_base || unix_picasso_boardinfo || unix_picasso_amem ||
++        unix_uaegfx_interrupt_enabled;
++    for (int monid = 0; monid < MAX_AMIGAMONITORS && !dirty; monid++) {
++        dirty = picasso96_state[monid].SwitchState != 0;
++    }
++    if (!dirty) {
 +        return;
 +    }
 +    write_log(_T("iPadUAE RTG: unix_picasso_reset(hard=%d)\n"), hardreset);
