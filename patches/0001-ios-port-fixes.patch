@@ -198,7 +198,7 @@ index ce574a41..c06fc4b1 100644
      unix_picasso_bitmap_info bitmap;
      uaecptr bitmap_info = trap_get_areg(ctx, 1);
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..49a22186 100644
+index 13e88b9d..aa9f81e0 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -445,22 +445,38 @@ index 13e88b9d..49a22186 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2002,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2002,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
 +#if defined(__APPLE__) && TARGET_OS_IPHONE
-+            /* DEBUG: log every hardware key so we can see exactly what iOS
-+             * delivers (e.g. does left-shift arrive, and with which
-+             * scancode). Remove once hardware-keyboard issues are resolved. */
-+            fprintf(stderr, "iPadUAE hwkey: scancode=%d key=0x%x mod=0x%x %s\n",
-+                    (int)event.key.scancode, (unsigned)event.key.key, (unsigned)event.key.mod,
-+                    event.key.type == SDL_EVENT_KEY_DOWN ? "DOWN" : "UP");
++            /* iOS conflates the two shift keys: pressing one emits a phantom
++             * release for the other, which desyncs per-side shift tracking
++             * (symptom: one shift "stops working" intermittently). Drive a
++             * single Amiga shift from the combined physical state so both
++             * physical shifts work reliably. */
++            if (event.key.scancode == SDL_SCANCODE_LSHIFT ||
++                event.key.scancode == SDL_SCANCODE_RSHIFT) {
++                static bool s_lshift, s_rshift, s_amiga_shift;
++                const bool down = (event.key.type == SDL_EVENT_KEY_DOWN);
++                if (event.key.scancode == SDL_SCANCODE_LSHIFT) {
++                    s_lshift = down;
++                } else {
++                    s_rshift = down;
++                }
++                const bool want = s_lshift || s_rshift;
++                if (want != s_amiga_shift) {
++                    s_amiga_shift = want;
++                    unix_input_keyboard_key((int)SDL_SCANCODE_LSHIFT, want,
++                        unix_input_lock_state_from_sdl(event.key.mod));
++                }
++                break;
++            }
 +#endif
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2021,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2037,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -475,7 +491,7 @@ index 13e88b9d..49a22186 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1915,7 +2063,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2079,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -485,7 +501,7 @@ index 13e88b9d..49a22186 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2075,156 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2091,156 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
