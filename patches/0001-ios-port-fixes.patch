@@ -35,7 +35,7 @@ index 9618298b..ff7f421a 100644
  }
  
 diff --git a/od-unix/graphics.cpp b/od-unix/graphics.cpp
-index 51e73167..d7682241 100644
+index 51e73167..4312fb90 100644
 --- a/od-unix/graphics.cpp
 +++ b/od-unix/graphics.cpp
 @@ -165,6 +165,8 @@ static void unix_apply_video_mode_from_prefs(struct uae_prefs *prefs, int monid)
@@ -97,10 +97,10 @@ index 51e73167..d7682241 100644
 +        struct amigadisplay *ad = &adisplays[monid];
 +        if (ad->gf_index != s_last_gf || (int)ad->picasso_on != s_last_pon) {
 +            s_last_gf = ad->gf_index; s_last_pon = ad->picasso_on;
-+            write_log(_T("iPadUAE RTG: show_screen %dx%d gf=%d picasso_on=%d inhibit=0x%x active=%d switch=%d\n"),
++            write_log(_T("iPadUAE RTG: show_screen %dx%d gf=%d picasso_on=%d req_on=%d inhibit=0x%x active=%d switch=%d\n"),
 +                vb->outwidth, vb->outheight, ad->gf_index, ad->picasso_on,
-+                ad->inhibit_frame, picasso_vidinfo[monid].picasso_active,
-+                picasso96_state[monid].SwitchState);
++                ad->picasso_requested_on, ad->inhibit_frame,
++                picasso_vidinfo[monid].picasso_active, picasso96_state[monid].SwitchState);
 +        }
 +    }
 +
