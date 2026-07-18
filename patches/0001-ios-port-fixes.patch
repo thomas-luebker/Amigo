@@ -34,6 +34,54 @@ index 9618298b..ff7f421a 100644
      fixtrailing(out);
  }
  
+diff --git a/od-unix/graphics.cpp b/od-unix/graphics.cpp
+index 51e73167..e04d53e0 100644
+--- a/od-unix/graphics.cpp
++++ b/od-unix/graphics.cpp
+@@ -165,6 +165,8 @@ static void unix_apply_video_mode_from_prefs(struct uae_prefs *prefs, int monid)
+     prefs->gfx_monitor[monid].gfx_size = *size;
+     int width = size->special == WH_NATIVE ? 0 : size->width;
+     int height = size->special == WH_NATIVE ? 0 : size->height;
++    write_log(_T("iPadUAE RTG: apply_video_mode(mon=%d) %dx%d fs=%d display=%d\n"),
++        monid, width, height, ap->gfx_fullscreen, ap->gfx_display);
+     unix_video_set_window_mode(unix_video_mode_from_prefs(ap->gfx_fullscreen),
+         ap->gfx_display, width, height, ap->gfx_refreshrate);
+ }
+@@ -239,7 +241,15 @@ void graphics_leave(void)
+     unix_graphics_initialized = false;
+ }
+ 
+-void graphics_reset(bool) {}
++void graphics_reset(bool forced)
++{
++    /* iPadUAE: the host RTG display state (per-monitor render-output flags)
++     * persisted across soft reboots, which is a suspect for RTG sometimes
++     * not re-initialising on reset. Clear it and log the reset so the
++     * failure can be traced on the device console. */
++    write_log(_T("iPadUAE RTG: graphics_reset(forced=%d)\n"), forced ? 1 : 0);
++    memset(unix_rtg_render_has_output, 0, sizeof unix_rtg_render_has_output);
++}
+ 
+ bool handle_events(void)
+ {
+@@ -475,6 +485,7 @@ void InitPicasso96(int monid)
+         return;
+     }
+ 
++    write_log(_T("iPadUAE RTG: InitPicasso96(mon=%d)\n"), monid);
+     memset(&picasso96_state[monid], 0, sizeof picasso96_state[monid]);
+     memset(&picasso_vidinfo[monid], 0, sizeof picasso_vidinfo[monid]);
+     unix_rtg_render_has_output[monid] = false;
+@@ -1063,6 +1074,9 @@ void picasso_enablescreen(int monid, int on)
+     if (monid < 0 || monid >= MAX_AMIGAMONITORS) {
+         return;
+     }
++    struct picasso96_state_struct *state = &picasso96_state[monid];
++    write_log(_T("iPadUAE RTG: picasso_enablescreen(mon=%d on=%d) %dx%d fmt=%d bpp=%d\n"),
++        monid, on, state->Width, state->Height, state->RGBFormat, picasso_vidinfo[monid].pixbytes);
+     picasso_vidinfo[monid].picasso_active = on != 0;
+     unix_apply_video_mode_from_prefs(&currprefs, monid);
+     if (on) {
 diff --git a/od-unix/hardfile_host.cpp b/od-unix/hardfile_host.cpp
 index 19edeeef..880e1afe 100644
 --- a/od-unix/hardfile_host.cpp
