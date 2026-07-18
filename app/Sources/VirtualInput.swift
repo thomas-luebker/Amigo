@@ -68,33 +68,69 @@ struct AmigaKeyboardView: View {
          Key(label: "←", code: SC.left), Key(label: "↓", code: SC.down), Key(label: "→", code: SC.right)],
     ]
 
+    private static let spacing: CGFloat = 5
+    private static let rowHeight: CGFloat = 40
+
+    /// One key-unit width that lets every row fit the available width, so a
+    /// 1-unit key is identical in every row (rows left-align, right edges
+    /// stagger — like a real keyboard).
+    private static func keyUnit(for width: CGFloat) -> CGFloat {
+        rows.map { row -> CGFloat in
+            let units = row.reduce(0) { $0 + $1.width }
+            let gaps = CGFloat(row.count - 1) * spacing
+            return (width - gaps) / units
+        }.min() ?? 30
+    }
+
     var body: some View {
-        VStack(spacing: 4) {
-            ForEach(0..<Self.rows.count, id: \.self) { r in
-                HStack(spacing: 4) {
-                    ForEach(Self.rows[r]) { key in
-                        KeyButton(key: key)
+        GeometryReader { geo in
+            let unit = Self.keyUnit(for: geo.size.width)
+            VStack(spacing: Self.spacing) {
+                ForEach(0..<Self.rows.count, id: \.self) { r in
+                    HStack(spacing: Self.spacing) {
+                        ForEach(Self.rows[r]) { key in
+                            KeyButton(key: key,
+                                      width: unit * key.width,
+                                      height: Self.rowHeight)
+                        }
+                        Spacer(minLength: 0)
                     }
                 }
             }
         }
+        .frame(height: CGFloat(Self.rows.count) * Self.rowHeight
+                     + CGFloat(Self.rows.count - 1) * Self.spacing + 16)
         .padding(8)
-        .background(.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 12))
+        .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
     }
 }
 
 struct KeyButton: View {
     let key: Key
+    let width: CGFloat
+    let height: CGFloat
     @State private var pressed = false
     @State private var latched = false
 
+    private var isActive: Bool { pressed || latched }
+
     var body: some View {
         Text(key.label)
-            .font(.system(size: 13, weight: .medium, design: .monospaced))
-            .foregroundStyle(.white)
-            .frame(minWidth: 30 * key.width, maxWidth: key.width > 1 ? .infinity : 34, minHeight: 34)
-            .background((pressed || latched) ? Color.red.opacity(0.8) : Color.white.opacity(0.18),
-                        in: RoundedRectangle(cornerRadius: 6))
+            .font(.system(size: 14, weight: .medium))
+            .foregroundStyle(isActive ? .white : .white.opacity(0.92))
+            .minimumScaleFactor(0.6)
+            .lineLimit(1)
+            .frame(width: width, height: height)
+            .background(
+                RoundedRectangle(cornerRadius: 7)
+                    .fill(isActive ? Color.red.opacity(0.85)
+                          : (key.modifier ? Color.white.opacity(0.26) : Color.white.opacity(0.16)))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 7)
+                    .strokeBorder(.white.opacity(0.12), lineWidth: 0.5)
+            )
+            .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { _ in
@@ -114,6 +150,25 @@ struct KeyButton: View {
                         }
                     }
             )
+    }
+}
+
+/// Compact function-key strip (F1–F10) for Amiga apps — the iPad Magic
+/// Keyboard has no function row, so this is the only way to send them.
+struct FunctionKeyBar: View {
+    private static let fkeys: [(String, Int)] = [
+        ("F1", SC.f1), ("F2", SC.f2), ("F3", SC.f3), ("F4", SC.f4), ("F5", SC.f5),
+        ("F6", SC.f6), ("F7", SC.f7), ("F8", SC.f8), ("F9", SC.f9), ("F10", SC.f10),
+    ]
+
+    var body: some View {
+        HStack(spacing: 5) {
+            ForEach(Self.fkeys, id: \.1) { label, code in
+                KeyButton(key: Key(label: label, code: code), width: 52, height: 38)
+            }
+        }
+        .padding(6)
+        .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
     }
 }
 

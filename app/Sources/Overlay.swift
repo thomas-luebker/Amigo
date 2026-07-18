@@ -165,6 +165,7 @@ final class OverlayState: ObservableObject {
     @Published var expanded = false
     @Published var showKeyboard = false
     @Published var showJoystick = false
+    @Published var showFKeys = false
     @Published var fullscreenDisplay = UserDefaults.standard.bool(forKey: "fullscreenDisplay")
     @Published var showLEDs = UserDefaults.standard.object(forKey: "showLEDs") as? Bool ?? true
     @Published var rtgAccel = UserDefaults.standard.object(forKey: "rtgAccel") as? Bool ?? false
@@ -258,6 +259,19 @@ struct OverlayRoot: View {
                         .padding(.horizontal, 12)
                 }
             }
+
+            if state.showFKeys {
+                VStack {
+                    HStack {
+                        Spacer()
+                        FunctionKeyBar()
+                            .interactiveArea("fkeys")
+                        Spacer()
+                    }
+                    .padding(.top, 8)
+                    Spacer()
+                }
+            }
         }
         .tint(.red)
     }
@@ -327,6 +341,9 @@ struct ControlPanel: View {
             }
             MenuRow(icon: "keyboard", title: state.showKeyboard ? "Hide Amiga Keyboard" : "Amiga Keyboard") {
                 state.showKeyboard.toggle()
+            }
+            MenuRow(icon: "f.cursive", title: state.showFKeys ? "Hide Function Keys" : "Function Keys (F1–F10)") {
+                state.showFKeys.toggle()
             }
             MenuRow(icon: "gamecontroller", title: state.showJoystick ? "Hide Joystick" : "Virtual Joystick") {
                 state.showJoystick.toggle()
