@@ -158,6 +158,11 @@ enum ConfigStore {
         set("cpu_data_cache", "false")   // 040/060 cache emulation is slow
         set("fpu_strict", "false")
         set("fpu_softfloat", "false")    // host FPU, not softfloat
+        // Emulate 68040/68060 silicon-unimplemented instructions natively
+        // instead of trapping out to the guest 680x0.library — big win for
+        // FPU-heavy code, and avoids the slow library path entirely.
+        set("cpu_no_unimplemented", (m.cpu >= 68040) ? "true" : "false")
+        set("fpu_no_unimplemented", "true")
         set("chipmem_size", String(m.chipHalfMB))
         set("fastmem_size", String(m.fastMB))
         set("z3mem_size", String(m.z3MB))
