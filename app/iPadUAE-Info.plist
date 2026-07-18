@@ -10,17 +10,13 @@
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<!-- SDL3 links Apple's camera / Bluetooth / microphone APIs even when
-	     unused; Apple requires a purpose string for any referenced API.
-	     Bluetooth is genuine (game controllers); camera/mic are unused. -->
+	<!-- SDL3 is rebuilt with SDL_CAMERA=OFF (scripts/build-sdl3.sh), so no
+	     camera API is referenced and no camera/mic purpose string is needed.
+	     Bluetooth is genuine — game controllers via GameController. -->
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>iPadUAE uses Bluetooth to connect game controllers for Amiga input.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>iPadUAE uses Bluetooth to connect game controllers for Amiga input.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>iPadUAE does not use the camera.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>iPadUAE does not use the microphone.</string>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>UIRequiresFullScreen</key>
