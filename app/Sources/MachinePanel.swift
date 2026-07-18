@@ -37,6 +37,12 @@ struct MachinePanel: View {
                         Text("060").tag(68060)
                     }
                     .pickerStyle(.segmented)
+                    .onChange(of: m.cpu) { _, newCPU in
+                        // MMU on is both faster and more authentic for 040/060
+                        // (measured); default it on when moving up to them.
+                        if newCPU >= 68040 { m.mmu = true }
+                        if newCPU < 68030 { m.mmu = false }
+                    }
 
                     Text("Chipset").font(.caption).foregroundStyle(.secondary)
                     Picker("Chipset", selection: $m.chipset) {
