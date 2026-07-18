@@ -165,6 +165,7 @@ final class OverlayState: ObservableObject {
     @Published var showKeyboard = false
     @Published var showJoystick = false
     @Published var fullscreenDisplay = UserDefaults.standard.bool(forKey: "fullscreenDisplay")
+    @Published var showLEDs = UserDefaults.standard.object(forKey: "showLEDs") as? Bool ?? true
     /// Global frames of touch-interactive overlay elements, keyed by id.
     /// Read by PassthroughWindow.hitTest on every touch; written from
     /// SwiftUI geometry callbacks. Main-thread only.
@@ -269,6 +270,13 @@ struct ControlPanel: View {
             MenuRow(icon: "internaldrive", title: "Hard Drive…") { submenu = .harddrive }
             MenuRow(icon: "cpu", title: "Machine (CPU / RAM / RTG / Net)…") { submenu = .machine }
             Divider().padding(.vertical, 4)
+            MenuRow(icon: state.showLEDs ? "circle.grid.2x1.fill" : "circle.grid.2x1",
+                    title: state.showLEDs ? "Hide LED Bar" : "Show LED Bar") {
+                state.showLEDs.toggle()
+                UserDefaults.standard.set(state.showLEDs, forKey: "showLEDs")
+                ipaduae_set_leds(state.showLEDs ? 1 : 0)
+                ConfigStore.set("show_leds", state.showLEDs ? "true" : "false")
+            }
             MenuRow(icon: state.fullscreenDisplay ? "rectangle.inset.filled" : "rectangle",
                     title: state.fullscreenDisplay ? "Display: Fullscreen (corners may crop)" : "Display: Safe Area") {
                 state.fullscreenDisplay.toggle()

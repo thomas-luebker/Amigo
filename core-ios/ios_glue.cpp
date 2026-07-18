@@ -4,6 +4,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include "options.h"
+#include "statusline.h"
 
 /* Toggle 1:1 pointer sync (tablet/mousehack) at runtime — no reboot.
  * inputdevice_mh_abs() calls mousehack_enable() on every absolute event,
@@ -21,4 +22,12 @@ extern bool unix_video_use_safe_area;
 extern "C" void ipaduae_set_safe_area(int on)
 {
     unix_video_use_safe_area = on != 0;
+}
+
+/* Live toggle for the on-screen LED status line. */
+extern "C" void ipaduae_set_leds(int on)
+{
+    const int mask = on ? STATUSLINE_CHIPSET : 0;
+    currprefs.leds_on_screen = mask;
+    changed_prefs.leds_on_screen = mask;
 }

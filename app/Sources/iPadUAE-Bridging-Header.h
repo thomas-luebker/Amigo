@@ -8,3 +8,4 @@ void ipaduae_send_key(int sdl_scancode, int pressed);
 void ipaduae_restart_with_config(const char *configpath);
 void ipaduae_set_tablet_runtime(int on);
 void ipaduae_set_safe_area(int on);
+void ipaduae_set_leds(int on);
