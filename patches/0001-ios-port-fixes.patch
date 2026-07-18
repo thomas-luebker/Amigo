@@ -211,10 +211,18 @@ index 89704c0e..07470b5d 100644
  void unix_input_joystick_device_changed(void);
  
 diff --git a/od-unix/rtg.cpp b/od-unix/rtg.cpp
-index ce574a41..c06fc4b1 100644
+index ce574a41..6cbc05c0 100644
 --- a/od-unix/rtg.cpp
 +++ b/od-unix/rtg.cpp
-@@ -49,6 +49,14 @@ static int REGPARAM3 gfxmem4_check(uaecptr, uae_u32) REGPARAM;
+@@ -9,6 +9,7 @@
+ #include "picasso96.h"
+ #include "savestate.h"
+ #include "gfxboard.h"
++#include "devices.h"
+ #include "video.h"
+ #include "xwin.h"
+ 
+@@ -49,6 +50,14 @@ static int REGPARAM3 gfxmem4_check(uaecptr, uae_u32) REGPARAM;
  static uae_u8 *REGPARAM3 gfxmem4_xlate(uaecptr) REGPARAM;
  static void unix_picasso_mark_dirty_offset(int index, uae_u32 offset, uae_u32 size);
  
@@ -229,7 +237,7 @@ index ce574a41..c06fc4b1 100644
  #define UNIX_RTG_MEMORY_FUNCTIONS(prefix, bank, index) \
  static uae_u32 REGPARAM2 prefix ## _lget(uaecptr addr) \
  { \
-@@ -1337,6 +1345,10 @@ static uae_u32 REGPARAM2 unix_picasso_fill_rect(TrapContext *ctx)
+@@ -1337,6 +1346,10 @@ static uae_u32 REGPARAM2 unix_picasso_fill_rect(TrapContext *ctx)
  {
      unix_rtg_trace_blit(UNIX_RTG_TRACE_FILLRECT, _T("FillRect"));
  
@@ -240,7 +248,7 @@ index ce574a41..c06fc4b1 100644
      RenderInfo ri;
      uaecptr renderinfo = trap_get_areg(ctx, 1);
      uae_u32 x = (uae_u16)trap_get_dreg(ctx, 0);
-@@ -1380,6 +1392,10 @@ static uae_u32 REGPARAM2 unix_picasso_invert_rect(TrapContext *ctx)
+@@ -1380,6 +1393,10 @@ static uae_u32 REGPARAM2 unix_picasso_invert_rect(TrapContext *ctx)
  {
      unix_rtg_trace_blit(UNIX_RTG_TRACE_INVERTRECT, _T("InvertRect"));
  
@@ -251,7 +259,7 @@ index ce574a41..c06fc4b1 100644
      RenderInfo ri;
      uaecptr renderinfo = trap_get_areg(ctx, 1);
      uae_u32 x = (uae_u16)trap_get_dreg(ctx, 0);
-@@ -1489,6 +1505,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_rect(TrapContext *ctx)
+@@ -1489,6 +1506,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_rect(TrapContext *ctx)
  {
      unix_rtg_trace_blit(UNIX_RTG_TRACE_BLITRECT, _T("BlitRect"));
  
@@ -262,7 +270,7 @@ index ce574a41..c06fc4b1 100644
      uaecptr renderinfo = trap_get_areg(ctx, 1);
      return unix_picasso_blit_rect_common(ctx, renderinfo, 0,
          (uae_u16)trap_get_dreg(ctx, 0),
-@@ -1506,6 +1526,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_rect_no_mask_complete(TrapContext *ct
+@@ -1506,6 +1527,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_rect_no_mask_complete(TrapContext *ct
  {
      unix_rtg_trace_blit(UNIX_RTG_TRACE_BLITRECT_NOMASK, _T("BlitRectNoMaskComplete"));
  
@@ -273,7 +281,7 @@ index ce574a41..c06fc4b1 100644
      return unix_picasso_blit_rect_common(ctx, trap_get_areg(ctx, 1), trap_get_areg(ctx, 2),
          (uae_u16)trap_get_dreg(ctx, 0),
          (uae_u16)trap_get_dreg(ctx, 1),
-@@ -1551,6 +1575,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_pattern(TrapContext *ctx)
+@@ -1551,6 +1576,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_pattern(TrapContext *ctx)
  {
      unix_rtg_trace_blit(UNIX_RTG_TRACE_BLITPATTERN, _T("BlitPattern"));
  
@@ -284,7 +292,7 @@ index ce574a41..c06fc4b1 100644
      RenderInfo ri;
      unix_picasso_pattern_info pattern;
      uaecptr renderinfo = trap_get_areg(ctx, 1);
-@@ -1658,6 +1686,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_template(TrapContext *ctx)
+@@ -1658,6 +1687,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_template(TrapContext *ctx)
  {
      unix_rtg_trace_blit(UNIX_RTG_TRACE_BLITTEMPLATE, _T("BlitTemplate"));
  
@@ -295,7 +303,7 @@ index ce574a41..c06fc4b1 100644
      RenderInfo ri;
      unix_picasso_template_info tmpl;
      uaecptr renderinfo = trap_get_areg(ctx, 1);
-@@ -1794,6 +1826,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_planar2chunky(TrapContext *ctx)
+@@ -1794,6 +1827,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_planar2chunky(TrapContext *ctx)
  {
      unix_rtg_trace_blit(UNIX_RTG_TRACE_PLANAR2CHUNKY, _T("BlitPlanar2Chunky"));
  
@@ -306,7 +314,7 @@ index ce574a41..c06fc4b1 100644
      RenderInfo ri;
      unix_picasso_bitmap_info bitmap;
      uaecptr bitmap_info = trap_get_areg(ctx, 1);
-@@ -1847,6 +1883,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_planar2direct(TrapContext *ctx)
+@@ -1847,6 +1884,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_planar2direct(TrapContext *ctx)
  {
      unix_rtg_trace_blit(UNIX_RTG_TRACE_PLANAR2DIRECT, _T("BlitPlanar2Direct"));
  
@@ -317,6 +325,42 @@ index ce574a41..c06fc4b1 100644
      RenderInfo ri;
      unix_picasso_bitmap_info bitmap;
      uaecptr bitmap_info = trap_get_areg(ctx, 1);
+@@ -2718,10 +2759,35 @@ uae_u32 picasso_demux(uae_u32, TrapContext *ctx)
+     }
+ }
+ 
++/* Machine-reset handler, mirroring od-win32 picasso_reset(): the guest-
++ * visible P96 state (picasso96_state incl. SwitchState) and the cached
++ * guest addresses must not survive a reboot. Without this the emulator's
++ * reset (custom_reset/drawing_init) cleared picasso_on/requested_on while
++ * SwitchState stayed 1 — guest and emulator diverged and the uaegfx driver
++ * did not re-initialise, so RTG intermittently failed to come back after
++ * soft or hard reset. */
++static void unix_picasso_reset(int hardreset)
++{
++    if (isrestore()) {
++        return;
++    }
++    write_log(_T("iPadUAE RTG: unix_picasso_reset(hard=%d)\n"), hardreset);
++    unix_uaegfx_base = 0;
++    unix_uaegfx_old = 0;
++    unix_picasso_amem = 0;
++    unix_picasso_amemend = 0;
++    unix_picasso_boardinfo = 0;
++    unix_uaegfx_interrupt_enabled = false;
++    for (int monid = 0; monid < MAX_AMIGAMONITORS; monid++) {
++        InitPicasso96(monid);
++    }
++}
++
+ void uaegfx_install_code(uaecptr start)
+ {
+     unix_uaegfx_rom = start;
+     org(start);
++    device_add_reset(unix_picasso_reset);
+ }
+ 
+ #ifndef GFXBOARD
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
 index 13e88b9d..718cafbf 100644
 --- a/od-unix/video_sdl.cpp
