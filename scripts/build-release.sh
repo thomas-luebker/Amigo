@@ -11,11 +11,17 @@ echo "==> Building WinUAE core (arm64 device, -O3)"
 echo "==> Regenerating Xcode project"
 xcodegen -s app/project.yml
 
+# Auto build number = git commit count (monotonic), so re-uploads never
+# collide. Overrideable: ./build-release.sh <build-number>
+BUILD_NUMBER="${1:-$(git rev-list --count HEAD)}"
+echo "==> Build number: ${BUILD_NUMBER}"
+
 echo "==> Archiving (Release, automatic signing)"
 xcodebuild -project app/iPadUAE.xcodeproj -scheme iPadUAE \
   -configuration Release \
   -destination 'generic/platform=iOS' \
   -allowProvisioningUpdates \
+  CURRENT_PROJECT_VERSION="${BUILD_NUMBER}" \
   -archivePath build/iPadUAE.xcarchive \
   archive
 
