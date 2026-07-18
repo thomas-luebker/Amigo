@@ -11,6 +11,9 @@ settings:
     CODE_SIGN_STYLE: Automatic
     SWIFT_VERSION: 5.9
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    # The pre-build step shells out to cmake; Xcode 26 sandboxes user
+    # scripts by default and would block it.
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
 targets:
   iPadUAE:
     type: application
@@ -48,3 +51,27 @@ targets:
         embed: true
       - sdk: CoreGraphics.framework
       - sdk: ImageIO.framework
+    # A pre-build step so the C core is always up to date when you Archive
+    # from the Xcode GUI (Product → Archive) without running scripts first.
+    preBuildScripts:
+      - name: Build WinUAE core (libuaecore.a)
+        basedOnDependencyAnalysis: false
+        script: |
+          set -e
+          if [ "${PLATFORM_NAME}" = "iphonesimulator" ]; then
+            "${PROJECT_DIR}/../scripts/build-ios-core.sh" simulator
+          else
+            "${PROJECT_DIR}/../scripts/build-ios-core.sh" device
+          fi
+# Shared scheme so Product → Archive works from the Xcode GUI.
+schemes:
+  iPadUAE:
+    build:
+      targets:
+        iPadUAE: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+    profile:
+      config: Release
