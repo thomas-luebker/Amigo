@@ -83,6 +83,10 @@ struct MachinePanel: View {
                     Toggle("Network (bsdsocket.library → host)", isOn: $m.network)
                         .font(.subheadline)
 
+                    Toggle("MMU emulation (68030+)", isOn: $m.mmu)
+                        .font(.subheadline)
+                        .disabled(m.cpu < 68030)
+
                     if m.z3MB > 0 || m.rtgMB > 0, m.cpu < 68020 {
                         Text("Z3 RAM and RTG need a 32-bit CPU (68020+).")
                             .font(.footnote).foregroundStyle(.red)

@@ -104,15 +104,16 @@ enum ConfigStore {
         var z3MB: Int         // 0, 64, 128, 256
         var rtgMB: Int        // 0, 8, 16, 32
         var network: Bool     // bsdsocket_emu
+        var mmu: Bool = false // emulate the 68030/040/060 MMU
 
         static let a500 = Machine(chipset: "ecs_agnus", cpu: 68000, chipHalfMB: 2,
                                   fastMB: 0, z3MB: 0, rtgMB: 0, network: false)
         static let a1200 = Machine(chipset: "aga", cpu: 68020, chipHalfMB: 4,
                                    fastMB: 8, z3MB: 0, rtgMB: 0, network: false)
         static let turbo = Machine(chipset: "aga", cpu: 68060, chipHalfMB: 4,
-                                   fastMB: 8, z3MB: 64, rtgMB: 0, network: false)
+                                   fastMB: 8, z3MB: 64, rtgMB: 0, network: false, mmu: true)
         static let rtgStation = Machine(chipset: "aga", cpu: 68040, chipHalfMB: 4,
-                                        fastMB: 8, z3MB: 128, rtgMB: 16, network: true)
+                                        fastMB: 8, z3MB: 128, rtgMB: 16, network: true, mmu: true)
     }
 
     static func currentMachine() -> Machine {
@@ -126,7 +127,8 @@ enum ConfigStore {
             fastMB: intVal("fastmem_size", 8),
             z3MB: intVal("z3mem_size", 0),
             rtgMB: intVal("gfxcard_size", 0),
-            network: currentValue("bsdsocket_emu") == "true")
+            network: currentValue("bsdsocket_emu") == "true",
+            mmu: (currentValue("mmu_model").flatMap { Int($0) } ?? 0) > 0)
     }
 
     static func apply(machine m: Machine) {
@@ -163,6 +165,15 @@ enum ConfigStore {
         // FPU-heavy code, and avoids the slow library path entirely.
         set("cpu_no_unimplemented", (m.cpu >= 68040) ? "true" : "false")
         set("fpu_no_unimplemented", "true")
+        // MMU emulation (the authentic 68030/040/060 config; WinUAE's own
+        // 040/060 presets enable it). Routes memory through the MMU
+        // translation path — needed for MMU-using software and reported as
+        // "MMU: IN USE" in SysInfo.
+        if m.mmu && m.cpu >= 68030 {
+            set("mmu_model", String(m.cpu))
+        } else {
+            removeAll("mmu_model")
+        }
         set("chipmem_size", String(m.chipHalfMB))
         set("fastmem_size", String(m.fastMB))
         set("z3mem_size", String(m.z3MB))
