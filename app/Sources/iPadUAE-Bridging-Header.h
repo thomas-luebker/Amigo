@@ -9,3 +9,4 @@ void ipaduae_restart_with_config(const char *configpath);
 void ipaduae_set_tablet_runtime(int on);
 void ipaduae_set_safe_area(int on);
 void ipaduae_set_leds(int on);
+void ipaduae_set_rtg_accel(int on);

@@ -31,3 +31,12 @@ extern "C" void ipaduae_set_leds(int on)
     currprefs.leds_on_screen = mask;
     changed_prefs.leds_on_screen = mask;
 }
+
+/* Live toggle for host-accelerated RTG blits. Off = uaegfx software
+ * fallback (correct in >8-bit modes where accel is incomplete). */
+extern bool unix_rtg_accel_enabled;
+
+extern "C" void ipaduae_set_rtg_accel(int on)
+{
+    unix_rtg_accel_enabled = on != 0;
+}

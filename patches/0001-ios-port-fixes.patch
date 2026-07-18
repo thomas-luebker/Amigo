@@ -54,6 +54,111 @@ index 89704c0e..07470b5d 100644
  void unix_input_release_keys(void);
  void unix_input_joystick_device_changed(void);
  
+diff --git a/od-unix/rtg.cpp b/od-unix/rtg.cpp
+index ce574a41..2518530f 100644
+--- a/od-unix/rtg.cpp
++++ b/od-unix/rtg.cpp
+@@ -49,6 +49,12 @@ static int REGPARAM3 gfxmem4_check(uaecptr, uae_u32) REGPARAM;
+ static uae_u8 *REGPARAM3 gfxmem4_xlate(uaecptr) REGPARAM;
+ static void unix_picasso_mark_dirty_offset(int index, uae_u32 offset, uae_u32 size);
+ 
++/* When false, host-accelerated P96 blits decline (return 0) so the uaegfx
++ * library falls back to its own software rendering — slower but correct for
++ * >8-bit modes where the accelerated path is still incomplete upstream.
++ * Toggled at runtime by the iPad app. */
++bool unix_rtg_accel_enabled = true;
++
+ #define UNIX_RTG_MEMORY_FUNCTIONS(prefix, bank, index) \
+ static uae_u32 REGPARAM2 prefix ## _lget(uaecptr addr) \
+ { \
+@@ -1337,6 +1343,10 @@ static uae_u32 REGPARAM2 unix_picasso_fill_rect(TrapContext *ctx)
+ {
+     unix_rtg_trace_blit(UNIX_RTG_TRACE_FILLRECT, _T("FillRect"));
+ 
++    if (!unix_rtg_accel_enabled) {
++        return 0;
++    }
++
+     RenderInfo ri;
+     uaecptr renderinfo = trap_get_areg(ctx, 1);
+     uae_u32 x = (uae_u16)trap_get_dreg(ctx, 0);
+@@ -1380,6 +1390,10 @@ static uae_u32 REGPARAM2 unix_picasso_invert_rect(TrapContext *ctx)
+ {
+     unix_rtg_trace_blit(UNIX_RTG_TRACE_INVERTRECT, _T("InvertRect"));
+ 
++    if (!unix_rtg_accel_enabled) {
++        return 0;
++    }
++
+     RenderInfo ri;
+     uaecptr renderinfo = trap_get_areg(ctx, 1);
+     uae_u32 x = (uae_u16)trap_get_dreg(ctx, 0);
+@@ -1489,6 +1503,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_rect(TrapContext *ctx)
+ {
+     unix_rtg_trace_blit(UNIX_RTG_TRACE_BLITRECT, _T("BlitRect"));
+ 
++    if (!unix_rtg_accel_enabled) {
++        return 0;
++    }
++
+     uaecptr renderinfo = trap_get_areg(ctx, 1);
+     return unix_picasso_blit_rect_common(ctx, renderinfo, 0,
+         (uae_u16)trap_get_dreg(ctx, 0),
+@@ -1506,6 +1524,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_rect_no_mask_complete(TrapContext *ct
+ {
+     unix_rtg_trace_blit(UNIX_RTG_TRACE_BLITRECT_NOMASK, _T("BlitRectNoMaskComplete"));
+ 
++    if (!unix_rtg_accel_enabled) {
++        return 0;
++    }
++
+     return unix_picasso_blit_rect_common(ctx, trap_get_areg(ctx, 1), trap_get_areg(ctx, 2),
+         (uae_u16)trap_get_dreg(ctx, 0),
+         (uae_u16)trap_get_dreg(ctx, 1),
+@@ -1551,6 +1573,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_pattern(TrapContext *ctx)
+ {
+     unix_rtg_trace_blit(UNIX_RTG_TRACE_BLITPATTERN, _T("BlitPattern"));
+ 
++    if (!unix_rtg_accel_enabled) {
++        return 0;
++    }
++
+     RenderInfo ri;
+     unix_picasso_pattern_info pattern;
+     uaecptr renderinfo = trap_get_areg(ctx, 1);
+@@ -1658,6 +1684,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_template(TrapContext *ctx)
+ {
+     unix_rtg_trace_blit(UNIX_RTG_TRACE_BLITTEMPLATE, _T("BlitTemplate"));
+ 
++    if (!unix_rtg_accel_enabled) {
++        return 0;
++    }
++
+     RenderInfo ri;
+     unix_picasso_template_info tmpl;
+     uaecptr renderinfo = trap_get_areg(ctx, 1);
+@@ -1794,6 +1824,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_planar2chunky(TrapContext *ctx)
+ {
+     unix_rtg_trace_blit(UNIX_RTG_TRACE_PLANAR2CHUNKY, _T("BlitPlanar2Chunky"));
+ 
++    if (!unix_rtg_accel_enabled) {
++        return 0;
++    }
++
+     RenderInfo ri;
+     unix_picasso_bitmap_info bitmap;
+     uaecptr bitmap_info = trap_get_areg(ctx, 1);
+@@ -1847,6 +1881,10 @@ static uae_u32 REGPARAM2 unix_picasso_blit_planar2direct(TrapContext *ctx)
+ {
+     unix_rtg_trace_blit(UNIX_RTG_TRACE_PLANAR2DIRECT, _T("BlitPlanar2Direct"));
+ 
++    if (!unix_rtg_accel_enabled) {
++        return 0;
++    }
++
+     RenderInfo ri;
+     unix_picasso_bitmap_info bitmap;
+     uaecptr bitmap_info = trap_get_areg(ctx, 1);
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
 index 13e88b9d..2a2033e5 100644
 --- a/od-unix/video_sdl.cpp
