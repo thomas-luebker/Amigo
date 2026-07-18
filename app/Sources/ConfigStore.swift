@@ -146,6 +146,17 @@ enum ConfigStore {
         set("cpu_compatible", m.cpu >= 68030 ? "false" : "true")
         set("cpu_speed", "max")
         set("cachesize", "0")  // no JIT on iOS
+        // Interpreter throughput: accuracy features cost real speed with no
+        // JIT available. Keep cycle-exactness for 68000 (game timing);
+        // 020+ "workstation" setups get the fast loose profile.
+        let exact = m.cpu == 68000
+        set("cycle_exact", exact ? "true" : "false")
+        set("cpu_cycle_exact", exact ? "true" : "false")
+        set("cpu_memory_cycle_exact", exact ? "true" : "false")
+        set("blitter_cycle_exact", exact ? "true" : "false")
+        set("cpu_data_cache", "false")   // 040/060 cache emulation is slow
+        set("fpu_strict", "false")
+        set("fpu_softfloat", "false")    // host FPU, not softfloat
         set("chipmem_size", String(m.chipHalfMB))
         set("fastmem_size", String(m.fastMB))
         set("z3mem_size", String(m.z3MB))
