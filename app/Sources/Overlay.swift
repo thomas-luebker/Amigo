@@ -167,7 +167,7 @@ final class OverlayState: ObservableObject {
     @Published var showJoystick = false
     @Published var fullscreenDisplay = UserDefaults.standard.bool(forKey: "fullscreenDisplay")
     @Published var showLEDs = UserDefaults.standard.object(forKey: "showLEDs") as? Bool ?? true
-    @Published var rtgAccel = UserDefaults.standard.object(forKey: "rtgAccel") as? Bool ?? true
+    @Published var rtgAccel = UserDefaults.standard.object(forKey: "rtgAccel") as? Bool ?? false
     /// Global frames of touch-interactive overlay elements, keyed by id.
     /// Read by PassthroughWindow.hitTest on every touch; written from
     /// SwiftUI geometry callbacks. Main-thread only.
