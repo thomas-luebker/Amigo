@@ -67,8 +67,10 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
     in keywords are a rejection trigger; "amiga" is needed for search and
     is standard across shipping emulators.)
 
-## What's New — 0.4.1
+## What's New — 0.4.2
 
+    • Machine panel: Apply button always visible, warns about unapplied
+      changes (settings could silently revert when leaving the panel)
     • Menu overlay now adapts to every iPad size and orientation
     • 1:1 mouse mode reliably re-engages after WHDLoad sessions and resets
     • Saved configurations show machine, disks and date at a glance
@@ -93,7 +95,7 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
       emulators (UTM SE).
     - The app is free software (GPL-2). Complete, buildable source for
       this exact build: https://github.com/thomas-luebker/iPadUAE
-      (tag v0.4.1).
+      (tag v0.4.2).
     - No data is collected (see Privacy Nutrition Label / PrivacyInfo).
 
 ## Copyright (App Store Connect field)
