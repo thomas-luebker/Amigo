@@ -1,3 +1,22 @@
+diff --git a/inputdevice.cpp b/inputdevice.cpp
+index edf23232..9d7b7d95 100644
+--- a/inputdevice.cpp
++++ b/inputdevice.cpp
+@@ -2720,7 +2720,13 @@ void mousehack_wakeup(void)
+ int input_mousehack_status(TrapContext *ctx, int mode, uaecptr diminfo, uaecptr dispinfo, uaecptr vp, uae_u32 moffset)
+ {
+ 	if (mode == 4) {
+-		return mousehack_enable () ? 1 : 0;
++		/* Boot ROM asks whether to create the guest mousehack task. Always
++		 * say yes when the boot ROM is active: input_tablet can be enabled
++		 * at runtime (iOS 1:1 mouse toggle), and a guest boot that happens
++		 * while it is off must not lose the driver for the whole session.
++		 * The task idles until the MH_E enable bits are set. */
++		mousehack_enable ();
++		return uae_boot_rom_type > 0 ? 1 : 0;
+ 	} else if (mode == 5) {
+ 		mousehack_address = (trap_get_dreg(ctx, 0) & 0xffff) + rtarea_bank.baseaddr;
+ 		mousehack_enable ();
 diff --git a/od-unix/config.cpp b/od-unix/config.cpp
 index 9618298b..ff7f421a 100644
 --- a/od-unix/config.cpp
