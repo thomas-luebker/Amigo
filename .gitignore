@@ -4,3 +4,5 @@ app/iPadUAE.xcodeproj/
 *.xcuserdatad/
 xcuserdata/
 .DS_Store
+.claude/
+*.p8
