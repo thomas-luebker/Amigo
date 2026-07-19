@@ -292,7 +292,7 @@ index ce574a41..cf28cb71 100644
  
  #ifndef GFXBOARD
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..81b4a9f1 100644
+index 13e88b9d..83c8f51a 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -616,7 +616,7 @@ index 13e88b9d..81b4a9f1 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2112,193 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2112,192 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -740,7 +740,6 @@ index 13e88b9d..81b4a9f1 100644
 +                    s_touch_scroll_accum += (event.tfinger.y - s_touch_second_last_y) * (float)win_h;
 +                    int ticks = (int)(s_touch_scroll_accum / 40.0f);
 +                    if (ticks != 0) {
-+                        write_log(_T("iPadUAE input: touch scroll wheel %d\n"), ticks);
 +                        unix_input_mouse_wheel(0, ticks);
 +                        s_touch_scroll_accum -= (float)ticks * 40.0f;
 +                    }
