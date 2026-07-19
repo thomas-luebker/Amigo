@@ -220,6 +220,64 @@ enum ConfigStore {
             .filter { $0 != "default" }
     }
 
+    /// What a saved setup contains, for display in the Configurations list.
+    struct SavedConfiguration: Identifiable {
+        var id: String { name }
+        let name: String
+        let machine: String   // "68060 AGA · 128 MB Z3 · RTG 16 MB · Net"
+        let media: String     // "system.hdf · A1200.47.115.rom"
+        let modified: Date?
+    }
+
+    static func savedConfigurationDetails() -> [SavedConfiguration] {
+        savedConfigurations().map { name in
+            let url = configurationsDir.appendingPathComponent("\(name).uae")
+            let lines = (try? String(contentsOf: url, encoding: .utf8))?
+                .split(separator: "\n").map(String.init) ?? []
+            func val(_ key: String) -> String? {
+                lines.first { $0.hasPrefix(key + "=") }
+                    .map { String($0.dropFirst(key.count + 1)) }
+            }
+
+            var machine: [String] = []
+            var cpuChipset: [String] = []
+            if let cpu = val("cpu_model") { cpuChipset.append(cpu) }
+            if let chipset = val("chipset")?.uppercased() {
+                cpuChipset.append(chipset == "ECS_AGNUS" ? "ECS" : chipset)
+            }
+            if !cpuChipset.isEmpty { machine.append(cpuChipset.joined(separator: " ")) }
+            if let z3 = val("z3mem_size").flatMap(Int.init), z3 > 0 {
+                machine.append("\(z3) MB Z3")
+            }
+            if let rtg = val("gfxcard_size").flatMap(Int.init), rtg > 0 {
+                machine.append("RTG \(rtg) MB")
+            }
+            if val("bsdsocket_emu") == "true" { machine.append("Net") }
+
+            var media: [String] = []
+            if let hd = val("hardfile2"),
+               let unit = hd.split(separator: ",").dropFirst().first {
+                // "DH0:/path/to.hdf" — path is everything after the first colon
+                let path = unit.split(separator: ":", maxSplits: 1)
+                    .dropFirst().joined()
+                if !path.isEmpty { media.append((path as NSString).lastPathComponent) }
+            }
+            if let f0 = val("floppy0"), !f0.isEmpty {
+                media.append((f0 as NSString).lastPathComponent)
+            }
+            if let ks = val("kickstart_rom_file"), !ks.isEmpty {
+                media.append(ks == ":AROS" ? "AROS ROM" : (ks as NSString).lastPathComponent)
+            }
+
+            let modified = (try? FileManager.default
+                .attributesOfItem(atPath: url.path)[.modificationDate]) as? Date
+            return SavedConfiguration(name: name,
+                                      machine: machine.joined(separator: " · "),
+                                      media: media.joined(separator: " · "),
+                                      modified: modified)
+        }
+    }
+
     private static func sanitized(_ name: String) -> String {
         let bad = CharacterSet(charactersIn: "/\\:?%*|\"<>")
         return name.components(separatedBy: bad).joined().trimmingCharacters(in: .whitespaces)

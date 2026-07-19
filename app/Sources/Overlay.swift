@@ -171,6 +171,7 @@ final class OverlayState: ObservableObject {
     @Published var showLEDs = UserDefaults.standard.object(forKey: "showLEDs") as? Bool ?? true
     @Published var rtgAccel = UserDefaults.standard.object(forKey: "rtgAccel") as? Bool ?? false
     @Published var vsync = UserDefaults.standard.object(forKey: "vsync") as? Bool ?? false
+    @Published var tabletMode = ConfigStore.tabletMode
     /// Global frames of touch-interactive overlay elements, keyed by id.
     /// Read by PassthroughWindow.hitTest on every touch; written from
     /// SwiftUI geometry callbacks. Main-thread only.
@@ -248,6 +249,7 @@ struct OverlayRoot: View {
             // the corner, too tight on 11" iPads).
             .padding(.top, 10)
             .padding(.trailing, 18)
+            .padding(.bottom, 12)
 
             if state.showJoystick {
                 VStack {
@@ -304,7 +306,14 @@ struct ControlPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             switch submenu {
-            case .none: mainMenu
+            // The main menu outgrew small screens (11" landscape: the panel
+            // ran off the bottom and pushed the close button into the status
+            // bar). Render it plain when it fits, scrollable when it doesn't.
+            case .none:
+                ViewThatFits(in: .vertical) {
+                    mainMenu
+                    ScrollView { mainMenu }
+                }
             case .df0: FloppyPicker(drive: 0) { submenu = .none }
             case .df1: FloppyPicker(drive: 1) { submenu = .none }
             case .kickstart: KickstartPicker { submenu = .none }
@@ -330,51 +339,61 @@ struct ControlPanel: View {
             MenuRow(icon: "square.stack.3d.up", title: "Configurations (save/load setups)…") { submenu = .configs }
             Divider().padding(.vertical, 4)
             MenuRow(icon: state.vsync ? "speedometer" : "speedometer",
-                    title: state.vsync ? "Speed: Smooth (vsync on)" : "Speed: Fast (vsync off)") {
+                    title: state.vsync ? "Speed: Smooth (vsync on)" : "Speed: Fast (vsync off)",
+                    active: state.vsync) {
                 state.vsync.toggle()
                 UserDefaults.standard.set(state.vsync, forKey: "vsync")
                 ipaduae_set_vsync(state.vsync ? 1 : 0)
             }
             MenuRow(icon: state.rtgAccel ? "bolt.fill" : "bolt.slash",
-                    title: state.rtgAccel ? "RTG Accel: On (fast)" : "RTG Accel: Off (correct >8-bit)") {
+                    title: state.rtgAccel ? "RTG Accel: On (fast)" : "RTG Accel: Off (correct >8-bit)",
+                    active: state.rtgAccel) {
                 state.rtgAccel.toggle()
                 UserDefaults.standard.set(state.rtgAccel, forKey: "rtgAccel")
                 ipaduae_set_rtg_accel(state.rtgAccel ? 1 : 0)
             }
             MenuRow(icon: state.showLEDs ? "circle.grid.2x1.fill" : "circle.grid.2x1",
-                    title: state.showLEDs ? "Hide LED Bar" : "Show LED Bar") {
+                    title: state.showLEDs ? "Hide LED Bar" : "Show LED Bar",
+                    active: state.showLEDs) {
                 state.showLEDs.toggle()
                 UserDefaults.standard.set(state.showLEDs, forKey: "showLEDs")
                 ipaduae_set_leds(state.showLEDs ? 1 : 0)
                 ConfigStore.set("show_leds", state.showLEDs ? "true" : "false")
             }
             MenuRow(icon: state.fullscreenDisplay ? "rectangle.inset.filled" : "rectangle",
-                    title: state.fullscreenDisplay ? "Display: Fullscreen (corners may crop)" : "Display: Safe Area") {
+                    title: state.fullscreenDisplay ? "Display: Fullscreen (corners may crop)" : "Display: Safe Area",
+                    active: state.fullscreenDisplay) {
                 state.fullscreenDisplay.toggle()
                 UserDefaults.standard.set(state.fullscreenDisplay, forKey: "fullscreenDisplay")
                 ipaduae_set_safe_area(state.fullscreenDisplay ? 0 : 1)
             }
-            MenuRow(icon: ConfigStore.tabletMode ? "hand.point.up.left.fill" : "hand.point.up.left",
-                    title: ConfigStore.tabletMode ? "1:1 Mouse: On (restart to relative)" : "1:1 Mouse (pointer follows touch)") {
-                ConfigStore.setTabletMode(!ConfigStore.tabletMode)
+            MenuRow(icon: state.tabletMode ? "hand.point.up.left.fill" : "hand.point.up.left",
+                    title: state.tabletMode ? "1:1 Mouse: On" : "1:1 Mouse: Off (relative/trackpad)",
+                    active: state.tabletMode) {
+                state.tabletMode.toggle()
+                ConfigStore.setTabletMode(state.tabletMode)
             }
-            MenuRow(icon: "keyboard", title: state.showKeyboard ? "Hide Amiga Keyboard" : "Amiga Keyboard") {
+            MenuRow(icon: "keyboard", title: state.showKeyboard ? "Hide Amiga Keyboard" : "Amiga Keyboard",
+                    active: state.showKeyboard) {
                 state.showKeyboard.toggle()
             }
-            MenuRow(icon: "f.cursive", title: state.showFKeys ? "Hide Function Keys" : "Function Keys (F1–F10)") {
+            MenuRow(icon: "f.cursive", title: state.showFKeys ? "Hide Function Keys" : "Function Keys (F1–F10)",
+                    active: state.showFKeys) {
                 state.showFKeys.toggle()
             }
-            MenuRow(icon: "number.square", title: state.showNumpad ? "Hide Numpad" : "Numpad (WHDLoad quit keys)") {
+            MenuRow(icon: "number.square", title: state.showNumpad ? "Hide Numpad" : "Numpad (WHDLoad quit keys)",
+                    active: state.showNumpad) {
                 state.showNumpad.toggle()
             }
-            MenuRow(icon: "gamecontroller", title: state.showJoystick ? "Hide Joystick" : "Virtual Joystick") {
+            MenuRow(icon: "gamecontroller", title: state.showJoystick ? "Hide Joystick" : "Virtual Joystick",
+                    active: state.showJoystick) {
                 state.showJoystick.toggle()
             }
             Divider().padding(.vertical, 4)
             MenuRow(icon: "arrow.counterclockwise", title: "Reset") { ipaduae_reset(0) }
             MenuRow(icon: "exclamationmark.arrow.circlepath", title: "Hard Reset") { ipaduae_reset(1) }
             Divider().padding(.vertical, 4)
-            Text("Add disks & Kickstart ROMs via Files:\nOn My iPad › iPadUAE › WinUAE")
+            Text("Add disks & Kickstart ROMs via Files:\nOn My iPad › iPadUAE")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
@@ -384,14 +403,22 @@ struct ControlPanel: View {
 struct MenuRow: View {
     let icon: String
     let title: String
+    /// nil = plain action row; true/false = a toggle showing its state.
+    var active: Bool? = nil
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 10) {
-                Image(systemName: icon).frame(width: 22)
+                Image(systemName: icon)
+                    .frame(width: 22)
+                    .foregroundStyle(active == true ? AnyShapeStyle(.red) : AnyShapeStyle(.primary))
                 Text(title)
                 Spacer()
+                if let active {
+                    Image(systemName: active ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(active ? AnyShapeStyle(.red) : AnyShapeStyle(.tertiary))
+                }
             }
             .contentShape(Rectangle())
             .padding(.vertical, 8)
@@ -427,7 +454,7 @@ struct KickstartPicker: View {
                 onDone()
             }
             if roms.isEmpty {
-                Text("No ROM files found.\nDrop Kickstart images into Files › iPadUAE › WinUAE › Kickstarts.")
+                Text("No ROM files found.\nDrop Kickstart images into Files › iPadUAE › Kickstarts.")
                     .font(.footnote).foregroundStyle(.secondary).padding(.vertical, 8)
             }
             ScrollView {
@@ -473,7 +500,7 @@ struct HardDrivePicker: View {
                 Divider().padding(.vertical, 4)
             }
             if images.isEmpty {
-                Text("No HDF images found.\nDrop .hdf files into Files › iPadUAE › WinUAE › HardDrives.")
+                Text("No HDF images found.\nDrop .hdf files into Files › iPadUAE › HardDrives.")
                     .font(.footnote).foregroundStyle(.secondary).padding(.vertical, 8)
             }
             ScrollView {
@@ -522,7 +549,7 @@ struct FloppyPicker: View {
             .padding(.bottom, 6)
 
             if images.isEmpty {
-                Text("No disk images found.\nDrop .adf files into Files › iPadUAE › WinUAE › Floppies.")
+                Text("No disk images found.\nDrop .adf files into Files › iPadUAE › Floppies.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .padding(.vertical, 8)
