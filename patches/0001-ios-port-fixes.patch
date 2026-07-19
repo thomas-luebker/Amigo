@@ -311,7 +311,7 @@ index ce574a41..cf28cb71 100644
  
  #ifndef GFXBOARD
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..701cc5de 100644
+index 13e88b9d..a696f004 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -467,13 +467,13 @@ index 13e88b9d..701cc5de 100644
 +            safe_w = (int)(sa.w * px);
 +            safe_h = (int)(sa.h * py);
 +        }
-     }
--    const int frame_area_height = std::max(1, output_height - status_height);
++    }
 +#endif
 +
 +    if (status_height >= safe_h) {
 +        status_height = std::max(0, safe_h - 1);
-+    }
+     }
+-    const int frame_area_height = std::max(1, output_height - status_height);
 +    const int frame_area_height = std::max(1, safe_h - status_height);
  
      SDL_FRect source_rect = filtered_frame_rect(frame, filter);
@@ -564,7 +564,7 @@ index 13e88b9d..701cc5de 100644
      destroy_frame_textures();
      if (s_status_texture) {
          SDL_DestroyTexture(s_status_texture);
-@@ -1790,6 +1914,68 @@ void unix_video_shutdown(void)
+@@ -1790,6 +1914,97 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -575,6 +575,34 @@ index 13e88b9d..701cc5de 100644
 + * One finger drags the pointer; a quick tap clicks; a two-finger tap is a
 + * right click. Click release is deferred a few frames so the emulated
 + * Amiga's 50Hz input polling can observe the press. */
++/* Palm rejection while the Apple Pencil hovers: finger touches that START
++ * during hover are ignored entirely, tracked by ID so their later motion
++ * and lift stay ignored even after hover ends. Pencil tip contact is
++ * unaffected — hover ends before the tip touches down. */
++bool unix_input_pen_hover_active = false;
++static SDL_FingerID s_pen_ignored[16];
++static int s_pen_ignored_count = 0;
++
++static void pen_ignore_finger(SDL_FingerID id)
++{
++    if (s_pen_ignored_count < (int)(sizeof s_pen_ignored / sizeof s_pen_ignored[0])) {
++        s_pen_ignored[s_pen_ignored_count++] = id;
++    }
++}
++
++static bool pen_ignored_finger(SDL_FingerID id, bool remove)
++{
++    for (int i = 0; i < s_pen_ignored_count; i++) {
++        if (s_pen_ignored[i] == id) {
++            if (remove) {
++                s_pen_ignored[i] = s_pen_ignored[--s_pen_ignored_count];
++            }
++            return true;
++        }
++    }
++    return false;
++}
++
 +static SDL_FingerID s_touch_primary_finger;
 +static bool s_touch_primary_active = false;
 +static float s_touch_last_x = 0.0f, s_touch_last_y = 0.0f;
@@ -607,6 +635,7 @@ index 13e88b9d..701cc5de 100644
 +    if (s_touch_second_mode == 1) {
 +        unix_input_mouse_button(1, false);
 +    }
++    s_pen_ignored_count = 0;
 +    s_touch_primary_active = false;
 +    s_touch_second_active = false;
 +    s_touch_second_mode = 0;
@@ -633,7 +662,7 @@ index 13e88b9d..701cc5de 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +2009,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +2038,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -644,7 +673,7 @@ index 13e88b9d..701cc5de 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2060,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2089,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
@@ -675,7 +704,7 @@ index 13e88b9d..701cc5de 100644
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2095,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2124,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -690,7 +719,7 @@ index 13e88b9d..701cc5de 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1915,7 +2137,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2166,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -700,7 +729,7 @@ index 13e88b9d..701cc5de 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2149,202 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2178,214 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -727,6 +756,12 @@ index 13e88b9d..701cc5de 100644
 +#if defined(__APPLE__) && TARGET_OS_IPHONE
 +        case SDL_EVENT_FINGER_DOWN: {
 +            if (!input_events) {
++                break;
++            }
++            if (unix_input_pen_hover_active) {
++                /* Palm/finger contact while the Pencil hovers: ignore the
++                 * whole touch sequence. */
++                pen_ignore_finger(event.tfinger.fingerID);
 +                break;
 +            }
 +            s_touch_finger_count++;
@@ -796,6 +831,9 @@ index 13e88b9d..701cc5de 100644
 +            if (!input_events) {
 +                break;
 +            }
++            if (pen_ignored_finger(event.tfinger.fingerID, false)) {
++                break;
++            }
 +            if (s_touch_primary_active && event.tfinger.fingerID == s_touch_primary_finger) {
 +                int win_w = 0, win_h = 0;
 +                SDL_Window *win = SDL_GetWindowFromID(event.tfinger.windowID);
@@ -846,6 +884,9 @@ index 13e88b9d..701cc5de 100644
 +            break;
 +        case SDL_EVENT_FINGER_UP: {
 +            if (!input_events) {
++                break;
++            }
++            if (pen_ignored_finger(event.tfinger.fingerID, true)) {
 +                break;
 +            }
 +            if (currprefs.input_tablet > 0) {
@@ -905,7 +946,7 @@ index 13e88b9d..701cc5de 100644
          case SDL_EVENT_JOYSTICK_ADDED:
          case SDL_EVENT_JOYSTICK_REMOVED:
          case SDL_EVENT_GAMEPAD_ADDED:
-@@ -1962,6 +2373,166 @@ int unix_video_poll_window_events(bool *quit_requested)
+@@ -1962,6 +2414,166 @@ int unix_video_poll_window_events(bool *quit_requested)
      return unix_video_poll_internal(quit_requested, false);
  }
  
@@ -1072,7 +1113,7 @@ index 13e88b9d..701cc5de 100644
  static void unix_video_present_on_event_thread(const struct unix_video_frame *frame)
  {
      if (!frame || !frame->pixels || frame->width <= 0 || frame->height <= 0 || frame->rowbytes <= 0) {
-@@ -2010,6 +2581,7 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -2010,6 +2622,7 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
          SDL_RenderTexture(s_renderer, s_status_texture, NULL, &layout.status_dst);
      }
      SDL_RenderPresent(s_renderer);

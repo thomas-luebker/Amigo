@@ -28,6 +28,15 @@ extern "C" void ipaduae_pointer_hover(float nx, float ny)
     }
 }
 
+/* Palm rejection: while the Apple Pencil hovers, finger touches are
+ * ignored by the touch layer (they would left-click in 1:1 mode). */
+extern bool unix_input_pen_hover_active;
+
+extern "C" void ipaduae_set_pen_hover(int active)
+{
+    unix_input_pen_hover_active = active != 0;
+}
+
 /* Mouse button injection for UIKit-side input (Apple Pencil squeeze /
  * double-tap → right mouse button). 0=left 1=right 2=middle. */
 extern void unix_input_mouse_button(int button, bool pressed);

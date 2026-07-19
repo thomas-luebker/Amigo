@@ -25,6 +25,9 @@ final class PencilHoverDriver: NSObject, UIPencilInteractionDelegate {
         }
         let hover = UIHoverGestureRecognizer(target: self,
                                              action: #selector(handleHover(_:)))
+        // Pencil only: trackpad pointers also produce hover events, and the
+        // palm rejection below must never engage for a parked mouse pointer.
+        hover.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.pencil.rawValue)]
         sdlView.addGestureRecognizer(hover)
         // Squeeze (Pencil Pro) = hold RMB — hover + squeeze walks Intuition
         // menus like a real second button. Double-tap (Pencil 2) = RMB click.
@@ -60,13 +63,14 @@ final class PencilHoverDriver: NSObject, UIPencilInteractionDelegate {
     @objc private func handleHover(_ gesture: UIHoverGestureRecognizer) {
         switch gesture.state {
         case .began, .changed:
+            ipaduae_set_pen_hover(1)   // palm rejection while hovering
             guard let view = gesture.view,
                   view.bounds.width > 0, view.bounds.height > 0 else { return }
             let p = gesture.location(in: view)
             ipaduae_pointer_hover(Float(p.x / view.bounds.width),
                                   Float(p.y / view.bounds.height))
         default:
-            break
+            ipaduae_set_pen_hover(0)   // tip contact or Pencil out of range
         }
     }
 }

@@ -14,3 +14,4 @@ void ipaduae_set_vsync(int on);
 void ipaduae_pointer_hover(float nx, float ny);
 void ipaduae_set_external_display(int on);
 void ipaduae_mouse_button(int button, int pressed);
+void ipaduae_set_pen_hover(int active);
