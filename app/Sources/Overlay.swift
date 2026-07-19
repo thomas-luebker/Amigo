@@ -175,6 +175,10 @@ final class OverlayState: ObservableObject {
     @Published var vsync = UserDefaults.standard.object(forKey: "vsync") as? Bool ?? false
     @Published var tabletMode = ConfigStore.tabletMode
     @Published var externalDisplay = UserDefaults.standard.object(forKey: "externalDisplay") as? Bool ?? true
+    /// Opacity of the input overlays (keyboard, numpad, F-keys, joystick).
+    /// Floor of 0.25 keeps them findable — invisible-but-touchable panels
+    /// would eat emulator input with no visual explanation.
+    @Published var overlayOpacity = UserDefaults.standard.object(forKey: "overlayOpacity") as? Double ?? 1.0
     /// Global frames of touch-interactive overlay elements, keyed by id.
     /// Read by PassthroughWindow.hitTest on every touch; written from
     /// SwiftUI geometry callbacks. Main-thread only.
@@ -253,12 +257,16 @@ struct OverlayRoot: View {
             .padding(.top, 10)
             .padding(.trailing, 18)
             .padding(.bottom, 12)
+            // The menu must always draw (and hit-test) above the input
+            // overlays — a keyboard covering the open menu makes it unusable.
+            .zIndex(10)
 
             if state.showJoystick {
                 VStack {
                     Spacer()
                     VirtualJoystickView()
                 }
+                .opacity(state.overlayOpacity)
             }
 
             if state.showKeyboard {
@@ -269,6 +277,7 @@ struct OverlayRoot: View {
                         .padding(.bottom, state.showJoystick ? 200 : 12)
                         .padding(.horizontal, 12)
                 }
+                .opacity(state.overlayOpacity)
             }
 
             if state.showNumpad {
@@ -282,6 +291,7 @@ struct OverlayRoot: View {
                             .padding(.bottom, state.showJoystick ? 200 : 60)
                     }
                 }
+                .opacity(state.overlayOpacity)
             }
 
             if state.showFKeys {
@@ -295,6 +305,7 @@ struct OverlayRoot: View {
                     .padding(.top, 8)
                     Spacer()
                 }
+                .opacity(state.overlayOpacity)
             }
         }
         .tint(.red)
@@ -399,6 +410,22 @@ struct ControlPanel: View {
                     active: state.showJoystick) {
                 state.showJoystick.toggle()
             }
+            // Overlay transparency: applies to keyboard/numpad/F-keys/joystick.
+            HStack(spacing: 10) {
+                Image(systemName: "circle.lefthalf.filled").frame(width: 22)
+                Slider(value: Binding(
+                    get: { state.overlayOpacity },
+                    set: {
+                        state.overlayOpacity = $0
+                        UserDefaults.standard.set($0, forKey: "overlayOpacity")
+                    }), in: 0.25...1.0)
+                Text("\(Int(state.overlayOpacity * 100)) %")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .frame(width: 44, alignment: .trailing)
+            }
+            .padding(.vertical, 4)
+            .padding(.horizontal, 4)
             Divider().padding(.vertical, 4)
             MenuRow(icon: "arrow.counterclockwise", title: "Reset") { ipaduae_reset(0) }
             MenuRow(icon: "exclamationmark.arrow.circlepath", title: "Hard Reset") { ipaduae_reset(1) }
