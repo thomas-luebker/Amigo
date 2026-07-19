@@ -67,6 +67,13 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
     in keywords are a rejection trigger; "amiga" is needed for search and
     is standard across shipping emulators.)
 
+## What's New — 0.6.2
+
+    • Save states: three slots plus an automatic save every five minutes
+      — resume exactly where you left off
+    • Overlay transparency slider for the virtual keyboard and controls
+    • The menu now always stays above the virtual keyboard
+
 ## What's New — 0.6.1
 
     • Apple Pencil support: hover moves the Amiga pointer, tip clicks,
@@ -99,7 +106,7 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
       emulators (UTM SE).
     - The app is free software (GPL-2). Complete, buildable source for
       this exact build: https://github.com/thomas-luebker/iPadUAE
-      (tag v0.6.1).
+      (tag v0.6.2).
     - No data is collected (see Privacy Nutrition Label / PrivacyInfo).
 
 ## Copyright (App Store Connect field)

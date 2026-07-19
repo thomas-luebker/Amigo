@@ -15,9 +15,9 @@ Planning home: the Obsidian note "iPadUAE — Roadmap & Open Questions"
 
 ## Killer features (medium)
 
-- [ ] **Save-state UI** — slots with screen thumbnails (`SaveStates/`
-  exists); pin the config per slot — states are fragile across config
-  changes.
+- [x] **Save-state UI** — shipped: 3 slots + 5-min autosave (quick-state
+  machinery, StatePanel). Later polish: screen thumbnails per slot, pin
+  the config per slot (states are fragile across config changes).
 - [ ] **CRT shader** — scanlines/phosphor Metal post-process on the SDL
   texture; the most-requested emulator feature.
 - [ ] **Disk-set swap strip** — detect "Disk 1 of 3" filename sets, show a
