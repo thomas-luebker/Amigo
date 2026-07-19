@@ -96,6 +96,10 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
       (tag v0.4.1).
     - No data is collected (see Privacy Nutrition Label / PrivacyInfo).
 
+## Copyright (App Store Connect field)
+
+    © 2026 Thomas Lübker. Based on WinUAE © Toni Wilen, UAE © Bernd Schmidt — GPL-2.
+
 ## Category / Rating
 
     Primary: Utilities (alt: Entertainment). Age rating: 4+.
