@@ -35,14 +35,39 @@ final class PencilHoverDriver: NSObject, UIPencilInteractionDelegate {
         sdlView.addInteraction(pencil)
     }
 
+    /// Squeeze length picks the button: a short squeeze right-clicks, a
+    /// long squeeze (≥0.4s) presses the LEFT button when the threshold is
+    /// crossed and releases it with the squeeze — click *and drag* without
+    /// touching the glass while hovering.
+    private var longSqueeze: DispatchWorkItem?
+    private var longSqueezeFired = false
+
     @available(iOS 17.5, *)
     func pencilInteraction(_ interaction: UIPencilInteraction,
                            didReceiveSqueeze squeeze: UIPencilInteraction.Squeeze) {
         switch squeeze.phase {
         case .began:
-            ipaduae_mouse_button(1, 1)
+            longSqueezeFired = false
+            let work = DispatchWorkItem { [weak self] in
+                self?.longSqueezeFired = true
+                ipaduae_mouse_button(0, 1)   // LMB down, held while squeezing
+            }
+            longSqueeze = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: work)
         case .ended, .cancelled:
-            ipaduae_mouse_button(1, 0)
+            longSqueeze?.cancel()
+            longSqueeze = nil
+            if longSqueezeFired {
+                ipaduae_mouse_button(0, 0)   // LMB up
+                longSqueezeFired = false
+            } else {
+                // Short squeeze: RMB click, release deferred for the
+                // emulated 50Hz input polling.
+                ipaduae_mouse_button(1, 1)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                    ipaduae_mouse_button(1, 0)
+                }
+            }
         default:
             break
         }
