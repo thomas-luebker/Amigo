@@ -40,6 +40,20 @@ Planning home: the Obsidian note "iPadUAE — Roadmap & Open Questions"
   13"↔11" sync.
 - [ ] **App Intents/Shortcuts** — "Boot <config>" from Spotlight/widgets.
 
+## Power / energy
+
+- [ ] **Power modes** — replace the binary Speed toggle: Performance
+  (today's cpu max + vsync off), Balanced (cpu max + vsync on, ~1/3
+  energy cut — measured 38% thread-block; proposed default), Authentic
+  (m68k_speed=0 real pacing + vsync on — longest battery AND correct
+  speed for unregulated games). Auto-downshift on iOS Low Power Mode,
+  always visibly (menu label change). Nothing removed; defaults decide
+  perception — keep Performance one tap away.
+- [ ] Idle throttle: no input/disk activity for N minutes → vsync on
+  until next input (invisible energy win).
+- [ ] Skip present when the emulated framebuffer is unchanged (GPU idle
+  win at Workbench).
+
 ## Product hygiene
 
 - [ ] Warn when an HDF is mounted but no RTG board is configured (the
