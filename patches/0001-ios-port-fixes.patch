@@ -311,7 +311,7 @@ index ce574a41..cf28cb71 100644
  
  #ifndef GFXBOARD
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..0cd37f5b 100644
+index 13e88b9d..701cc5de 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -324,7 +324,34 @@ index 13e88b9d..0cd37f5b 100644
  
  #ifdef WINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE
  #if defined(__APPLE__)
-@@ -500,6 +503,11 @@ static int unix_input_lock_state_from_sdl(SDL_Keymod mod)
+@@ -38,6 +41,17 @@ extern void pausemode(int mode);
+ static SDL_Window *s_window;
+ static SDL_Renderer *s_renderer;
+ static SDL_Texture *s_texture;
++
++/* External display ("living-room mode"): when a second display appears
++ * (USB-C/AirPlay screen on iPad), present the emulator frame there too —
++ * fullscreen, aspect-fit, no UI chrome. The main window keeps rendering
++ * on the device, where the touch controls and overlays live. */
++bool unix_video_external_enabled = true;
++static SDL_Window *s_ext_window;
++static SDL_Renderer *s_ext_renderer;
++static SDL_Texture *s_ext_texture;
++static SDL_DisplayID s_ext_display;
++static int s_ext_texture_width, s_ext_texture_height, s_ext_texture_pixbytes;
+ static std::vector<SDL_Texture *> s_textures;
+ static SDL_Texture *s_status_texture;
+ #ifdef WINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE
+@@ -119,6 +133,8 @@ static constexpr int UnixStatusScale = 2;
+ static TCHAR s_display_name[MAX_DPATH];
+ 
+ static void unix_video_present_on_event_thread(const struct unix_video_frame *frame);
++static void unix_ext_display_open_if_available(void);
++static void unix_ext_display_close(void);
+ 
+ #ifdef WINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE
+ #ifndef APIENTRY
+@@ -500,6 +516,11 @@ static int unix_input_lock_state_from_sdl(SDL_Keymod mod)
  
  static int statusbar_source_height(void)
  {
@@ -336,7 +363,7 @@ index 13e88b9d..0cd37f5b 100644
      return TD_TOTAL_HEIGHT;
  }
  
-@@ -672,6 +680,78 @@ static bool get_renderer_output_size(int *width, int *height)
+@@ -672,6 +693,78 @@ static bool get_renderer_output_size(int *width, int *height)
      return get_window_pixel_size(width, height);
  }
  
@@ -415,7 +442,7 @@ index 13e88b9d..0cd37f5b 100644
  static bool make_video_layout(const struct unix_video_frame *frame, const struct gfx_filterdata *filter,
      int output_width, int output_height, struct unix_video_layout *layout)
  {
-@@ -684,10 +764,32 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -684,10 +777,32 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      get_window_pixel_scale(output_width, output_height, &layout->pixel_scale_x, &layout->pixel_scale_y);
  
      int status_height = std::max(1, (int)(statusbar_display_height() * layout->pixel_scale_y + 0.5f));
@@ -451,7 +478,7 @@ index 13e88b9d..0cd37f5b 100644
  
      SDL_FRect source_rect = filtered_frame_rect(frame, filter);
      SDL_FRect dst = {};
-@@ -696,18 +798,18 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -696,18 +811,18 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      if (frame->filter_index == GF_RTG && mode == 2) { /* center */
          dst.w = source_rect.w * layout->pixel_scale_x;
          dst.h = source_rect.h * layout->pixel_scale_y;
@@ -474,7 +501,7 @@ index 13e88b9d..0cd37f5b 100644
          const float sy = (float)frame_area_height / (float)frame->height;
          float draw_sx = sx;
          float draw_sy = sy;
-@@ -717,16 +819,22 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -717,16 +832,22 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
          }
          dst.w = source_rect.w * draw_sx;
          dst.h = source_rect.h * draw_sy;
@@ -502,7 +529,7 @@ index 13e88b9d..0cd37f5b 100644
          (float)status_height
      };
      return true;
-@@ -1183,7 +1291,7 @@ static bool unix_gl_ensure_context(int width, int height)
+@@ -1183,7 +1304,7 @@ static bool unix_gl_ensure_context(int width, int height)
          return false;
      }
      SDL_GL_MakeCurrent(s_window, s_gl_context);
@@ -511,7 +538,7 @@ index 13e88b9d..0cd37f5b 100644
      if (!unix_gl_build_program()) {
          SDL_GL_DestroyContext(s_gl_context);
          s_gl_context = NULL;
-@@ -1728,7 +1836,7 @@ bool unix_video_init(int width, int height, int pixbytes)
+@@ -1728,7 +1849,7 @@ bool unix_video_init(int width, int height, int pixbytes)
              s_available = false;
              return false;
          }
@@ -520,7 +547,24 @@ index 13e88b9d..0cd37f5b 100644
          SDL_SetRenderDrawColor(s_renderer, 0, 0, 0, 255);
          SDL_RenderClear(s_renderer);
          SDL_RenderPresent(s_renderer);
-@@ -1790,6 +1898,68 @@ void unix_video_shutdown(void)
+@@ -1736,6 +1857,8 @@ bool unix_video_init(int width, int height, int pixbytes)
+ 
+     apply_window_mode();
+ 
++    unix_ext_display_open_if_available();
++
+     return ensure_texture(width, height, pixbytes, 1);
+ }
+ 
+@@ -1744,6 +1867,7 @@ void unix_video_shutdown(void)
+     unix_input_release_keys();
+     unix_video_set_mouse_grab(false);
+ 
++    unix_ext_display_close();
+     destroy_frame_textures();
+     if (s_status_texture) {
+         SDL_DestroyTexture(s_status_texture);
+@@ -1790,6 +1914,68 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -589,7 +633,7 @@ index 13e88b9d..0cd37f5b 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +1993,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +2009,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -600,7 +644,7 @@ index 13e88b9d..0cd37f5b 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2044,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2060,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
@@ -631,7 +675,7 @@ index 13e88b9d..0cd37f5b 100644
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2079,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2095,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -646,7 +690,7 @@ index 13e88b9d..0cd37f5b 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1915,7 +2121,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2137,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -656,7 +700,7 @@ index 13e88b9d..0cd37f5b 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2133,192 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2149,202 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -670,6 +714,16 @@ index 13e88b9d..0cd37f5b 100644
                  unix_input_mouse_wheel(event.wheel.integer_x, event.wheel.integer_y);
              }
              break;
++        case SDL_EVENT_DISPLAY_ADDED:
++            write_log(_T("External display: display %u added\n"),
++                (unsigned int)event.display.displayID);
++            unix_ext_display_open_if_available();
++            break;
++        case SDL_EVENT_DISPLAY_REMOVED:
++            if (s_ext_display && event.display.displayID == s_ext_display) {
++                unix_ext_display_close();
++            }
++            break;
 +#if defined(__APPLE__) && TARGET_OS_IPHONE
 +        case SDL_EVENT_FINGER_DOWN: {
 +            if (!input_events) {
@@ -851,6 +905,181 @@ index 13e88b9d..0cd37f5b 100644
          case SDL_EVENT_JOYSTICK_ADDED:
          case SDL_EVENT_JOYSTICK_REMOVED:
          case SDL_EVENT_GAMEPAD_ADDED:
+@@ -1962,6 +2373,166 @@ int unix_video_poll_window_events(bool *quit_requested)
+     return unix_video_poll_internal(quit_requested, false);
+ }
+ 
++static void unix_ext_display_close(void)
++{
++    if (s_ext_texture) {
++        SDL_DestroyTexture(s_ext_texture);
++        s_ext_texture = NULL;
++    }
++    if (s_ext_renderer) {
++        SDL_DestroyRenderer(s_ext_renderer);
++        s_ext_renderer = NULL;
++    }
++    if (s_ext_window) {
++        SDL_DestroyWindow(s_ext_window);
++        s_ext_window = NULL;
++        write_log(_T("External display: closed\n"));
++    }
++    s_ext_display = 0;
++    s_ext_texture_width = s_ext_texture_height = s_ext_texture_pixbytes = 0;
++}
++
++/* First display that is neither the primary nor the one hosting the main
++ * window — i.e. the TV. */
++static SDL_DisplayID unix_ext_candidate_display(void)
++{
++    SDL_DisplayID main_display = s_window ? SDL_GetDisplayForWindow(s_window) : 0;
++    if (!main_display) {
++        main_display = SDL_GetPrimaryDisplay();
++    }
++    int count = 0;
++    SDL_DisplayID *displays = SDL_GetDisplays(&count);
++    SDL_DisplayID found = 0;
++    if (displays) {
++        for (int i = 0; i < count; i++) {
++            if (displays[i] && displays[i] != main_display) {
++                found = displays[i];
++                break;
++            }
++        }
++        SDL_free(displays);
++    }
++    return found;
++}
++
++static void unix_ext_display_open_if_available(void)
++{
++    if (!unix_video_external_enabled || s_ext_window || !s_window) {
++        return;
++    }
++    SDL_DisplayID display = unix_ext_candidate_display();
++    if (!display) {
++        return;
++    }
++    SDL_Rect bounds;
++    if (!SDL_GetDisplayBounds(display, &bounds) || bounds.w <= 0 || bounds.h <= 0) {
++        return;
++    }
++    SDL_PropertiesID props = SDL_CreateProperties();
++    SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, "iPadUAE");
++    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED_DISPLAY(display));
++    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED_DISPLAY(display));
++    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, bounds.w);
++    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, bounds.h);
++    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, true);
++    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, true);
++    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, true);
++    /* Never steal input focus from the device window. */
++    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FOCUSABLE_BOOLEAN, false);
++    s_ext_window = SDL_CreateWindowWithProperties(props);
++    SDL_DestroyProperties(props);
++    if (!s_ext_window) {
++        write_log(_T("External display: window creation failed: %s\n"), SDL_GetError());
++        return;
++    }
++    s_ext_renderer = SDL_CreateRenderer(s_ext_window, NULL);
++    if (!s_ext_renderer) {
++        write_log(_T("External display: renderer creation failed: %s\n"), SDL_GetError());
++        unix_ext_display_close();
++        return;
++    }
++    /* The TV must never pace the emulator; the main window handles vsync
++     * policy. */
++    SDL_SetRenderVSync(s_ext_renderer, 0);
++    SDL_SetRenderDrawColor(s_ext_renderer, 0, 0, 0, 255);
++    SDL_RenderClear(s_ext_renderer);
++    SDL_RenderPresent(s_ext_renderer);
++    s_ext_display = display;
++    write_log(_T("External display: opened %dx%d on display %u\n"),
++        bounds.w, bounds.h, (unsigned int)display);
++}
++
++static bool unix_ext_ensure_texture(int width, int height, int pixbytes)
++{
++    if (!s_ext_renderer) {
++        return false;
++    }
++    if (s_ext_texture && s_ext_texture_width == width && s_ext_texture_height == height &&
++        s_ext_texture_pixbytes == pixbytes) {
++        return true;
++    }
++    if (s_ext_texture) {
++        SDL_DestroyTexture(s_ext_texture);
++        s_ext_texture = NULL;
++    }
++    s_ext_texture = SDL_CreateTexture(s_ext_renderer, texture_format_for_pixbytes(pixbytes),
++        SDL_TEXTUREACCESS_STREAMING, width, height);
++    if (!s_ext_texture) {
++        write_log(_T("External display: texture creation failed: %s\n"), SDL_GetError());
++        return false;
++    }
++    SDL_SetTextureBlendMode(s_ext_texture, SDL_BLENDMODE_NONE);
++    s_ext_texture_width = width;
++    s_ext_texture_height = height;
++    s_ext_texture_pixbytes = pixbytes;
++    return true;
++}
++
++static void unix_ext_display_present(const struct unix_video_frame *frame,
++    const struct gfx_filterdata *filter)
++{
++    if (!s_ext_window || !s_ext_renderer ||
++        !unix_ext_ensure_texture(frame->width, frame->height, frame->pixbytes)) {
++        return;
++    }
++    SDL_SetTextureScaleMode(s_ext_texture,
++        filter && filter->gfx_filter_bilinear ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
++    SDL_UpdateTexture(s_ext_texture, NULL, frame->pixels, frame->rowbytes);
++
++    /* Plain centered aspect-fit — make_video_layout is not reusable here
++     * because it applies the *device* window's safe-area insets (iPad
++     * rounded corners), which have no meaning on a TV. */
++    int output_width = 0, output_height = 0;
++    if (!SDL_GetRenderOutputSize(s_ext_renderer, &output_width, &output_height) ||
++        output_width <= 0 || output_height <= 0) {
++        return;
++    }
++    const float sx = (float)output_width / (float)frame->width;
++    const float sy = (float)output_height / (float)frame->height;
++    const float scale = sx < sy ? sx : sy;
++    SDL_FRect dst;
++    dst.w = (float)frame->width * scale;
++    dst.h = (float)frame->height * scale;
++    dst.x = ((float)output_width - dst.w) * 0.5f;
++    dst.y = ((float)output_height - dst.h) * 0.5f;
++
++    SDL_SetRenderDrawColor(s_ext_renderer, 0, 0, 0, 255);
++    SDL_RenderClear(s_ext_renderer);
++    SDL_RenderTexture(s_ext_renderer, s_ext_texture, NULL, &dst);
++    SDL_RenderPresent(s_ext_renderer);
++}
++
++/* Runtime toggle from the app UI. */
++void unix_video_set_external_display(bool enabled)
++{
++    unix_video_external_enabled = enabled;
++    if (!enabled) {
++        unix_ext_display_close();
++    } else {
++        unix_ext_display_open_if_available();
++    }
++}
++
+ static void unix_video_present_on_event_thread(const struct unix_video_frame *frame)
+ {
+     if (!frame || !frame->pixels || frame->width <= 0 || frame->height <= 0 || frame->rowbytes <= 0) {
+@@ -2010,6 +2581,7 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+         SDL_RenderTexture(s_renderer, s_status_texture, NULL, &layout.status_dst);
+     }
+     SDL_RenderPresent(s_renderer);
++    unix_ext_display_present(frame, filter);
+ }
+ 
+ void unix_video_present(const struct unix_video_frame *frame)
 diff --git a/vm.cpp b/vm.cpp
 index d0864118..9a5356b7 100644
 --- a/vm.cpp

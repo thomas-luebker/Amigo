@@ -79,6 +79,7 @@ final class OverlayInstaller {
         ipaduae_set_safe_area(OverlayState.shared.fullscreenDisplay ? 0 : 1)
         ipaduae_set_rtg_accel(OverlayState.shared.rtgAccel ? 1 : 0)
         ipaduae_set_vsync(OverlayState.shared.vsync ? 1 : 0)
+        ipaduae_set_external_display(OverlayState.shared.externalDisplay ? 1 : 0)
         let host = UIHostingController(rootView: OverlayRoot { _ in })
         host.view.backgroundColor = .clear
         let window = PassthroughWindow(windowScene: scene)
@@ -173,6 +174,7 @@ final class OverlayState: ObservableObject {
     @Published var rtgAccel = UserDefaults.standard.object(forKey: "rtgAccel") as? Bool ?? false
     @Published var vsync = UserDefaults.standard.object(forKey: "vsync") as? Bool ?? false
     @Published var tabletMode = ConfigStore.tabletMode
+    @Published var externalDisplay = UserDefaults.standard.object(forKey: "externalDisplay") as? Bool ?? true
     /// Global frames of touch-interactive overlay elements, keyed by id.
     /// Read by PassthroughWindow.hitTest on every touch; written from
     /// SwiftUI geometry callbacks. Main-thread only.
@@ -368,6 +370,12 @@ struct ControlPanel: View {
                 state.fullscreenDisplay.toggle()
                 UserDefaults.standard.set(state.fullscreenDisplay, forKey: "fullscreenDisplay")
                 ipaduae_set_safe_area(state.fullscreenDisplay ? 0 : 1)
+            }
+            MenuRow(icon: "tv", title: state.externalDisplay ? "TV Out: Auto (when connected)" : "TV Out: Off",
+                    active: state.externalDisplay) {
+                state.externalDisplay.toggle()
+                UserDefaults.standard.set(state.externalDisplay, forKey: "externalDisplay")
+                ipaduae_set_external_display(state.externalDisplay ? 1 : 0)
             }
             MenuRow(icon: state.tabletMode ? "hand.point.up.left.fill" : "hand.point.up.left",
                     title: state.tabletMode ? "1:1 Mouse: On" : "1:1 Mouse: Off (relative/trackpad)",

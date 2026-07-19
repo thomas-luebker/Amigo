@@ -28,6 +28,15 @@ extern "C" void ipaduae_pointer_hover(float nx, float ny)
     }
 }
 
+/* External display (living-room mode): auto-attaches when a second screen
+ * appears; this toggle lets the user opt out. */
+extern void unix_video_set_external_display(bool enabled);
+
+extern "C" void ipaduae_set_external_display(int on)
+{
+    unix_video_set_external_display(on != 0);
+}
+
 /* Live toggle for safe-area layout (applies on the next presented frame). */
 extern bool unix_video_use_safe_area;
 

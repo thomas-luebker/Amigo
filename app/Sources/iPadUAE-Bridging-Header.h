@@ -12,3 +12,4 @@ void ipaduae_set_leds(int on);
 void ipaduae_set_rtg_accel(int on);
 void ipaduae_set_vsync(int on);
 void ipaduae_pointer_hover(float nx, float ny);
+void ipaduae_set_external_display(int on);
