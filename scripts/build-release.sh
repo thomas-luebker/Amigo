@@ -17,10 +17,14 @@ BUILD_NUMBER="${1:-$(git rev-list --count HEAD)}"
 echo "==> Build number: ${BUILD_NUMBER}"
 
 echo "==> Archiving (Release, automatic signing)"
+# Own DerivedData: sharing Xcode's default location corrupts the GUI's
+# incremental build database when both build ("error accessing build
+# database"), especially since this script also regenerates the project.
 xcodebuild -project app/iPadUAE.xcodeproj -scheme iPadUAE \
   -configuration Release \
   -destination 'generic/platform=iOS' \
   -allowProvisioningUpdates \
+  -derivedDataPath build/DerivedData-release \
   CURRENT_PROJECT_VERSION="${BUILD_NUMBER}" \
   -archivePath build/iPadUAE.xcarchive \
   archive
