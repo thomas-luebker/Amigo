@@ -109,6 +109,17 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
       (tag v0.6.2).
     - No data is collected (see Privacy Nutrition Label / PrivacyInfo).
 
+## URLs (App Store Connect fields)
+
+    Privacy Policy URL:
+      https://github.com/thomas-luebker/iPadUAE/blob/main/PRIVACY.md
+    Support URL:
+      https://github.com/thomas-luebker/iPadUAE/issues
+    Marketing URL (optional):
+      https://github.com/thomas-luebker/iPadUAE
+
+    (All require the repo to be PUBLIC before submission.)
+
 ## Copyright (App Store Connect field)
 
     © 2026 Thomas Lübker. Based on WinUAE © Toni Wilen, UAE © Bernd Schmidt — GPL-2.
