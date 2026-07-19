@@ -88,7 +88,26 @@ final class OverlayInstaller {
         window.isHidden = false
         overlayWindow = window
         PencilHoverDriver.shared.install(on: scene)
+        installAutosave()
         installDebugHooks()
+    }
+
+    // Autosave (quick-state slot 0): every 5 minutes while running, and a
+    // best-effort save when the app is backgrounded (the queued save runs
+    // if the emulator gets a few more frames during the transition).
+    private var autosaveTimer: Timer?
+
+    private func installAutosave() {
+        let timer = Timer(timeInterval: 300, repeats: true) { _ in
+            ipaduae_state_op(0, 1)
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        autosaveTimer = timer
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willResignActiveNotification,
+            object: nil, queue: .main) { _ in
+            ipaduae_state_op(0, 1)
+        }
     }
 
     // DEBUG: lets automated tests drive the menu without synthetic touches
@@ -313,7 +332,7 @@ struct OverlayRoot: View {
 }
 
 struct ControlPanel: View {
-    enum Submenu { case none, df0, df1, kickstart, harddrive, machine, configs, about }
+    enum Submenu { case none, df0, df1, kickstart, harddrive, machine, configs, states, about }
     @State private var submenu: Submenu = .none
     @ObservedObject private var state = OverlayState.shared
 
@@ -334,6 +353,7 @@ struct ControlPanel: View {
             case .harddrive: HardDrivePicker { submenu = .none }
             case .machine: MachinePanel { submenu = .none }
             case .configs: ConfigurationsPanel { submenu = .none }
+            case .states: StatePanel { submenu = .none }
             case .about: AboutPanel { submenu = .none }
             }
         }
@@ -352,6 +372,7 @@ struct ControlPanel: View {
             MenuRow(icon: "internaldrive", title: "Hard Drive…") { submenu = .harddrive }
             MenuRow(icon: "cpu", title: "Machine (CPU / RAM / RTG / Net)…") { submenu = .machine }
             MenuRow(icon: "square.stack.3d.up", title: "Configurations (save/load setups)…") { submenu = .configs }
+            MenuRow(icon: "clock.arrow.circlepath", title: "Save States…") { submenu = .states }
             Divider().padding(.vertical, 4)
             MenuRow(icon: state.vsync ? "speedometer" : "speedometer",
                     title: state.vsync ? "Speed: Smooth (vsync on)" : "Speed: Fast (vsync off)",

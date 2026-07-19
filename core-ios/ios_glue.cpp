@@ -5,6 +5,10 @@
 #include "sysdeps.h"
 #include "options.h"
 #include "statusline.h"
+#include "inputdevice.h"
+#include "savestate.h"
+#include "keyboard.h"
+#include <sys/stat.h>
 
 /* Toggle 1:1 pointer sync (tablet/mousehack) at runtime — no reboot.
  * inputdevice_mh_abs() calls mousehack_enable() on every absolute event,
@@ -26,6 +30,27 @@ extern "C" void ipaduae_pointer_hover(float nx, float ny)
     if (currprefs.input_tablet != TABLET_OFF) {
         unix_video_pointer_abs_normalized(nx, ny);
     }
+}
+
+/* Save states: quick slots through the core's queued input-code path so
+ * the actual save/restore executes at a safe vsync boundary on the
+ * emulation thread. Slot 0 = autosave (state.uss), 1..9 = user slots
+ * (state_N.uss). The unix port never seeds savestate_fname (the win32
+ * GUI does that); set the base here on every call. */
+extern "C" void ipaduae_state_op(int slot, int save)
+{
+    const char *home = getenv("HOME");
+    if (!home) {
+        return;
+    }
+    char dir[MAX_DPATH];
+    snprintf(dir, sizeof dir, "%s/Documents/SaveStates", home);
+    mkdir(dir, 0755);
+    snprintf(savestate_fname, sizeof savestate_fname, "%s/state.uss", dir);
+    if (slot < 0) slot = 0;
+    if (slot > 9) slot = 9;
+    inputdevice_add_inputcode(
+        (save ? AKS_STATESAVEQUICK : AKS_STATERESTOREQUICK) + 2 * slot, 1, NULL);
 }
 
 /* Palm rejection: while the Apple Pencil hovers, finger touches are

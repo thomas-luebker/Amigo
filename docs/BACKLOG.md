@@ -32,8 +32,12 @@ Planning home: the Obsidian note "iPadUAE — Roadmap & Open Questions"
   controls stay on the iPad (SDL3 + UIScene).
 - [ ] **Apple Pencil hover as pointer** — hover moves the Workbench
   pointer, tap clicks.
-- [ ] **iCloud-synced setups** — configs (optionally HDFs) shared between
-  iPads.
+- [ ] **iCloud-synced setups** — IMPLEMENTED on feature/icloud-sync
+  (CloudSync engine, entitlements, panel toggle, visible iCloud Drive
+  folder); blocked on one-time Xcode GUI Run to register the iCloud
+  capability + container iCloud.de.amiga-imager.uae on the App ID
+  (CLI signing cannot). Resume: checkout branch, GUI Run once, test
+  13"↔11" sync.
 - [ ] **App Intents/Shortcuts** — "Boot <config>" from Spotlight/widgets.
 
 ## Product hygiene
