@@ -292,7 +292,7 @@ index ce574a41..cf28cb71 100644
  
  #ifndef GFXBOARD
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..630f1668 100644
+index 13e88b9d..81b4a9f1 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -400,13 +400,13 @@ index 13e88b9d..630f1668 100644
 +            safe_w = (int)(sa.w * px);
 +            safe_h = (int)(sa.h * py);
 +        }
-     }
--    const int frame_area_height = std::max(1, output_height - status_height);
++    }
 +#endif
 +
 +    if (status_height >= safe_h) {
 +        status_height = std::max(0, safe_h - 1);
-+    }
+     }
+-    const int frame_area_height = std::max(1, output_height - status_height);
 +    const int frame_area_height = std::max(1, safe_h - status_height);
  
      SDL_FRect source_rect = filtered_frame_rect(frame, filter);
@@ -480,7 +480,7 @@ index 13e88b9d..630f1668 100644
          SDL_SetRenderDrawColor(s_renderer, 0, 0, 0, 255);
          SDL_RenderClear(s_renderer);
          SDL_RenderPresent(s_renderer);
-@@ -1790,6 +1877,48 @@ void unix_video_shutdown(void)
+@@ -1790,6 +1877,68 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -511,6 +511,26 @@ index 13e88b9d..630f1668 100644
 +static Uint64 s_touch_second_down_ticks = 0;
 +static float s_touch_scroll_accum = 0.0f;
 +
++/* Clear ALL touch state and release held buttons — used when iOS cancels
++ * touches (system gestures deliver FINGER_CANCELED, never FINGER_UP) and
++ * as a failsafe when the last finger lifts. Stale flags otherwise stick
++ * forever: scroll stops re-arming and pointer motion freezes. */
++static void touch_reset_all(void)
++{
++    if (s_touch_primary_active && currprefs.input_tablet > 0) {
++        unix_input_mouse_button(0, false);
++    }
++    if (s_touch_second_mode == 1) {
++        unix_input_mouse_button(1, false);
++    }
++    s_touch_primary_active = false;
++    s_touch_second_active = false;
++    s_touch_second_mode = 0;
++    s_touch_scroll_accum = 0.0f;
++    s_touch_finger_count = 0;
++    s_touch_max_fingers = 0;
++}
++
 +static void touch_process_pending_click(void)
 +{
 +    if (s_touch_pending_click >= 0 && SDL_GetTicks() >= s_touch_release_at) {
@@ -529,7 +549,7 @@ index 13e88b9d..630f1668 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +1952,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +1972,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -540,7 +560,7 @@ index 13e88b9d..630f1668 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2003,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2023,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
@@ -571,7 +591,7 @@ index 13e88b9d..630f1668 100644
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2038,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2058,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -586,7 +606,7 @@ index 13e88b9d..630f1668 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1915,7 +2080,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2100,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -596,7 +616,7 @@ index 13e88b9d..630f1668 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2092,178 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2112,193 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -629,6 +649,8 @@ index 13e88b9d..630f1668 100644
 +                    SDL_GetWindowSize(win, &win_w, &win_h);
 +                }
 +                if (!s_touch_primary_active) {
++                    s_touch_second_active = false;
++                    s_touch_second_mode = 0;
 +                    s_touch_primary_active = true;
 +                    s_touch_primary_finger = event.tfinger.fingerID;
 +                    s_touch_down_ticks = SDL_GetTicks();
@@ -654,6 +676,8 @@ index 13e88b9d..630f1668 100644
 +                break;
 +            }
 +            if (!s_touch_primary_active) {
++                s_touch_second_active = false;
++                s_touch_second_mode = 0;
 +                s_touch_primary_active = true;
 +                s_touch_primary_finger = event.tfinger.fingerID;
 +                s_touch_last_x = event.tfinger.x;
@@ -724,6 +748,9 @@ index 13e88b9d..630f1668 100644
 +                s_touch_second_last_y = event.tfinger.y;
 +            }
 +            break;
++        case SDL_EVENT_FINGER_CANCELED:
++            touch_reset_all();
++            break;
 +        case SDL_EVENT_FINGER_UP: {
 +            if (!input_events) {
 +                break;
@@ -746,6 +773,9 @@ index 13e88b9d..630f1668 100644
 +                }
 +                if (s_touch_finger_count > 0) {
 +                    s_touch_finger_count--;
++                }
++                if (s_touch_finger_count == 0) {
++                    touch_reset_all();
 +                }
 +                break;
 +            }
@@ -770,6 +800,11 @@ index 13e88b9d..630f1668 100644
 +                unix_input_mouse_button(btn, true);
 +                s_touch_pending_click = btn;
 +                s_touch_release_at = SDL_GetTicks() + 60;
++            }
++            if (s_touch_finger_count == 0) {
++                bool keep_click = s_touch_pending_click >= 0;
++                touch_reset_all();
++                (void)keep_click;
 +            }
 +            break;
 +        }
