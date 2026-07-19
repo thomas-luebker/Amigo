@@ -4,6 +4,10 @@
 # Output: build/ios/libuaecore.a  or  build/ios-sim/libuaecore.a
 set -euo pipefail
 
+# Xcode's script phases don't source the shell profile — make sure
+# Homebrew's cmake is reachable when invoked from a GUI build.
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PLATFORM="${1:-device}"
 if [[ $# -gt 0 ]]; then shift; fi
