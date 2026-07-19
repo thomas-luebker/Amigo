@@ -8,6 +8,11 @@
 	     silently dropped if set as a build setting). -->
 	<key>UIFileSharingEnabled</key>
 	<true/>
+	<!-- Required for GCMouse: without it iPadOS synthesizes touches for
+	     trackpad clicks but silently drops two-finger scroll (SDL docs:
+	     "you should set UIApplicationSupportsIndirectInputEvents"). -->
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<!-- SDL3 is rebuilt with SDL_CAMERA=OFF (scripts/build-sdl3.sh), so no
