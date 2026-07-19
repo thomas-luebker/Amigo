@@ -166,6 +166,7 @@ final class OverlayState: ObservableObject {
     @Published var showKeyboard = false
     @Published var showJoystick = false
     @Published var showFKeys = false
+    @Published var showNumpad = false
     @Published var fullscreenDisplay = UserDefaults.standard.bool(forKey: "fullscreenDisplay")
     @Published var showLEDs = UserDefaults.standard.object(forKey: "showLEDs") as? Bool ?? true
     @Published var rtgAccel = UserDefaults.standard.object(forKey: "rtgAccel") as? Bool ?? false
@@ -265,6 +266,19 @@ struct OverlayRoot: View {
                 }
             }
 
+            if state.showNumpad {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        NumpadView()
+                            .interactiveArea("numpad")
+                            .padding(.trailing, 16)
+                            .padding(.bottom, state.showJoystick ? 200 : 60)
+                    }
+                }
+            }
+
             if state.showFKeys {
                 VStack {
                     HStack {
@@ -349,6 +363,9 @@ struct ControlPanel: View {
             }
             MenuRow(icon: "f.cursive", title: state.showFKeys ? "Hide Function Keys" : "Function Keys (F1–F10)") {
                 state.showFKeys.toggle()
+            }
+            MenuRow(icon: "number.square", title: state.showNumpad ? "Hide Numpad" : "Numpad (WHDLoad quit keys)") {
+                state.showNumpad.toggle()
             }
             MenuRow(icon: "gamecontroller", title: state.showJoystick ? "Hide Joystick" : "Virtual Joystick") {
                 state.showJoystick.toggle()

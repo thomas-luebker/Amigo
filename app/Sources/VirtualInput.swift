@@ -22,6 +22,9 @@ enum SC {
     static let f8 = 65, f9 = 66, f10 = 67
     static let del = 76, right = 79, left = 80, down = 81, up = 82
     static let help = 117
+    static let kpDivide = 84, kpMultiply = 85, kpMinus = 86, kpPlus = 87, kpEnter = 88
+    static let kp1 = 89, kp2 = 90, kp3 = 91, kp4 = 92, kp5 = 93, kp6 = 94
+    static let kp7 = 95, kp8 = 96, kp9 = 97, kp0 = 98, kpPeriod = 99
     static let lctrl = 224, lshift = 225, lalt = 226, lamiga = 227
     static let rctrl = 228, rshift = 229, ralt = 230, ramiga = 231
 }
@@ -165,6 +168,32 @@ struct FunctionKeyBar: View {
         HStack(spacing: 5) {
             ForEach(Self.fkeys, id: \.1) { label, code in
                 KeyButton(key: Key(label: label, code: code), width: 52, height: 38)
+            }
+        }
+        .padding(6)
+        .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
+    }
+}
+
+/// Numeric keypad — WHDLoad quit keys and many tools live here; the iPad
+/// Magic Keyboard has no numpad.
+struct NumpadView: View {
+    private static let grid: [[(String, Int)]] = [
+        [("7", SC.kp7), ("8", SC.kp8), ("9", SC.kp9), ("/", SC.kpDivide)],
+        [("4", SC.kp4), ("5", SC.kp5), ("6", SC.kp6), ("*", SC.kpMultiply)],
+        [("1", SC.kp1), ("2", SC.kp2), ("3", SC.kp3), ("-", SC.kpMinus)],
+        [("0", SC.kp0), (".", SC.kpPeriod), ("En", SC.kpEnter), ("+", SC.kpPlus)],
+    ]
+
+    var body: some View {
+        VStack(spacing: 5) {
+            ForEach(0..<Self.grid.count, id: \.self) { r in
+                HStack(spacing: 5) {
+                    ForEach(0..<Self.grid[r].count, id: \.self) { c in
+                        let (label, code) = Self.grid[r][c]
+                        KeyButton(key: Key(label: label, code: code), width: 46, height: 40)
+                    }
+                }
             }
         }
         .padding(6)

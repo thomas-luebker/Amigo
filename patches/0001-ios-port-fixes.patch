@@ -292,7 +292,7 @@ index ce574a41..cf28cb71 100644
  
  #ifndef GFXBOARD
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..aa9f81e0 100644
+index 13e88b9d..630f1668 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -480,7 +480,7 @@ index 13e88b9d..aa9f81e0 100644
          SDL_SetRenderDrawColor(s_renderer, 0, 0, 0, 255);
          SDL_RenderClear(s_renderer);
          SDL_RenderPresent(s_renderer);
-@@ -1790,6 +1877,47 @@ void unix_video_shutdown(void)
+@@ -1790,6 +1877,48 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -518,6 +518,7 @@ index 13e88b9d..aa9f81e0 100644
 +        s_touch_pending_click = -1;
 +    }
 +    if (s_touch_second_active && s_touch_second_mode == 0 &&
++        currprefs.input_tablet > 0 &&
 +        SDL_GetTicks() - s_touch_second_down_ticks >= 170) {
 +        s_touch_second_mode = 1;
 +        unix_input_mouse_button(1, true);
@@ -528,7 +529,7 @@ index 13e88b9d..aa9f81e0 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +1951,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +1952,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -539,7 +540,7 @@ index 13e88b9d..aa9f81e0 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2002,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2003,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
@@ -570,7 +571,7 @@ index 13e88b9d..aa9f81e0 100644
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2037,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2038,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -585,7 +586,7 @@ index 13e88b9d..aa9f81e0 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1915,7 +2079,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2080,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -595,7 +596,7 @@ index 13e88b9d..aa9f81e0 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2091,156 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2092,178 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -620,7 +621,8 @@ index 13e88b9d..aa9f81e0 100644
 +            }
 +            if (currprefs.input_tablet > 0) {
 +                /* 1:1 mode: finger = pointer. Primary finger presses LMB at
-+                 * its position; a second finger holds RMB (Amiga menus). */
++                 * its position; a second finger scrolls (moving) or holds
++                 * RMB (resting — Amiga menus). */
 +                int win_w = 0, win_h = 0, bx = 0, by = 0;
 +                SDL_Window *win = SDL_GetWindowFromID(event.tfinger.windowID);
 +                if (win) {
@@ -659,6 +661,16 @@ index 13e88b9d..aa9f81e0 100644
 +                s_touch_down_ticks = SDL_GetTicks();
 +                s_touch_travel = 0.0f;
 +                s_touch_max_fingers = s_touch_finger_count;
++            } else if (!s_touch_second_active) {
++                /* Trackpad mode: second finger arms the scroll gesture. */
++                s_touch_second_active = true;
++                s_touch_second_finger = event.tfinger.fingerID;
++                s_touch_second_mode = 0;
++                s_touch_second_start_x = event.tfinger.x;
++                s_touch_second_start_y = event.tfinger.y;
++                s_touch_second_last_y = event.tfinger.y;
++                s_touch_second_down_ticks = SDL_GetTicks();
++                s_touch_scroll_accum = 0.0f;
 +            }
 +            break;
 +        }
@@ -684,8 +696,11 @@ index 13e88b9d..aa9f81e0 100644
 +                s_touch_last_x = event.tfinger.x;
 +                s_touch_last_y = event.tfinger.y;
 +                s_touch_travel += SDL_fabsf(dx) + SDL_fabsf(dy);
-+                unix_input_mouse_motion((int)lroundf(dx), (int)lroundf(dy));
-+            } else if (currprefs.input_tablet > 0 && s_touch_second_active &&
++                /* Freeze the pointer while a two-finger scroll is active. */
++                if (!s_touch_second_active) {
++                    unix_input_mouse_motion((int)lroundf(dx), (int)lroundf(dy));
++                }
++            } else if (s_touch_second_active &&
 +                       event.tfinger.fingerID == s_touch_second_finger) {
 +                int win_w = 0, win_h = 0;
 +                SDL_Window *win = SDL_GetWindowFromID(event.tfinger.windowID);
@@ -701,6 +716,7 @@ index 13e88b9d..aa9f81e0 100644
 +                    s_touch_scroll_accum += (event.tfinger.y - s_touch_second_last_y) * (float)win_h;
 +                    int ticks = (int)(s_touch_scroll_accum / 40.0f);
 +                    if (ticks != 0) {
++                        write_log(_T("iPadUAE input: touch scroll wheel %d\n"), ticks);
 +                        unix_input_mouse_wheel(0, ticks);
 +                        s_touch_scroll_accum -= (float)ticks * 40.0f;
 +                    }
@@ -734,15 +750,22 @@ index 13e88b9d..aa9f81e0 100644
 +                break;
 +            }
 +            bool tap = false;
++            bool was_scroll = (s_touch_second_mode == 2);
++            if (s_touch_second_active && event.tfinger.fingerID == s_touch_second_finger) {
++                s_touch_second_active = false;
++                s_touch_second_mode = 0;
++            }
 +            if (s_touch_primary_active && event.tfinger.fingerID == s_touch_primary_finger) {
 +                Uint64 held = SDL_GetTicks() - s_touch_down_ticks;
-+                tap = held < 300 && s_touch_travel < 12.0f;
++                tap = held < 300 && s_touch_travel < 12.0f && !was_scroll;
 +                s_touch_primary_active = false;
++                s_touch_second_active = false;
++                s_touch_second_mode = 0;
 +            }
 +            if (s_touch_finger_count > 0) {
 +                s_touch_finger_count--;
 +            }
-+            if (tap && s_touch_pending_click < 0) {
++            if (tap && s_touch_pending_click < 0 && !was_scroll) {
 +                int btn = (s_touch_max_fingers >= 2) ? 1 : 0;
 +                unix_input_mouse_button(btn, true);
 +                s_touch_pending_click = btn;
