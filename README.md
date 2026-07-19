@@ -7,9 +7,16 @@ upstream Unix/SDL3 layer (`od-unix/`), targeting iPadOS and App Store distributi
 Runs full **AmigaOS 3.2 Workbench** on device with RTG graphics (reliable
 across resets), networking, hard drives, 1:1 touch pointer + two-finger
 scrolling, virtual keyboard/numpad/F-keys/joystick, hardware keyboard & mouse,
+**Apple Pencil** (hover pointer, squeeze right-click, hover-drag, palm
+rejection), **TV output** via USB-C or AirPlay (fullscreen Amiga on the big
+screen, controls on the iPad), **save states** with 5-minute autosave,
 user-saved machine configurations (reinstall-proof media paths), and a native
 SwiftUI control surface. Emulated 68060 benchmarks ~2.8× faster than FS-UAE
 on an M1 (interpreter vs interpreter; no JIT on iOS).
+
+Ships with two upstream fixes discovered during the port: a WinUAE
+mousehack-after-reboot fix and an SDL3 UIScene fix (second scene re-ran
+`SDL_main`; crashed any SDL iOS app on AirPlay connect) — see `patches/`.
 
 ## Docs
 
