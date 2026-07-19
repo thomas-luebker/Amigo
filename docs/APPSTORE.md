@@ -67,15 +67,19 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
     in keywords are a rejection trigger; "amiga" is needed for search and
     is standard across shipping emulators.)
 
-## What's New — 0.4.2
+## What's New — 0.6.1
 
+    • Apple Pencil support: hover moves the Amiga pointer, tip clicks,
+      short squeeze right-clicks, long squeeze click-and-drags — with
+      palm rejection while the Pencil hovers
+    • TV output: connect USB-C or AirPlay and the Amiga goes fullscreen
+      on the big screen while controls stay on the iPad
     • Machine panel: Apply button always visible, warns about unapplied
-      changes (settings could silently revert when leaving the panel)
-    • Menu overlay now adapts to every iPad size and orientation
-    • 1:1 mouse mode reliably re-engages after WHDLoad sessions and resets
-    • Saved configurations show machine, disks and date at a glance
-    • Clear on/off indicators for all menu toggles
-    • About & Licenses screen with full source-code information
+      changes
+    • Fixed a crash when starting AirPlay screen mirroring
+    • Plus all 0.4.x improvements: adaptive menu for every iPad size,
+      reliable 1:1 mouse after WHDLoad, richer saved configurations,
+      About & Licenses screen
 
 ## App Review Information → Notes (for the reviewer)
 
@@ -95,7 +99,7 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
       emulators (UTM SE).
     - The app is free software (GPL-2). Complete, buildable source for
       this exact build: https://github.com/thomas-luebker/iPadUAE
-      (tag v0.4.2).
+      (tag v0.6.1).
     - No data is collected (see Privacy Nutrition Label / PrivacyInfo).
 
 ## Copyright (App Store Connect field)
