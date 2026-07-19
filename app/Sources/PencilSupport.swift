@@ -10,12 +10,12 @@
 
 import UIKit
 
-final class PencilHoverDriver: NSObject {
+final class PencilHoverDriver: NSObject, UIPencilInteractionDelegate {
     static let shared = PencilHoverDriver()
 
-    /// Attach the hover recognizer to SDL's content view. Safe to call
-    /// once at overlay-install time; the emulator loop shares the main
-    /// thread, so the callback can call into the core directly.
+    /// Attach the hover recognizer and Pencil interaction to SDL's content
+    /// view. Safe to call once at overlay-install time; the emulator loop
+    /// shares the main thread, so the callbacks call into the core directly.
     func install(on scene: UIWindowScene) {
         guard let sdlView = scene.windows
             .first(where: { !($0 is PassthroughWindow) })?
@@ -26,6 +26,35 @@ final class PencilHoverDriver: NSObject {
         let hover = UIHoverGestureRecognizer(target: self,
                                              action: #selector(handleHover(_:)))
         sdlView.addGestureRecognizer(hover)
+        // Squeeze (Pencil Pro) = hold RMB — hover + squeeze walks Intuition
+        // menus like a real second button. Double-tap (Pencil 2) = RMB click.
+        // (Plain init + delegate property: the delegate: initializer is
+        // iOS 17.5+, deployment target is 17.0.)
+        let pencil = UIPencilInteraction()
+        pencil.delegate = self
+        sdlView.addInteraction(pencil)
+    }
+
+    @available(iOS 17.5, *)
+    func pencilInteraction(_ interaction: UIPencilInteraction,
+                           didReceiveSqueeze squeeze: UIPencilInteraction.Squeeze) {
+        switch squeeze.phase {
+        case .began:
+            ipaduae_mouse_button(1, 1)
+        case .ended, .cancelled:
+            ipaduae_mouse_button(1, 0)
+        default:
+            break
+        }
+    }
+
+    func pencilInteractionDidTap(_ interaction: UIPencilInteraction) {
+        // Quick RMB click; release is deferred so the emulated 50Hz input
+        // polling reliably observes the press.
+        ipaduae_mouse_button(1, 1)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+            ipaduae_mouse_button(1, 0)
+        }
     }
 
     @objc private func handleHover(_ gesture: UIHoverGestureRecognizer) {

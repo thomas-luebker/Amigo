@@ -28,6 +28,15 @@ extern "C" void ipaduae_pointer_hover(float nx, float ny)
     }
 }
 
+/* Mouse button injection for UIKit-side input (Apple Pencil squeeze /
+ * double-tap → right mouse button). 0=left 1=right 2=middle. */
+extern void unix_input_mouse_button(int button, bool pressed);
+
+extern "C" void ipaduae_mouse_button(int button, int pressed)
+{
+    unix_input_mouse_button(button, pressed != 0);
+}
+
 /* External display (living-room mode): auto-attaches when a second screen
  * appears; this toggle lets the user opt out. */
 extern void unix_video_set_external_display(bool enabled);
