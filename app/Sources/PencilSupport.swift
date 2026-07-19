@@ -38,14 +38,45 @@ final class PencilHoverDriver: NSObject, UIPencilInteractionDelegate {
         sdlView.addInteraction(pencil)
     }
 
+    /// Squeeze length picks the button (device-verified phase order:
+    /// began → changed… → ended). Short squeeze (<0.4s) right-clicks; a
+    /// long squeeze presses the LEFT button when the threshold is crossed
+    /// and releases it with the squeeze — hover-click and hover-drag
+    /// without touching the glass.
+    private var longSqueeze: DispatchWorkItem?
+    private var longSqueezeFired = false
+
     @available(iOS 17.5, *)
     func pencilInteraction(_ interaction: UIPencilInteraction,
                            didReceiveSqueeze squeeze: UIPencilInteraction.Squeeze) {
         switch squeeze.phase {
         case .began:
-            ipaduae_mouse_button(1, 1)
+            // Guard against a lost .ended: never start with a stuck button.
+            longSqueeze?.cancel()
+            if longSqueezeFired {
+                ipaduae_mouse_button(0, 0)
+            }
+            longSqueezeFired = false
+            let work = DispatchWorkItem { [weak self] in
+                self?.longSqueezeFired = true
+                ipaduae_mouse_button(0, 1)      // LMB down, held while squeezing
+            }
+            longSqueeze = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: work)
         case .ended, .cancelled:
-            ipaduae_mouse_button(1, 0)
+            longSqueeze?.cancel()
+            longSqueeze = nil
+            if longSqueezeFired {
+                longSqueezeFired = false
+                ipaduae_mouse_button(0, 0)      // LMB up
+            } else {
+                // Short squeeze: RMB click, release deferred for the
+                // emulated 50Hz input polling.
+                ipaduae_mouse_button(1, 1)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                    ipaduae_mouse_button(1, 0)
+                }
+            }
         default:
             break
         }
