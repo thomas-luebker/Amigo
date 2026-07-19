@@ -2,9 +2,14 @@
 
 An iPad port of [WinUAE](https://github.com/tonioni/WinUAE), built directly on the
 upstream Unix/SDL3 layer (`od-unix/`), targeting iPadOS and App Store distribution.
+**Version 0.3.0.** Licensed **GPL-2** (see `LICENSE`), like WinUAE itself.
 
-Runs full **AmigaOS 3.2 Workbench** on device with RTG graphics, networking,
-hard drives, touch and hardware input, and a native SwiftUI control surface.
+Runs full **AmigaOS 3.2 Workbench** on device with RTG graphics (reliable
+across resets), networking, hard drives, 1:1 touch pointer + two-finger
+scrolling, virtual keyboard/numpad/F-keys/joystick, hardware keyboard & mouse,
+user-saved machine configurations (reinstall-proof media paths), and a native
+SwiftUI control surface. Emulated 68060 benchmarks ~2.8× faster than FS-UAE
+on an M1 (interpreter vs interpreter; no JIT on iOS).
 
 ## Docs
 
