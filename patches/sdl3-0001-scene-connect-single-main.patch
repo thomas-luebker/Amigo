@@ -1,0 +1,22 @@
+diff --git a/src/video/uikit/SDL_uikitappdelegate.m b/src/video/uikit/SDL_uikitappdelegate.m
+index 2bc65e2..7be123a 100644
+--- a/src/video/uikit/SDL_uikitappdelegate.m
++++ b/src/video/uikit/SDL_uikitappdelegate.m
+@@ -416,7 +416,16 @@ API_AVAILABLE(ios(13.0))
+     }
+ 
+     SDL_SetMainReady();
+-    [self performSelector:@selector(postFinishLaunch) withObject:nil afterDelay:0.0];
++    /* Run the SDL main function only for the first connecting scene.
++     * Additional scenes — external displays, AirPlay screens — connect
++     * through this same delegate while SDL_main is already running, and
++     * scheduling postFinishLaunch again would re-enter the application's
++     * main function mid-execution. */
++    static BOOL SDL_mainScheduled;
++    if (!SDL_mainScheduled) {
++        SDL_mainScheduled = YES;
++        [self performSelector:@selector(postFinishLaunch) withObject:nil afterDelay:0.0];
++    }
+ }
+ 
+ - (void)scene:(UIScene *)scene openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts
