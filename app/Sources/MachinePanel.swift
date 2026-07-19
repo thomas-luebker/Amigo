@@ -97,22 +97,30 @@ struct MachinePanel: View {
                         Text("Z3 RAM and RTG need a 32-bit CPU (68020+).")
                             .font(.footnote).foregroundStyle(.red)
                     }
-
-                    Button {
-                        ConfigStore.apply(machine: m)
-                        onDone()
-                    } label: {
-                        Text(m == initial ? "Restart Amiga" : "Apply & Restart Amiga")
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                            .background(Color.red.opacity(0.8), in: RoundedRectangle(cornerRadius: 8))
-                            .foregroundStyle(.white)
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.top, 4)
                 }
             }
-            .frame(maxHeight: 480)
+            .frame(maxHeight: 420)
+
+            // Pinned below the scroll area so it is ALWAYS visible: edits
+            // are staged and silently lost on Back — testers changed
+            // settings, never scrolled to the button, and reported
+            // "settings do not stick".
+            if m != initial {
+                Text("Not applied yet — restart to use these settings.")
+                    .font(.footnote).foregroundStyle(.orange)
+            }
+            Button {
+                ConfigStore.apply(machine: m)
+                onDone()
+            } label: {
+                Text(m == initial ? "Restart Amiga" : "Apply & Restart Amiga")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(Color.red.opacity(m == initial ? 0.5 : 0.9),
+                                in: RoundedRectangle(cornerRadius: 8))
+                    .foregroundStyle(.white)
+            }
+            .buttonStyle(.plain)
         }
     }
 
