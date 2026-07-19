@@ -11,3 +11,4 @@ void ipaduae_set_safe_area(int on);
 void ipaduae_set_leds(int on);
 void ipaduae_set_rtg_accel(int on);
 void ipaduae_set_vsync(int on);
+void ipaduae_pointer_hover(float nx, float ny);

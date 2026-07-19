@@ -16,6 +16,18 @@ extern "C" void ipaduae_set_tablet_runtime(int on)
     changed_prefs.input_tablet = mode;
 }
 
+/* Apple Pencil hover → absolute pointer (only meaningful in 1:1/tablet
+ * mode; relative mode has no absolute pointer concept). Normalized [0,1]
+ * window coordinates from the UIKit hover recognizer. */
+extern bool unix_video_pointer_abs_normalized(float nx, float ny);
+
+extern "C" void ipaduae_pointer_hover(float nx, float ny)
+{
+    if (currprefs.input_tablet != TABLET_OFF) {
+        unix_video_pointer_abs_normalized(nx, ny);
+    }
+}
+
 /* Live toggle for safe-area layout (applies on the next presented frame). */
 extern bool unix_video_use_safe_area;
 

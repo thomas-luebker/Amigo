@@ -86,6 +86,7 @@ final class OverlayInstaller {
         window.windowLevel = .alert
         window.isHidden = false
         overlayWindow = window
+        PencilHoverDriver.shared.install(on: scene)
         installDebugHooks()
     }
 

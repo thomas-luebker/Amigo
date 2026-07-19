@@ -311,7 +311,7 @@ index ce574a41..cf28cb71 100644
  
  #ifndef GFXBOARD
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..83c8f51a 100644
+index 13e88b9d..0cd37f5b 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -336,7 +336,7 @@ index 13e88b9d..83c8f51a 100644
      return TD_TOTAL_HEIGHT;
  }
  
-@@ -672,6 +680,57 @@ static bool get_renderer_output_size(int *width, int *height)
+@@ -672,6 +680,78 @@ static bool get_renderer_output_size(int *width, int *height)
      return get_window_pixel_size(width, height);
  }
  
@@ -391,10 +391,31 @@ index 13e88b9d..83c8f51a 100644
 +    return true;
 +}
 +
++/* Absolute pointer injection from native input sources outside SDL's event
++ * stream (Apple Pencil hover via UIKit). Coordinates are normalized [0,1]
++ * across the SDL window; same-thread with the emulator loop. */
++bool unix_video_pointer_abs_normalized(float nx, float ny)
++{
++    if (!s_window) {
++        return false;
++    }
++    int ww = 0, wh = 0;
++    SDL_GetWindowSize(s_window, &ww, &wh);
++    if (ww <= 0 || wh <= 0) {
++        return false;
++    }
++    int bx = 0, by = 0;
++    if (!window_point_to_emulated(nx * (float)ww, ny * (float)wh, &bx, &by)) {
++        return false;
++    }
++    unix_input_mouse_motion_abs(bx, by);
++    return true;
++}
++
  static bool make_video_layout(const struct unix_video_frame *frame, const struct gfx_filterdata *filter,
      int output_width, int output_height, struct unix_video_layout *layout)
  {
-@@ -684,10 +743,32 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -684,10 +764,32 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      get_window_pixel_scale(output_width, output_height, &layout->pixel_scale_x, &layout->pixel_scale_y);
  
      int status_height = std::max(1, (int)(statusbar_display_height() * layout->pixel_scale_y + 0.5f));
@@ -419,18 +440,18 @@ index 13e88b9d..83c8f51a 100644
 +            safe_w = (int)(sa.w * px);
 +            safe_h = (int)(sa.h * py);
 +        }
-+    }
+     }
+-    const int frame_area_height = std::max(1, output_height - status_height);
 +#endif
 +
 +    if (status_height >= safe_h) {
 +        status_height = std::max(0, safe_h - 1);
-     }
--    const int frame_area_height = std::max(1, output_height - status_height);
++    }
 +    const int frame_area_height = std::max(1, safe_h - status_height);
  
      SDL_FRect source_rect = filtered_frame_rect(frame, filter);
      SDL_FRect dst = {};
-@@ -696,18 +777,18 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -696,18 +798,18 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      if (frame->filter_index == GF_RTG && mode == 2) { /* center */
          dst.w = source_rect.w * layout->pixel_scale_x;
          dst.h = source_rect.h * layout->pixel_scale_y;
@@ -453,7 +474,7 @@ index 13e88b9d..83c8f51a 100644
          const float sy = (float)frame_area_height / (float)frame->height;
          float draw_sx = sx;
          float draw_sy = sy;
-@@ -717,16 +798,22 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -717,16 +819,22 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
          }
          dst.w = source_rect.w * draw_sx;
          dst.h = source_rect.h * draw_sy;
@@ -481,7 +502,7 @@ index 13e88b9d..83c8f51a 100644
          (float)status_height
      };
      return true;
-@@ -1183,7 +1270,7 @@ static bool unix_gl_ensure_context(int width, int height)
+@@ -1183,7 +1291,7 @@ static bool unix_gl_ensure_context(int width, int height)
          return false;
      }
      SDL_GL_MakeCurrent(s_window, s_gl_context);
@@ -490,7 +511,7 @@ index 13e88b9d..83c8f51a 100644
      if (!unix_gl_build_program()) {
          SDL_GL_DestroyContext(s_gl_context);
          s_gl_context = NULL;
-@@ -1728,7 +1815,7 @@ bool unix_video_init(int width, int height, int pixbytes)
+@@ -1728,7 +1836,7 @@ bool unix_video_init(int width, int height, int pixbytes)
              s_available = false;
              return false;
          }
@@ -499,7 +520,7 @@ index 13e88b9d..83c8f51a 100644
          SDL_SetRenderDrawColor(s_renderer, 0, 0, 0, 255);
          SDL_RenderClear(s_renderer);
          SDL_RenderPresent(s_renderer);
-@@ -1790,6 +1877,68 @@ void unix_video_shutdown(void)
+@@ -1790,6 +1898,68 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -568,7 +589,7 @@ index 13e88b9d..83c8f51a 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +1972,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +1993,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -579,7 +600,7 @@ index 13e88b9d..83c8f51a 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2023,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2044,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
@@ -610,7 +631,7 @@ index 13e88b9d..83c8f51a 100644
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2058,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2079,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -625,7 +646,7 @@ index 13e88b9d..83c8f51a 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1915,7 +2100,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2121,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -635,7 +656,7 @@ index 13e88b9d..83c8f51a 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2112,192 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2133,192 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
