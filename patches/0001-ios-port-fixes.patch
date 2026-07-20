@@ -1,3 +1,58 @@
+diff --git a/custom.cpp b/custom.cpp
+index fee66a3a..f0102034 100644
+--- a/custom.cpp
++++ b/custom.cpp
+@@ -11677,23 +11677,37 @@ static void handle_rga_out(void)
+ 		last_rga_cycle = get_cycles();
+ 
+ 		if (r->type & (CYCLE_REFRESH | CYCLE_STROBE)) {
+-			*r->p += ref_ras_add;
+-			*r->p &= refmask;
+-			refptr = *r->p;
+-			disinc = true;
++			if (r->p) {
++				*r->p += ref_ras_add;
++				*r->p &= refmask;
++				refptr = *r->p;
+ #ifdef DEBUGGER
+-			if (debug_dma) {
+-				record_dma_read(r->reg, *r->p, DMARECORD_REFRESH, (hp - 3) / 2);
+-				record_dma_read_value(0xffff);
+-				int num = r->refdat;
+-				if (num == 1 && lof_store) {
+-					record_dma_event(DMA_EVENT_LOF);
++				if (debug_dma) {
++					record_dma_read(r->reg, *r->p, DMARECORD_REFRESH, (hp - 3) / 2);
++					record_dma_read_value(0xffff);
++					int num = r->refdat;
++					if (num == 1 && lof_store) {
++						record_dma_event(DMA_EVENT_LOF);
++					}
++					if (num == 1 && lol) {
++						record_dma_event(DMA_EVENT_LOL);
++					}
+ 				}
+-				if (num == 1 && lol) {
+-					record_dma_event(DMA_EVENT_LOL);
++#endif
++			} else {
++				/* Refresh/strobe slot without an address pointer: seen as a
++				 * transition artifact when the CCK path is entered right as
++				 * native syncs stop/restart (e.g. RTG display switch while
++				 * the CPU idles in STOP; field crash on 68040+RTG boot).
++				 * Skip the update instead of dereferencing NULL. */
++				static int null_ref_logged;
++				if (!null_ref_logged) {
++					null_ref_logged = 1;
++					write_log(_T("RGA refresh/strobe slot with NULL pointer skipped (reg=%04x type=%08x)\n"),
++						r->reg, r->type);
+ 				}
+ 			}
+-#endif
++			disinc = true;
+ 			done = true;
+ 		}
+ 
 diff --git a/inputdevice.cpp b/inputdevice.cpp
 index edf23232..9d7b7d95 100644
 --- a/inputdevice.cpp
