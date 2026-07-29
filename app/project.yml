@@ -31,14 +31,18 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: de.amiga-imager.uae
         TARGETED_DEVICE_FAMILY: "2"
         GENERATE_INFOPLIST_FILE: YES
+        # App Store name is "Amigo — Amiga Emulator"; this is what shows
+        # under the icon (Apple rejected the prior default of PRODUCT_NAME
+        # "iPadUAE" under guideline 5.2.5, trademark use of "iPad").
+        INFOPLIST_KEY_CFBundleDisplayName: "Amigo"
         # Xcode 26.6: INFOPLIST_KEY_UIFileSharingEnabled does not exist and is
         # silently ignored — UIFileSharingEnabled must live in this partial
         # plist or the app's documents vanish from the Files app.
         INFOPLIST_FILE: iPadUAE-Info.plist
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        CURRENT_PROJECT_VERSION: 20260720
-        MARKETING_VERSION: "0.6.3"
+        CURRENT_PROJECT_VERSION: 20260729
+        MARKETING_VERSION: "0.6.4"
         SUPPORTS_MACCATALYST: NO
         OTHER_LDFLAGS: "-lz -luaecore"
         "LIBRARY_SEARCH_PATHS[sdk=iphoneos*]": "$(PROJECT_DIR)/../build/ios"

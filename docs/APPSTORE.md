@@ -1,14 +1,18 @@
-# App Store Listing — iPadUAE
+# App Store Listing — Amigo — Amiga Emulator
 
 Copy-paste source for App Store Connect. Keep in sync with releases.
 
+Renamed from "iPadUAE" for resubmission (guideline 5.2.5 — "iPad" is not
+permitted inside a product name). Repo/bundle ID/internal target name are
+unchanged; only App Store metadata and the on-device display name changed.
+
 ## Name (30 chars max)
 
-    iPadUAE — Amiga Emulator
+    Amigo — Amiga Emulator
 
 ## Subtitle (30 chars max)
 
-    Classic Amiga on your iPad
+    Classic Amiga computing
 
 ## Promotional Text (170 chars, changeable without review)
 
@@ -18,7 +22,7 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
 
 ## Description (4000 chars max)
 
-    iPadUAE brings the classic Commodore Amiga to your iPad. It is a native
+    Amigo brings the classic Commodore Amiga to your iPad. It is a native
     port of WinUAE, the most accurate Amiga emulator, running the complete
     range of classic machines from a stock A500 to a 68060 workstation with
     RTG graphics and networking.
@@ -32,6 +36,9 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
       emulators without JIT
     • 1:1 touch pointer — the Amiga mouse follows your finger — or classic
       trackpad-style relative mode, with two-finger scrolling in both
+    • Apple Pencil support: hover moves the pointer, squeeze clicks
+    • TV output via USB-C or AirPlay — fullscreen Amiga on the big screen
+    • Save states with automatic saving
     • Hardware keyboards, mice, trackpads and game controllers supported
     • Virtual Amiga keyboard, numpad, function keys and joystick overlays
     • Floppy images (ADF/ADZ/DMS) and hard drive images (HDF, RDB and
@@ -43,15 +50,15 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
 
     BRING YOUR OWN SYSTEM
 
-    iPadUAE includes no Amiga operating system, games or copyrighted ROMs.
+    Amigo includes no Amiga operating system, games or copyrighted ROMs.
     If you own Kickstart ROMs and AmigaOS (for example from a licensed
-    distribution), copy them into the iPadUAE folder in the Files app for
+    distribution), copy them into the Amigo folder in the Files app for
     the authentic experience. The bundled AROS ROM boots many titles
     without any Amiga files.
 
     FREE SOFTWARE
 
-    iPadUAE is free, with no ads, purchases or accounts. It is licensed
+    Amigo is free, with no ads, purchases or accounts. It is licensed
     under the GNU GPL v2; the complete source code for every released
     build is available at github.com/thomas-luebker/iPadUAE.
 
@@ -67,30 +74,18 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
     in keywords are a rejection trigger; "amiga" is needed for search and
     is standard across shipping emulators.)
 
-## What's New — 0.6.2
+## What's New — 0.6.4 (resubmission)
 
+    • Renamed to Amigo — Amiga Emulator
     • Save states: three slots plus an automatic save every five minutes
       — resume exactly where you left off
-    • Overlay transparency slider for the virtual keyboard and controls
-    • The menu now always stays above the virtual keyboard
-
-## What's New — 0.6.1
-
-    • Apple Pencil support: hover moves the Amiga pointer, tip clicks,
-      short squeeze right-clicks, long squeeze click-and-drags — with
-      palm rejection while the Pencil hovers
-    • TV output: connect USB-C or AirPlay and the Amiga goes fullscreen
-      on the big screen while controls stay on the iPad
-    • Machine panel: Apply button always visible, warns about unapplied
-      changes
-    • Fixed a crash when starting AirPlay screen mirroring
-    • Plus all 0.4.x improvements: adaptive menu for every iPad size,
-      reliable 1:1 mouse after WHDLoad, richer saved configurations,
-      About & Licenses screen
+    • Apple Pencil support: hover pointer, squeeze to click
+    • TV output via USB-C and AirPlay
+    • Overlay transparency slider; menu always stays above the keyboard
 
 ## App Review Information → Notes (for the reviewer)
 
-    iPadUAE is a retro computer emulator (App Review Guideline 4.7). Key
+    Amigo is a retro computer emulator (App Review Guideline 4.7). Key
     facts for review:
 
     - The app contains NO copyrighted Amiga ROMs, operating systems or
@@ -106,8 +101,20 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
       emulators (UTM SE).
     - The app is free software (GPL-2). Complete, buildable source for
       this exact build: https://github.com/thomas-luebker/iPadUAE
-      (tag v0.6.2).
+      (tag v0.6.4).
     - No data is collected (see Privacy Nutrition Label / PrivacyInfo).
+
+    RE: Guideline 2.5.8 (previous rejection, this submission). The
+    "desktop" shown on first launch is AmigaOS's own graphical shell
+    (Workbench) — the emulated computer's own GUI, rendered entirely
+    inside the app's own view. This is the same category as already-
+    approved emulators that boot a full desktop GUI of the emulated
+    system (UTM SE boots Windows/Linux desktops; iDOS 2 boots DOS/
+    Windows 3.x). The emulated desktop does not interact with, overlay,
+    or replace iOS's Home Screen, Springboard, multitasking UI, or
+    notifications — the app cannot launch other iOS apps, cannot add
+    icons/widgets to the Home Screen, and is fully contained within its
+    own sandboxed window. Happy to provide a screen recording if useful.
 
 ## URLs (App Store Connect fields)
 
@@ -118,7 +125,8 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
     Marketing URL (optional):
       https://github.com/thomas-luebker/iPadUAE
 
-    (All require the repo to be PUBLIC before submission.)
+    (Repo path unchanged — only the App Store product name changed, not
+    the GitHub repo. All require the repo to be PUBLIC.)
 
 ## Copyright (App Store Connect field)
 
@@ -146,4 +154,8 @@ Copy-paste source for App Store Connect. Keep in sync with releases.
     6. Configurations panel with 2–3 saved setups
 
     Raw PNGs → docs/screenshots/raw/. Captioning/framing is scripted
-    (scripts/make_screenshots.py) once raw shots exist.
+    (scripts/make_screenshots.py) once raw shots exist. Existing composed
+    screenshots in docs/screenshots/appstore/ say "Classic Amiga on your
+    iPad" as a caption headline — should be regenerated to drop "iPad"
+    from the caption text too before re-upload (cosmetic, not app
+    metadata, but avoid any appearance of the same issue recurring).

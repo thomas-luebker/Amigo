@@ -1,6 +1,6 @@
 // About & Licenses: attribution and license texts for App Store compliance.
 //
-// iPadUAE ships GPL-2 code (WinUAE); the screen credits upstream authors,
+// Amigo ships GPL-2 code (WinUAE); the screen credits upstream authors,
 // links the buildable source repo, and carries the full GPL-2 text plus
 // the SDL3 (zlib), AROS ROM (APL) and LZMA SDK notices.
 
@@ -41,7 +41,7 @@ struct AboutPanel: View {
                             .font(.title)
                             .foregroundStyle(.red)
                         VStack(alignment: .leading) {
-                            Text("iPadUAE").font(.title3.weight(.semibold))
+                            Text("Amigo — Amiga Emulator").font(.title3.weight(.semibold))
                             Text(version).font(.caption).foregroundStyle(.white.opacity(0.7))
                         }
                     }
@@ -54,7 +54,7 @@ struct AboutPanel: View {
                         .font(.footnote)
 
                     section("Source Code")
-                    Text("iPadUAE is licensed under the GNU General Public License v2. The complete source, including the exact WinUAE revision and all patches for every released build, is available at:")
+                    Text("Amigo is licensed under the GNU General Public License v2. The complete source, including the exact WinUAE revision and all patches for every released build, is available at:")
                         .font(.footnote)
                     Link("github.com/thomas-luebker/iPadUAE",
                          destination: URL(string: "https://github.com/thomas-luebker/iPadUAE")!)

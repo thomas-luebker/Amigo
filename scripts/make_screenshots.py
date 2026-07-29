@@ -19,14 +19,14 @@ RAW = ROOT / "docs/screenshots/raw"
 OUT = ROOT / "docs/screenshots/appstore"
 
 CANVAS = (2752, 2064)          # App Store 13-inch iPad, landscape
-ACCENT = (215, 40, 40)         # iPadUAE red
+ACCENT = (215, 40, 40)         # Amigo red
 BG_TOP = (24, 24, 27)
 BG_BOTTOM = (14, 14, 16)
 CAPTION_AREA = 340             # px reserved above the screenshot
 CORNER_RADIUS = 36
 
 SHOTS = [
-    ("IMG_0016.PNG", "01_workbench", "Classic Amiga on your iPad",
+    ("IMG_0016.PNG", "01_workbench", "Classic Amiga computing",
      "Full Workbench with RTG graphics — 68000 to 68060"),
     ("IMG_0020.PNG", "02_machine", "Build your dream Amiga",
      "CPU, chipset, RAM, RTG card and networking in one panel"),

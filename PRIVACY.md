@@ -1,12 +1,12 @@
-# iPadUAE — Privacy Policy
+# Amigo — Amiga Emulator — Privacy Policy
 
 **Effective date: 20 July 2026**
 
-iPadUAE is a classic Amiga emulator for iPad, developed by Thomas Lübker.
+Amigo is a classic Amiga emulator for iPad, developed by Thomas Lübker.
 
 ## The short version
 
-iPadUAE collects **no data**. None. There are no accounts, no analytics,
+Amigo collects **no data**. None. There are no accounts, no analytics,
 no advertising, no tracking, and no telemetry of any kind.
 
 ## Details

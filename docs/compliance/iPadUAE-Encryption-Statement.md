@@ -1,18 +1,18 @@
 # Encryption Export Compliance Statement
 
-**Application:** iPadUAE — Amiga Emulator
+**Application:** Amigo — Amiga Emulator
 
 **Bundle ID:** de.amiga-imager.uae
 
-**Version:** 0.4.2 (build 20260719.1) and all prior builds
+**Version:** 0.6.4 (build 20260729) and all prior builds
 
 **Developer:** Thomas Lübker
 
-**Date:** 19 July 2026
+**Date:** 29 July 2026
 
 ## Self-Classification
 
-iPadUAE does **not implement, contain, or incorporate any cryptographic functionality**. Specifically:
+Amigo does **not implement, contain, or incorporate any cryptographic functionality**. Specifically:
 
 1. The application implements **no encryption algorithms** — neither proprietary algorithms nor standard algorithms such as AES, RSA, or elliptic-curve cryptography.
 
@@ -32,4 +32,4 @@ I declare that the statements above are accurate for the referenced application 
 
 Thomas Lübker
 
-Developer, iPadUAE — thomas.luebker@mac.com
+Developer, Amigo — Amiga Emulator — thomas.luebker@mac.com

@@ -8,7 +8,7 @@
 import Foundation
 
 enum ConfigStore {
-    // Resource root: the app's Documents folder (shown as "iPadUAE" in the
+    // Resource root: the app's Documents folder (shown as "Amigo" in the
     // Files app). Subfolders (Kickstarts, Floppies, …) live directly here.
     static var winuaeDir: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]

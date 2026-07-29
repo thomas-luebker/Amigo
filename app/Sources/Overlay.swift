@@ -362,7 +362,7 @@ struct ControlPanel: View {
 
     private var mainMenu: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("iPadUAE").font(.headline).padding(.bottom, 6)
+            Text("Amigo").font(.headline).padding(.bottom, 6)
             MenuRow(icon: "opticaldiscdrive", title: "Insert DF0…") { submenu = .df0 }
             MenuRow(icon: "opticaldiscdrive", title: "Insert DF1…") { submenu = .df1 }
             MenuRow(icon: "eject", title: "Eject DF0") { ipaduae_eject_floppy(0) }
@@ -452,7 +452,7 @@ struct ControlPanel: View {
             MenuRow(icon: "exclamationmark.arrow.circlepath", title: "Hard Reset") { ipaduae_reset(1) }
             Divider().padding(.vertical, 4)
             MenuRow(icon: "info.circle", title: "About & Licenses…") { submenu = .about }
-            Text("Add disks & Kickstart ROMs via Files:\nOn My iPad › iPadUAE")
+            Text("Add disks & Kickstart ROMs via Files:\nOn My iPad › Amigo")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
@@ -513,7 +513,7 @@ struct KickstartPicker: View {
                 onDone()
             }
             if roms.isEmpty {
-                Text("No ROM files found.\nDrop Kickstart images into Files › iPadUAE › Kickstarts.")
+                Text("No ROM files found.\nDrop Kickstart images into Files › Amigo › Kickstarts.")
                     .font(.footnote).foregroundStyle(.secondary).padding(.vertical, 8)
             }
             ScrollView {
@@ -559,7 +559,7 @@ struct HardDrivePicker: View {
                 Divider().padding(.vertical, 4)
             }
             if images.isEmpty {
-                Text("No HDF images found.\nDrop .hdf files into Files › iPadUAE › HardDrives.")
+                Text("No HDF images found.\nDrop .hdf files into Files › Amigo › HardDrives.")
                     .font(.footnote).foregroundStyle(.secondary).padding(.vertical, 8)
             }
             ScrollView {
@@ -608,7 +608,7 @@ struct FloppyPicker: View {
             .padding(.bottom, 6)
 
             if images.isEmpty {
-                Text("No disk images found.\nDrop .adf files into Files › iPadUAE › Floppies.")
+                Text("No disk images found.\nDrop .adf files into Files › Amigo › Floppies.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .padding(.vertical, 8)
