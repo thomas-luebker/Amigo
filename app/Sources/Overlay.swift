@@ -193,7 +193,10 @@ final class OverlayState: ObservableObject {
     @Published var rtgAccel = UserDefaults.standard.object(forKey: "rtgAccel") as? Bool ?? false
     @Published var vsync = UserDefaults.standard.object(forKey: "vsync") as? Bool ?? false
     @Published var tabletMode = ConfigStore.tabletMode
-    @Published var externalDisplay = UserDefaults.standard.object(forKey: "externalDisplay") as? Bool ?? true
+    // Default OFF, matching the core's default — see unix_video_external_enabled
+    // in video_sdl.cpp for why auto-detection must not run on the very first
+    // boot before this preference has a chance to sync.
+    @Published var externalDisplay = UserDefaults.standard.object(forKey: "externalDisplay") as? Bool ?? false
     /// Opacity of the input overlays (keyboard, numpad, F-keys, joystick).
     /// Floor of 0.25 keeps them findable — invisible-but-touchable panels
     /// would eat emulator input with no visual explanation.
@@ -403,7 +406,7 @@ struct ControlPanel: View {
                 UserDefaults.standard.set(state.fullscreenDisplay, forKey: "fullscreenDisplay")
                 ipaduae_set_safe_area(state.fullscreenDisplay ? 0 : 1)
             }
-            MenuRow(icon: "tv", title: state.externalDisplay ? "TV Out: Auto (when connected)" : "TV Out: Off",
+            MenuRow(icon: "tv", title: state.externalDisplay ? "TV Out: On (when connected)" : "TV Out: Off",
                     active: state.externalDisplay) {
                 state.externalDisplay.toggle()
                 UserDefaults.standard.set(state.externalDisplay, forKey: "externalDisplay")

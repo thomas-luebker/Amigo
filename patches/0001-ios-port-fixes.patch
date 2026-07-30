@@ -366,7 +366,7 @@ index ce574a41..cf28cb71 100644
  
  #ifndef GFXBOARD
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..a696f004 100644
+index 13e88b9d..73094503 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -379,7 +379,7 @@ index 13e88b9d..a696f004 100644
  
  #ifdef WINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE
  #if defined(__APPLE__)
-@@ -38,6 +41,17 @@ extern void pausemode(int mode);
+@@ -38,6 +41,25 @@ extern void pausemode(int mode);
  static SDL_Window *s_window;
  static SDL_Renderer *s_renderer;
  static SDL_Texture *s_texture;
@@ -388,7 +388,15 @@ index 13e88b9d..a696f004 100644
 + * (USB-C/AirPlay screen on iPad), present the emulator frame there too —
 + * fullscreen, aspect-fit, no UI chrome. The main window keeps rendering
 + * on the device, where the touch controls and overlays live. */
-+bool unix_video_external_enabled = true;
++/* Default OFF: the very first unix_video_init() call happens during boot,
++ * before Swift's overlay installer has run and could sync this from the
++ * user's persisted preference — a stray/phantom second display (e.g. a
++ * review environment's screen-recording or monitoring infrastructure)
++ * detected during that earliest window has no established UI to recover
++ * into if window/renderer creation for it ever blocks. Requiring an
++ * explicit opt-in (menu toggle, synced after boot) avoids the automatic
++ * path being exercised on a launch nobody asked for. */
++bool unix_video_external_enabled = false;
 +static SDL_Window *s_ext_window;
 +static SDL_Renderer *s_ext_renderer;
 +static SDL_Texture *s_ext_texture;
@@ -397,7 +405,7 @@ index 13e88b9d..a696f004 100644
  static std::vector<SDL_Texture *> s_textures;
  static SDL_Texture *s_status_texture;
  #ifdef WINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE
-@@ -119,6 +133,8 @@ static constexpr int UnixStatusScale = 2;
+@@ -119,6 +141,8 @@ static constexpr int UnixStatusScale = 2;
  static TCHAR s_display_name[MAX_DPATH];
  
  static void unix_video_present_on_event_thread(const struct unix_video_frame *frame);
@@ -406,7 +414,7 @@ index 13e88b9d..a696f004 100644
  
  #ifdef WINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE
  #ifndef APIENTRY
-@@ -500,6 +516,11 @@ static int unix_input_lock_state_from_sdl(SDL_Keymod mod)
+@@ -500,6 +524,11 @@ static int unix_input_lock_state_from_sdl(SDL_Keymod mod)
  
  static int statusbar_source_height(void)
  {
@@ -418,7 +426,7 @@ index 13e88b9d..a696f004 100644
      return TD_TOTAL_HEIGHT;
  }
  
-@@ -672,6 +693,78 @@ static bool get_renderer_output_size(int *width, int *height)
+@@ -672,6 +701,78 @@ static bool get_renderer_output_size(int *width, int *height)
      return get_window_pixel_size(width, height);
  }
  
@@ -497,7 +505,7 @@ index 13e88b9d..a696f004 100644
  static bool make_video_layout(const struct unix_video_frame *frame, const struct gfx_filterdata *filter,
      int output_width, int output_height, struct unix_video_layout *layout)
  {
-@@ -684,10 +777,32 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -684,10 +785,32 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      get_window_pixel_scale(output_width, output_height, &layout->pixel_scale_x, &layout->pixel_scale_y);
  
      int status_height = std::max(1, (int)(statusbar_display_height() * layout->pixel_scale_y + 0.5f));
@@ -533,7 +541,7 @@ index 13e88b9d..a696f004 100644
  
      SDL_FRect source_rect = filtered_frame_rect(frame, filter);
      SDL_FRect dst = {};
-@@ -696,18 +811,18 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -696,18 +819,18 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      if (frame->filter_index == GF_RTG && mode == 2) { /* center */
          dst.w = source_rect.w * layout->pixel_scale_x;
          dst.h = source_rect.h * layout->pixel_scale_y;
@@ -556,7 +564,7 @@ index 13e88b9d..a696f004 100644
          const float sy = (float)frame_area_height / (float)frame->height;
          float draw_sx = sx;
          float draw_sy = sy;
-@@ -717,16 +832,22 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -717,16 +840,22 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
          }
          dst.w = source_rect.w * draw_sx;
          dst.h = source_rect.h * draw_sy;
@@ -584,7 +592,7 @@ index 13e88b9d..a696f004 100644
          (float)status_height
      };
      return true;
-@@ -1183,7 +1304,7 @@ static bool unix_gl_ensure_context(int width, int height)
+@@ -1183,7 +1312,7 @@ static bool unix_gl_ensure_context(int width, int height)
          return false;
      }
      SDL_GL_MakeCurrent(s_window, s_gl_context);
@@ -593,7 +601,7 @@ index 13e88b9d..a696f004 100644
      if (!unix_gl_build_program()) {
          SDL_GL_DestroyContext(s_gl_context);
          s_gl_context = NULL;
-@@ -1728,7 +1849,7 @@ bool unix_video_init(int width, int height, int pixbytes)
+@@ -1728,7 +1857,7 @@ bool unix_video_init(int width, int height, int pixbytes)
              s_available = false;
              return false;
          }
@@ -602,7 +610,7 @@ index 13e88b9d..a696f004 100644
          SDL_SetRenderDrawColor(s_renderer, 0, 0, 0, 255);
          SDL_RenderClear(s_renderer);
          SDL_RenderPresent(s_renderer);
-@@ -1736,6 +1857,8 @@ bool unix_video_init(int width, int height, int pixbytes)
+@@ -1736,6 +1865,8 @@ bool unix_video_init(int width, int height, int pixbytes)
  
      apply_window_mode();
  
@@ -611,7 +619,7 @@ index 13e88b9d..a696f004 100644
      return ensure_texture(width, height, pixbytes, 1);
  }
  
-@@ -1744,6 +1867,7 @@ void unix_video_shutdown(void)
+@@ -1744,6 +1875,7 @@ void unix_video_shutdown(void)
      unix_input_release_keys();
      unix_video_set_mouse_grab(false);
  
@@ -619,7 +627,7 @@ index 13e88b9d..a696f004 100644
      destroy_frame_textures();
      if (s_status_texture) {
          SDL_DestroyTexture(s_status_texture);
-@@ -1790,6 +1914,97 @@ void unix_video_shutdown(void)
+@@ -1790,6 +1922,97 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -717,7 +725,7 @@ index 13e88b9d..a696f004 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +2038,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +2046,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -728,7 +736,7 @@ index 13e88b9d..a696f004 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2089,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2097,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
@@ -759,7 +767,7 @@ index 13e88b9d..a696f004 100644
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2124,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2132,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -774,7 +782,23 @@ index 13e88b9d..a696f004 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1915,7 +2166,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1888,6 +2147,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+         case SDL_EVENT_MOUSE_BUTTON_DOWN:
+         case SDL_EVENT_MOUSE_BUTTON_UP:
+         {
++            /* TEMP diag (mini trackpad multi-click): every raw SDL mouse
++             * button event, with clicks-count and grab state, so we can
++             * count transitions per physical press on device. */
++            write_log(_T("iPadUAE mouse: %s btn=%d clicks=%d xy=%d,%d grabbed=%d tablet=%d t=%llu\n"),
++                event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ? _T("DOWN") : _T("UP  "),
++                (int)event.button.button, (int)event.button.clicks,
++                (int)event.button.x, (int)event.button.y,
++                s_mouse_grabbed ? 1 : 0, currprefs.input_tablet,
++                (unsigned long long)SDL_GetTicks());
+             if (!input_events) {
+                 break;
+             }
+@@ -1915,7 +2183,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -784,7 +808,7 @@ index 13e88b9d..a696f004 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2178,214 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2195,237 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -810,6 +834,12 @@ index 13e88b9d..a696f004 100644
 +            break;
 +#if defined(__APPLE__) && TARGET_OS_IPHONE
 +        case SDL_EVENT_FINGER_DOWN: {
++            /* TEMP diag (mini trackpad multi-click) */
++            write_log(_T("iPadUAE finger: DOWN id=%lld touch=%lld type=%d pressure=%.3f xy=%.3f,%.3f t=%llu\n"),
++                (long long)event.tfinger.fingerID, (long long)event.tfinger.touchID,
++                (int)SDL_GetTouchDeviceType(event.tfinger.touchID), event.tfinger.pressure,
++                event.tfinger.x, event.tfinger.y,
++                (unsigned long long)SDL_GetTicks());
 +            if (!input_events) {
 +                break;
 +            }
@@ -883,6 +913,17 @@ index 13e88b9d..a696f004 100644
 +            break;
 +        }
 +        case SDL_EVENT_FINGER_MOTION:
++            /* TEMP diag (mini trackpad multi-click), rate-limited */
++            {
++                static int motion_logcnt;
++                if ((motion_logcnt++ & 15) == 0) {
++                    write_log(_T("iPadUAE finger: MOVE id=%lld touch=%lld type=%d pressure=%.3f xy=%.3f,%.3f t=%llu\n"),
++                        (long long)event.tfinger.fingerID, (long long)event.tfinger.touchID,
++                        (int)SDL_GetTouchDeviceType(event.tfinger.touchID), event.tfinger.pressure,
++                        event.tfinger.x, event.tfinger.y,
++                        (unsigned long long)SDL_GetTicks());
++                }
++            }
 +            if (!input_events) {
 +                break;
 +            }
@@ -938,6 +979,12 @@ index 13e88b9d..a696f004 100644
 +            touch_reset_all();
 +            break;
 +        case SDL_EVENT_FINGER_UP: {
++            /* TEMP diag (mini trackpad multi-click) */
++            write_log(_T("iPadUAE finger: UP   id=%lld touch=%lld type=%d pressure=%.3f xy=%.3f,%.3f t=%llu\n"),
++                (long long)event.tfinger.fingerID, (long long)event.tfinger.touchID,
++                (int)SDL_GetTouchDeviceType(event.tfinger.touchID), event.tfinger.pressure,
++                event.tfinger.x, event.tfinger.y,
++                (unsigned long long)SDL_GetTicks());
 +            if (!input_events) {
 +                break;
 +            }
@@ -1001,7 +1048,7 @@ index 13e88b9d..a696f004 100644
          case SDL_EVENT_JOYSTICK_ADDED:
          case SDL_EVENT_JOYSTICK_REMOVED:
          case SDL_EVENT_GAMEPAD_ADDED:
-@@ -1962,6 +2414,166 @@ int unix_video_poll_window_events(bool *quit_requested)
+@@ -1962,6 +2454,166 @@ int unix_video_poll_window_events(bool *quit_requested)
      return unix_video_poll_internal(quit_requested, false);
  }
  
@@ -1168,7 +1215,7 @@ index 13e88b9d..a696f004 100644
  static void unix_video_present_on_event_thread(const struct unix_video_frame *frame)
  {
      if (!frame || !frame->pixels || frame->width <= 0 || frame->height <= 0 || frame->rowbytes <= 0) {
-@@ -2010,6 +2622,7 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -2010,6 +2662,7 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
          SDL_RenderTexture(s_renderer, s_status_texture, NULL, &layout.status_dst);
      }
      SDL_RenderPresent(s_renderer);
