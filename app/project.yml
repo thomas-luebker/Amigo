@@ -41,7 +41,7 @@ targets:
         INFOPLIST_FILE: iPadUAE-Info.plist
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        CURRENT_PROJECT_VERSION: 20260801
+        CURRENT_PROJECT_VERSION: 20260801.1
         MARKETING_VERSION: "0.6.4"
         SUPPORTS_MACCATALYST: NO
         OTHER_LDFLAGS: "-lz -luaecore"

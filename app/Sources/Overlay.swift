@@ -205,6 +205,24 @@ final class OverlayState: ObservableObject {
     /// Read by PassthroughWindow.hitTest on every touch; written from
     /// SwiftUI geometry callbacks. Main-thread only.
     var interactiveRects: [String: CGRect] = [:]
+
+    /// Shown once, on a genuinely fresh install: with no hard drive and no
+    /// floppy configured, AROS boots to its own "Waiting for bootable
+    /// media" screen — legitimate, but a static logo with a small unlabeled
+    /// gear icon reads as "this does nothing" to anyone who doesn't
+    /// recognize an Amiga boot sequence (this is what an App Review
+    /// rejection screenshot actually showed). Dismissed for good the first
+    /// time the menu is opened.
+    @Published var showFirstRunHint =
+        !UserDefaults.standard.bool(forKey: "hasOpenedMenuOnce")
+        && ConfigStore.currentValue("hardfile2") == nil
+        && (ConfigStore.currentValue("floppy0") ?? "").isEmpty
+
+    func dismissFirstRunHint() {
+        guard showFirstRunHint else { return }
+        showFirstRunHint = false
+        UserDefaults.standard.set(true, forKey: "hasOpenedMenuOnce")
+    }
 }
 
 /// Sends a scancode press+release with a small gap so the emulated 50Hz
@@ -246,6 +264,7 @@ struct OverlayRoot: View {
             VStack(alignment: .trailing, spacing: 8) {
                 Button {
                     state.expanded.toggle()
+                    state.dismissFirstRunHint()
                     NSLog("iPadUAE overlay: menu %@", expanded ? "opened" : "closed")
                     wake()
                 } label: {
@@ -259,9 +278,25 @@ struct OverlayRoot: View {
                         .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
-                .opacity(expanded ? 1.0 : (faded ? 0.18 : 0.85))
+                // Stay fully visible (skip the idle fade) while the
+                // first-run hint is pointing at this exact button.
+                .opacity(expanded ? 1.0 : (faded && !state.showFirstRunHint ? 0.18 : 0.85))
                 .interactiveArea("gear")
                 .onAppear(perform: wake)
+
+                if state.showFirstRunHint && !expanded {
+                    HStack(spacing: 6) {
+                        Text("Tap here to add a disk or hard drive")
+                            .font(.footnote.weight(.medium))
+                        Image(systemName: "arrow.turn.right.up")
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.red.opacity(0.85), in: RoundedRectangle(cornerRadius: 10))
+                    .shadow(radius: 6)
+                    .transition(.opacity)
+                }
 
                 if expanded {
                     ControlPanel()
