@@ -12,6 +12,18 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 
 common=(
   -DSDL_CAMERA=OFF
+  # Disabling HIDAPI drops the CoreBluetooth dependency entirely (SDL's own
+  # header docs recommend this for iOS/tvOS). We have no BLE/HIDAPI
+  # controllers to support, but the linked framework alone is enough for
+  # iOS to treat the app as touching Bluetooth on first launch — on a
+  # device where the app has never been installed before (unlike any of
+  # our own test devices, whose permission decision persists across
+  # reinstalls) that can surface as a permission prompt blocking first
+  # render, which is indistinguishable from "hung" to anyone not there to
+  # answer it. Matches an App Review report of exactly that on a fresh
+  # device. MFi/GameController-based controllers (our supported input
+  # path) are untouched by this — they don't go through HIDAPI.
+  -DSDL_HIDAPI=OFF
   -DSDL_SHARED=ON -DSDL_STATIC=OFF
   -DSDL_FRAMEWORK=ON
   -DSDL_TEST_LIBRARY=OFF -DSDL_EXAMPLES=OFF -DSDL_TESTS=OFF
