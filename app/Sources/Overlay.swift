@@ -90,6 +90,9 @@ final class OverlayInstaller {
         PencilHoverDriver.shared.install(on: scene)
         installAutosave()
         installDebugHooks()
+        // Controller routing prefs must be live before the first
+        // connect event, not first panel-open.
+        ControllerPanel.applyStored()
         // The overlay only installs once SDL's window (and thus video) is
         // up; 30s beyond that counts as a stable boot, so a crash later on
         // won't roll back the last machine/media change.
@@ -407,7 +410,7 @@ struct OverlayRoot: View {
 }
 
 struct ControlPanel: View {
-    enum Submenu { case none, df0, df1, kickstart, harddrive, machine, configs, states, about }
+    enum Submenu { case none, df0, df1, kickstart, harddrive, machine, controller, configs, states, about }
     @State private var submenu: Submenu = .none
     @ObservedObject private var state = OverlayState.shared
 
@@ -427,6 +430,7 @@ struct ControlPanel: View {
             case .kickstart: KickstartPicker { submenu = .none }
             case .harddrive: HardDrivePicker { submenu = .none }
             case .machine: MachinePanel { submenu = .none }
+            case .controller: ControllerPanel { submenu = .none }
             case .configs: ConfigurationsPanel { submenu = .none }
             case .states: StatePanel { submenu = .none }
             case .about: AboutPanel { submenu = .none }
@@ -446,6 +450,7 @@ struct ControlPanel: View {
             MenuRow(icon: "memorychip", title: "Kickstart ROM…") { submenu = .kickstart }
             MenuRow(icon: "internaldrive", title: "Hard Drive…") { submenu = .harddrive }
             MenuRow(icon: "cpu", title: "Machine (CPU / RAM / RTG / Net)…") { submenu = .machine }
+            MenuRow(icon: "gamecontroller", title: "Controller (CD32 pad)…") { submenu = .controller }
             MenuRow(icon: "square.stack.3d.up", title: "Configurations (save/load setups)…") { submenu = .configs }
             MenuRow(icon: "clock.arrow.circlepath", title: "Save States…") { submenu = .states }
             Divider().padding(.vertical, 4)
@@ -603,6 +608,75 @@ struct KickstartPicker: View {
                 }
             }
             .frame(maxHeight: 420)
+        }
+    }
+}
+
+/// Game-controller routing. Persisted in UserDefaults and re-applied to
+/// the core at overlay install and on every change; the core itself
+/// re-applies on controller connect/disconnect.
+struct ControllerPanel: View {
+    let onDone: () -> Void
+    @State private var port = UserDefaults.standard.object(forKey: "controllerPort") as? Int ?? 1
+    @State private var cd32 = UserDefaults.standard.bool(forKey: "controllerCD32")
+    @State private var autofire = UserDefaults.standard.bool(forKey: "controllerAutofire")
+
+    static func applyStored() {
+        let port = UserDefaults.standard.object(forKey: "controllerPort") as? Int ?? 1
+        ipaduae_set_controller(Int32(port),
+                               UserDefaults.standard.bool(forKey: "controllerCD32") ? 1 : 0,
+                               UserDefaults.standard.bool(forKey: "controllerAutofire") ? 1 : 0)
+    }
+
+    private func apply() {
+        UserDefaults.standard.set(port, forKey: "controllerPort")
+        UserDefaults.standard.set(cd32, forKey: "controllerCD32")
+        UserDefaults.standard.set(autofire, forKey: "controllerAutofire")
+        ipaduae_set_controller(Int32(port), cd32 ? 1 : 0, autofire ? 1 : 0)
+    }
+
+    private var connectedName: String? {
+        ipaduae_controller_name().map { String(cString: $0) }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Button(action: onDone) { Label("Back", systemImage: "chevron.left") }
+                    .buttonStyle(.plain)
+                Spacer()
+                Text("Controller").font(.headline)
+            }
+            .padding(.bottom, 6)
+
+            if let name = connectedName {
+                Label(name, systemImage: "gamecontroller.fill")
+                    .font(.footnote).foregroundStyle(.secondary).padding(.bottom, 4)
+            } else {
+                Text("No controller connected.\nPair one in Settings › Bluetooth — it is picked up automatically.")
+                    .font(.footnote).foregroundStyle(.secondary).padding(.bottom, 4)
+            }
+
+            // UAE joyport1 is the physical Amiga joystick port (port 2 on
+            // the case); joyport0 is the mouse port (port 1).
+            MenuRow(icon: port == 1 ? "checkmark.circle.fill" : "circle",
+                    title: "Joystick Port — games (default)") { port = 1; apply() }
+            MenuRow(icon: port == 0 ? "checkmark.circle.fill" : "circle",
+                    title: "Mouse Port — replaces mouse") { port = 0; apply() }
+            MenuRow(icon: port == -1 ? "checkmark.circle.fill" : "circle",
+                    title: "Off — use on-screen joystick") { port = -1; apply() }
+
+            Divider().padding(.vertical, 4)
+
+            MenuRow(icon: cd32 ? "checkmark.circle.fill" : "circle",
+                    title: "CD32 Pad Mode (red/blue/… buttons)",
+                    active: cd32) { cd32.toggle(); apply() }
+            MenuRow(icon: autofire ? "checkmark.circle.fill" : "circle",
+                    title: "Autofire",
+                    active: autofire) { autofire.toggle(); apply() }
+
+            Text("CD32 mode gives games the 7-button CD32 pad. Plain joystick mode is right for most Amiga games.")
+                .font(.footnote).foregroundStyle(.secondary).padding(.top, 6)
         }
     }
 }

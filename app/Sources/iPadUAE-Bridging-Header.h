@@ -16,3 +16,5 @@ void ipaduae_set_external_display(int on);
 void ipaduae_mouse_button(int button, int pressed);
 void ipaduae_set_pen_hover(int active);
 void ipaduae_state_op(int slot, int save);
+void ipaduae_set_controller(int port, int cd32, int autofire);
+const char *ipaduae_controller_name(void);
