@@ -109,6 +109,22 @@ extern "C" void ipaduae_set_safe_area(int on)
     unix_video_use_safe_area = on != 0;
 }
 
+/* Game controller routing (Controller panel): port -1=off, 0=Amiga mouse
+ * port, 1=Amiga joystick port; cd32 enables CD32-pad mode; autofire 0/1.
+ * Applied immediately and re-applied automatically on connect/disconnect. */
+extern void unix_input_set_controller(int port, int cd32, int autofire);
+extern const char *unix_input_controller_name(void);
+
+extern "C" void ipaduae_set_controller(int port, int cd32, int autofire)
+{
+    unix_input_set_controller(port, cd32, autofire);
+}
+
+extern "C" const char *ipaduae_controller_name(void)
+{
+    return unix_input_controller_name();
+}
+
 /* Live toggle for the on-screen LED status line. */
 extern "C" void ipaduae_set_leds(int on)
 {

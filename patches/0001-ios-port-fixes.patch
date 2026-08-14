@@ -204,10 +204,89 @@ index 19edeeef..880e1afe 100644
      uint64_t block_count = 0;
      if (ioctl(fd, DKIOCGETBLOCKSIZE, &block_size) == 0 && block_size > 0 && blocksize) {
 diff --git a/od-unix/input.cpp b/od-unix/input.cpp
-index 71889a1d..8e425ff6 100644
+index 71889a1d..347e906c 100644
 --- a/od-unix/input.cpp
 +++ b/od-unix/input.cpp
-@@ -1198,6 +1198,14 @@ void unix_input_mouse_motion(int dx, int dy)
+@@ -1095,10 +1095,69 @@ static bool joystick_axis_is_dpad_or_hat(int joy, int axis)
+         kind == UNIX_AXIS_HAT_X || kind == UNIX_AXIS_HAT_Y;
+ }
+ 
++/* Controllers on iOS connect while the emulator is already running, and
++ * the desktop GUI that would let a user route one to an Amiga port by
++ * hand does not exist in this port — without this, a paired controller
++ * enumerates but never reaches the guest. The first controller is
++ * routed automatically according to the user's preference (Amiga
++ * joystick port by default, CD32 pad mode and autofire optional; set
++ * from the app via unix_input_set_controller). The port's default
++ * occupant (mouse / on-screen joystick layout) is restored when the
++ * controller disappears or moves. */
++static int unix_controller_pref_port = 1;   /* jports index: 1 = Amiga joystick port, 0 = mouse port, -1 = off */
++static int unix_controller_pref_mode = JSEM_MODE_DEFAULT;
++static int unix_controller_pref_autofire = 0;
++static int unix_controller_assigned_port = -1;
++
++static void joystick_apply_controller_prefs(void)
++{
++    struct uae_prefs *p = &changed_prefs;
++
++    /* Idempotent: drop any previous assignment (restoring the port's
++     * default occupant), then assign fresh per current prefs. */
++    if (unix_controller_assigned_port >= 0) {
++        const TCHAR *restore = unix_controller_assigned_port == 0 ? _T("mouse") : _T("kbd2");
++        inputdevice_joyport_config(p, restore, NULL, unix_controller_assigned_port, -1, -1, 0, 0, true);
++        p->jports[unix_controller_assigned_port].jd[0].autofire = 0;
++        unix_controller_assigned_port = -1;
++    }
++    if (unix_joystick_count > 0 && unix_controller_pref_port >= 0) {
++        if (inputdevice_joyport_config(p, _T("joy0"), NULL, unix_controller_pref_port,
++                                       unix_controller_pref_mode, 0, 0, 0, true)) {
++            p->jports[unix_controller_pref_port].jd[0].autofire = unix_controller_pref_autofire;
++            unix_controller_assigned_port = unix_controller_pref_port;
++            write_log(_T("unix input: controller -> jport %d mode %d af %d\n"),
++                      unix_controller_pref_port, unix_controller_pref_mode,
++                      unix_controller_pref_autofire);
++        }
++    }
++    inputdevice_copyconfig(&changed_prefs, &currprefs);
++}
++
++void unix_input_set_controller(int port, int cd32, int autofire)
++{
++    unix_controller_pref_port = port < -1 || port > 1 ? 1 : port;
++    unix_controller_pref_mode = cd32 ? JSEM_MODE_JOYSTICK_CD32 : JSEM_MODE_DEFAULT;
++    unix_controller_pref_autofire = autofire ? 1 : 0;
++    if (unix_joystick_sdl_initialized) {
++        joystick_apply_controller_prefs();
++    }
++}
++
++const TCHAR *unix_input_controller_name(void)
++{
++    return unix_joystick_count > 0 ? joystick_get_friendlyname(0) : NULL;
++}
++
+ void unix_input_joystick_device_changed(void)
+ {
+     if (unix_joystick_sdl_initialized) {
+         joystick_open_devices();
++        /* Mirror win32's WM_DEVICECHANGE: the core snapshotted input
++         * devices at startup and must rescan, or hot-connected
++         * controllers stay invisible to it. */
++        inputdevice_devicechange(&changed_prefs);
++        joystick_apply_controller_prefs();
+     }
+ }
+ #else
+@@ -1117,6 +1176,8 @@ static int joystick_get_flags(int) { return 0; }
+ static bool joystick_has_button(int, int) { return false; }
+ static bool joystick_axis_is_dpad_or_hat(int, int) { return false; }
+ void unix_input_joystick_device_changed(void) {}
++void unix_input_set_controller(int, int, int) {}
++const TCHAR *unix_input_controller_name(void) { return NULL; }
+ #endif
+ 
+ inputdevice_functions inputdevicefunc_joystick = {
+@@ -1198,6 +1259,14 @@ void unix_input_mouse_motion(int dx, int dy)
      }
  }
  
