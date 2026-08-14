@@ -22,7 +22,8 @@ unchanged; only App Store metadata and the on-device display name changed.
 
 ## Description (4000 chars max)
 
-    Amigo brings the classic Commodore Amiga to your iPad. It is a native
+    Amigo brings the classic Commodore Amiga to your iPhone and iPad. It
+    is a native
     port of WinUAE, the most accurate Amiga emulator, running the complete
     range of classic machines from a stock A500 to a 68060 workstation with
     RTG graphics and networking.
@@ -39,7 +40,9 @@ unchanged; only App Store metadata and the on-device display name changed.
     • Apple Pencil support: hover moves the pointer, squeeze clicks
     • TV output via USB-C or AirPlay — fullscreen Amiga on the big screen
     • Save states with automatic saving
-    • Hardware keyboards, mice, trackpads and game controllers supported
+    • Bluetooth game controllers — plug and play, with CD32 pad mode,
+      port routing and autofire
+    • Hardware keyboards, mice and trackpads supported
     • Virtual Amiga keyboard, numpad, function keys and joystick overlays
     • Floppy images (ADF/ADZ/DMS) and hard drive images (HDF, RDB and
       plain), added via the Files app
@@ -73,6 +76,18 @@ unchanged; only App Store metadata and the on-device display name changed.
     (98 chars. "Commodore" deliberately omitted — third-party trademarks
     in keywords are a rejection trigger; "amiga" is needed for search and
     is standard across shipping emulators.)
+
+## What's New — 0.7.0
+
+    • Amigo now runs on iPhone! Landscape and portrait, with an
+      iPhone-sized virtual keyboard
+    • Bluetooth game controllers now work — pair one and play. New
+      Controller menu with CD32 pad mode, port routing and autofire
+    • Disk images and Kickstart ROMs are found in subfolders — organize
+      your Files › Amigo library however you like
+    • Fixed a rare crash when leaving the app
+    • If the emulator can't start after a machine change, it now undoes
+      that change automatically instead of refusing to launch
 
 ## What's New — 0.6.4 (resubmission)
 
@@ -125,8 +140,9 @@ unchanged; only App Store metadata and the on-device display name changed.
     Marketing URL (optional):
       https://github.com/thomas-luebker/Amigo
 
-    (Repo path unchanged — only the App Store product name changed, not
-    the GitHub repo. All require the repo to be PUBLIC.)
+    (Repo renamed to match the product 2026-08-14: github.com/
+    thomas-luebker/Amigo; old iPadUAE URLs redirect. All require the
+    repo to be PUBLIC.)
 
 ## Copyright (App Store Connect field)
 
