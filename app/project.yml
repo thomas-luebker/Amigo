@@ -29,7 +29,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: de.amiga-imager.uae
-        TARGETED_DEVICE_FAMILY: "2"
+        TARGETED_DEVICE_FAMILY: "1,2"
         GENERATE_INFOPLIST_FILE: YES
         # App Store name is "Amigo — Amiga Emulator"; this is what shows
         # under the icon (Apple rejected the prior default of PRODUCT_NAME
