@@ -1,6 +1,6 @@
 build/
 DerivedData/
-app/iPadUAE.xcodeproj/
+app/Amigo.xcodeproj/
 *.xcuserdatad/
 xcuserdata/
 .DS_Store
