@@ -60,7 +60,7 @@ unchanged; only App Store metadata and the on-device display name changed.
 
     Amigo is free, with no ads, purchases or accounts. It is licensed
     under the GNU GPL v2; the complete source code for every released
-    build is available at github.com/thomas-luebker/iPadUAE.
+    build is available at github.com/thomas-luebker/Amigo.
 
     Based on WinUAE by Toni Wilen; original UAE by Bernd Schmidt.
     Amiga is a trademark of Amiga Corporation. This app is not affiliated
@@ -100,7 +100,7 @@ unchanged; only App Store metadata and the on-device display name changed.
       a pure interpreter (no JIT), the same approach as other approved
       emulators (UTM SE).
     - The app is free software (GPL-2). Complete, buildable source for
-      this exact build: https://github.com/thomas-luebker/iPadUAE
+      this exact build: https://github.com/thomas-luebker/Amigo
       (tag v0.6.4).
     - No data is collected (see Privacy Nutrition Label / PrivacyInfo).
 
@@ -119,11 +119,11 @@ unchanged; only App Store metadata and the on-device display name changed.
 ## URLs (App Store Connect fields)
 
     Privacy Policy URL:
-      https://github.com/thomas-luebker/iPadUAE/blob/main/PRIVACY.md
+      https://github.com/thomas-luebker/Amigo/blob/main/PRIVACY.md
     Support URL:
-      https://github.com/thomas-luebker/iPadUAE/issues
+      https://github.com/thomas-luebker/Amigo/issues
     Marketing URL (optional):
-      https://github.com/thomas-luebker/iPadUAE
+      https://github.com/thomas-luebker/Amigo
 
     (Repo path unchanged — only the App Store product name changed, not
     the GitHub repo. All require the repo to be PUBLIC.)

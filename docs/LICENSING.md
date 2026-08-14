@@ -1,4 +1,4 @@
-# iPadUAE — Licensing
+# Amigo — Licensing
 
 ## Decision: release FREE
 
@@ -34,7 +34,7 @@ copyright holder complains.
 
 ## Third-party surface (small)
 
-iPadUAE bundles no Amiga files. Only: **SDL3** (zlib — unconditionally fine),
+Amigo bundles no Amiga files. Only: **SDL3** (zlib — unconditionally fine),
 **LZMA SDK** (public domain), **AROS ROM** (APL, redistributable — same ROM
 WinUAE ships). The only license question is WinUAE itself.
 

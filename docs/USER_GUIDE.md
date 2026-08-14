@@ -1,6 +1,6 @@
-# iPadUAE — User Guide
+# Amigo — User Guide
 
-iPadUAE runs classic **Commodore Amiga** software on your iPad. It's a port of
+Amigo runs classic **Commodore Amiga** software on your iPad. It's a port of
 WinUAE. Out of the box it boots a free open-source Amiga-like system (AROS);
 add your own Kickstart ROMs and software to run the genuine thing.
 
@@ -25,7 +25,7 @@ Tap the **gear** (top-right; it fades while you work — tap to bring it back):
 
 ## Adding your own files (Files app)
 
-**On My iPad › iPadUAE**:
+**On My iPad › Amigo**:
 
 | Folder | Put here |
 |---|---|
@@ -60,6 +60,6 @@ second finger = right button · two-finger drag = scroll.
 
 ## Notes
 
-iPadUAE interprets the Amiga CPU (Apple doesn't permit JIT on the App Store),
+Amigo interprets the Amiga CPU (Apple doesn't permit JIT on the App Store),
 so demanding software runs slower than on a PC — everyday Workbench, tools, and
 many games run well. Files and setups survive app updates.

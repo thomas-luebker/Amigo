@@ -1,13 +1,13 @@
-# iPadUAE — TestFlight Release Prep
+# Amigo — TestFlight Release Prep
 
 ## One-shot archive build
 
 ```sh
-cd ~/Development/iPadUAE
+cd ~/Development/Amigo
 ./scripts/build-release.sh          # builds core + archive, ready for Organizer
 ```
 
-Then: open `build/iPadUAE.xcarchive` in **Xcode → Window → Organizer →
+Then: open `build/Amigo.xcarchive` in **Xcode → Window → Organizer →
 Distribute App → TestFlight & App Store**, and upload.
 
 ## Manual steps (what the script does)
@@ -15,9 +15,9 @@ Distribute App → TestFlight & App Store**, and upload.
 ```sh
 ./scripts/build-ios-core.sh device
 xcodegen -s app/project.yml
-xcodebuild -project app/iPadUAE.xcodeproj -scheme iPadUAE \
+xcodebuild -project app/Amigo.xcodeproj -scheme Amigo \
   -destination 'generic/platform=iOS' -allowProvisioningUpdates \
-  -archivePath build/iPadUAE.xcarchive archive
+  -archivePath build/Amigo.xcarchive archive
 ```
 
 ## Before first upload (one-time, needs your Apple account)

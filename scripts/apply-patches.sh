@@ -1,5 +1,5 @@
 #!/bin/bash
-# Apply iPadUAE's upstream patches to the vendor/WinUAE submodule working tree.
+# Apply Amigo's upstream patches to the vendor/WinUAE submodule working tree.
 # Idempotent: skips patches that are already applied.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

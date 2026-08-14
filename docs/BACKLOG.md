@@ -1,4 +1,4 @@
-# iPadUAE — Feature Backlog
+# Amigo — Feature Backlog
 
 Planning home: the Obsidian note "iPadUAE — Roadmap & Open Questions"
 (kept in sync manually; this file is the repo-visible mirror).

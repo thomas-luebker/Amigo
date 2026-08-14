@@ -1,7 +1,8 @@
 # Amigo — Amiga Emulator
 
-(repo/internal codename: iPadUAE — the App Store product is named "Amigo —
-Amiga Emulator"; see `docs/APPSTORE.md` for why.)
+(formerly published under the working title "iPadUAE" — renamed repo-wide to
+match the App Store product "Amigo — Amiga Emulator"; the bundle ID and the
+`ipaduae_*` internal symbols keep their historical names.)
 
 An iPad port of [WinUAE](https://github.com/tonioni/WinUAE), built directly on the
 upstream Unix/SDL3 layer (`od-unix/`), targeting iPadOS and App Store distribution.
@@ -45,8 +46,8 @@ mousehack-after-reboot fix and an SDL3 UIScene fix (second scene re-ran
 git submodule update --init      # vendor/WinUAE
 ./scripts/apply-patches.sh       # applies patches/*.patch (idempotent)
 ./scripts/build-ios-core.sh      # cross-compiles build/ios/libuaecore.a (arm64 iOS)
-xcodegen -s app/project.yml      # regenerates app/iPadUAE.xcodeproj
-open app/iPadUAE.xcodeproj       # build & run the iPadUAE target on an iPad
+xcodegen -s app/project.yml      # regenerates app/Amigo.xcodeproj
+open app/Amigo.xcodeproj       # build & run the Amigo target on an iPad
 ```
 
 For a TestFlight/App Store archive: `./scripts/build-release.sh`.

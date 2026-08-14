@@ -1,6 +1,6 @@
 #!/bin/bash
 # Build a signed distribution archive ready for TestFlight/App Store upload.
-# Output: build/iPadUAE.xcarchive  (open in Xcode Organizer to distribute)
+# Output: build/Amigo.xcarchive  (open in Xcode Organizer to distribute)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -20,15 +20,15 @@ echo "==> Archiving (Release, automatic signing)"
 # Own DerivedData: sharing Xcode's default location corrupts the GUI's
 # incremental build database when both build ("error accessing build
 # database"), especially since this script also regenerates the project.
-xcodebuild -project app/iPadUAE.xcodeproj -scheme iPadUAE \
+xcodebuild -project app/Amigo.xcodeproj -scheme Amigo \
   -configuration Release \
   -destination 'generic/platform=iOS' \
   -allowProvisioningUpdates \
   -derivedDataPath build/DerivedData-release \
   CURRENT_PROJECT_VERSION="${BUILD_NUMBER}" \
-  -archivePath build/iPadUAE.xcarchive \
+  -archivePath build/Amigo.xcarchive \
   archive
 
 echo
-echo "==> Archive ready: build/iPadUAE.xcarchive"
+echo "==> Archive ready: build/Amigo.xcarchive"
 echo "    Open Xcode → Organizer → Distribute App → TestFlight & App Store."

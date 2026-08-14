@@ -1,12 +1,12 @@
-# iPadUAE — TestFlight Tester Guide
+# Amigo — TestFlight Tester Guide
 
 *Paste into TestFlight "What to Test" / send to testers.*
 
 ---
 
-## Welcome to the iPadUAE beta 🕹️
+## Welcome to the Amigo beta 🕹️
 
-Thanks for testing! iPadUAE runs classic **Amiga** software on your iPad. This
+Thanks for testing! Amigo runs classic **Amiga** software on your iPad. This
 is an early build — expect rough edges, and please tell me what breaks.
 
 ### Getting started (1 minute)
@@ -17,7 +17,7 @@ is an early build — expect rough edges, and please tell me what breaks.
 
 ### To run real AmigaOS / your own software
 
-1. Open the **Files** app → **On My iPad** → **iPadUAE**.
+1. Open the **Files** app → **On My iPad** → **Amigo**.
 2. Put your **Kickstart ROM** in `Kickstarts/`, disk images (`.adf`) in
    `Floppies/`, hard-disk images (`.hdf`) in `HardDrives/`.
    *(You provide these — nothing copyrighted is included.)*

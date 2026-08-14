@@ -56,8 +56,8 @@ struct AboutPanel: View {
                     section("Source Code")
                     Text("Amigo is licensed under the GNU General Public License v2. The complete source, including the exact WinUAE revision and all patches for every released build, is available at:")
                         .font(.footnote)
-                    Link("github.com/thomas-luebker/iPadUAE",
-                         destination: URL(string: "https://github.com/thomas-luebker/iPadUAE")!)
+                    Link("github.com/thomas-luebker/Amigo",
+                         destination: URL(string: "https://github.com/thomas-luebker/Amigo")!)
                         .font(.footnote.weight(.medium))
                         .foregroundStyle(.red)
 
