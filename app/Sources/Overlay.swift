@@ -358,12 +358,18 @@ struct OverlayRoot: View {
             }
 
             if state.showKeyboard {
-                VStack {
-                    Spacer()
-                    AmigaKeyboardView()
-                        .interactiveArea("keyboard")
-                        .padding(.bottom, state.showJoystick ? 200 : 12)
-                        .padding(.horizontal, 12)
+                GeometryReader { geo in
+                    VStack {
+                        Spacer()
+                        // iPhone only: cap the keyboard so the emulator
+                        // stays visible. iPad keeps its full-size keys
+                        // unconditionally (maxHeight stays .infinity).
+                        AmigaKeyboardView(maxHeight: UIDevice.current.userInterfaceIdiom == .phone
+                                          ? geo.size.height * 0.48 : .infinity)
+                            .interactiveArea("keyboard")
+                            .padding(.bottom, state.showJoystick ? 200 : 12)
+                            .padding(.horizontal, 12)
+                    }
                 }
                 .opacity(state.overlayOpacity)
             }
