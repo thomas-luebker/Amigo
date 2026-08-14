@@ -135,10 +135,10 @@ unchanged; only App Store metadata and the on-device display name changed.
 
     Privacy Policy URL:
       https://github.com/thomas-luebker/Amigo/blob/main/PRIVACY.md
-    Support URL:
-      https://github.com/thomas-luebker/Amigo/issues
-    Marketing URL (optional):
-      https://github.com/thomas-luebker/Amigo
+    Support URL (live in ASC):
+      http://amiga-imager.com
+    Marketing URL (live in ASC):
+      http://amiga-imager.com
 
     (Repo renamed to match the product 2026-08-14: github.com/
     thomas-luebker/Amigo; old iPadUAE URLs redirect. All require the
