@@ -90,6 +90,12 @@ final class OverlayInstaller {
         PencilHoverDriver.shared.install(on: scene)
         installAutosave()
         installDebugHooks()
+        // The overlay only installs once SDL's window (and thus video) is
+        // up; 30s beyond that counts as a stable boot, so a crash later on
+        // won't roll back the last machine/media change.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+            ConfigStore.markBootStable()
+        }
     }
 
     // Autosave (quick-state slot 0): every 5 minutes while running, and a
@@ -127,11 +133,8 @@ final class OverlayInstaller {
         CFNotificationCenterAddObserver(center, nil, { _, _, _, _, _ in
             DispatchQueue.main.async {
                 let dir = ConfigStore.winuaeDir.appendingPathComponent("Floppies")
-                let first = ((try? FileManager.default.contentsOfDirectory(
-                    at: dir, includingPropertiesForKeys: nil)) ?? [])
-                    .filter { ["adf", "adz", "dms"].contains($0.pathExtension.lowercased()) }
-                    .sorted { $0.lastPathComponent < $1.lastPathComponent }
-                    .first
+                let first = ConfigStore.mediaFiles(in: dir,
+                                                   extensions: ["adf", "adz", "dms"]).first
                 if let first {
                     NSLog("iPadUAE overlay: debug insert DF0 %@", first.path)
                     ipaduae_insert_floppy(0, first.path)
@@ -223,6 +226,18 @@ final class OverlayState: ObservableObject {
         showFirstRunHint = false
         UserDefaults.standard.set(true, forKey: "hasOpenedMenuOnce")
     }
+
+    /// Set when startup rolled default.uae back to the last good config
+    /// because the previous session crashed (or restart-looped) before its
+    /// first stable boot after a machine/media change.
+    @Published var showRecoveryNotice =
+        UserDefaults.standard.bool(forKey: ConfigStore.recoveredKey)
+
+    func dismissRecoveryNotice() {
+        guard showRecoveryNotice else { return }
+        showRecoveryNotice = false
+        UserDefaults.standard.removeObject(forKey: ConfigStore.recoveredKey)
+    }
 }
 
 /// Sends a scancode press+release with a small gap so the emulated 50Hz
@@ -265,6 +280,7 @@ struct OverlayRoot: View {
                 Button {
                     state.expanded.toggle()
                     state.dismissFirstRunHint()
+                    state.dismissRecoveryNotice()
                     NSLog("iPadUAE overlay: menu %@", expanded ? "opened" : "closed")
                     wake()
                 } label: {
@@ -294,6 +310,21 @@ struct OverlayRoot: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                     .background(Color.red.opacity(0.85), in: RoundedRectangle(cornerRadius: 10))
+                    .shadow(radius: 6)
+                    .transition(.opacity)
+                }
+
+                if state.showRecoveryNotice && !expanded {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.uturn.backward.circle")
+                        Text("Undid the last machine/disk change —\nthe app couldn't start with it")
+                            .font(.footnote.weight(.medium))
+                            .multilineTextAlignment(.leading)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.orange.opacity(0.9), in: RoundedRectangle(cornerRadius: 10))
                     .shadow(radius: 6)
                     .transition(.opacity)
                 }
@@ -528,8 +559,8 @@ struct MenuRow: View {
 struct KickstartPicker: View {
     let onDone: () -> Void
     private var roms: [URL] {
-        ConfigStore.files(in: ConfigStore.kickstartsDir,
-                          extensions: ["rom", "bin", "zip", "a500", "a600", "a1200", "a4000"])
+        ConfigStore.mediaFiles(in: ConfigStore.kickstartsDir,
+                               extensions: ["rom", "bin", "zip", "a500", "a600", "a1200", "a4000"])
     }
     private var current: String { ConfigStore.currentValue("kickstart_rom_file") ?? ":AROS" }
 
@@ -558,7 +589,7 @@ struct KickstartPicker: View {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(roms, id: \.self) { url in
                         MenuRow(icon: current == url.path ? "checkmark.circle.fill" : "memorychip",
-                                title: url.lastPathComponent) {
+                                title: ConfigStore.relativeName(url, in: ConfigStore.kickstartsDir)) {
                             ConfigStore.selectKickstart(path: url.path)
                             onDone()
                         }
@@ -573,7 +604,7 @@ struct KickstartPicker: View {
 struct HardDrivePicker: View {
     let onDone: () -> Void
     private var images: [URL] {
-        ConfigStore.files(in: ConfigStore.hardDrivesDir, extensions: ["hdf", "hdz", "vhd"])
+        ConfigStore.mediaFiles(in: ConfigStore.hardDrivesDir, extensions: ["hdf", "hdz", "vhd"])
     }
     private var mounted: String? { ConfigStore.currentValue("hardfile2") }
 
@@ -604,7 +635,7 @@ struct HardDrivePicker: View {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(images, id: \.self) { url in
                         MenuRow(icon: mounted?.contains(url.path) == true ? "checkmark.circle.fill" : "internaldrive",
-                                title: url.lastPathComponent) {
+                                title: ConfigStore.relativeName(url, in: ConfigStore.hardDrivesDir)) {
                             ConfigStore.mountHardfile(url: url)
                             onDone()
                         }
@@ -625,12 +656,8 @@ struct FloppyPicker: View {
     }
 
     private var images: [URL] {
-        let exts = ["adf", "adz", "dms", "ipf", "zip", "gz"]
-        let files = (try? FileManager.default.contentsOfDirectory(
-            at: floppyDir, includingPropertiesForKeys: nil)) ?? []
-        return files
-            .filter { exts.contains($0.pathExtension.lowercased()) }
-            .sorted { $0.lastPathComponent.localizedCaseInsensitiveCompare($1.lastPathComponent) == .orderedAscending }
+        ConfigStore.mediaFiles(in: floppyDir,
+                               extensions: ["adf", "adz", "dms", "ipf", "zip", "gz"])
     }
 
     var body: some View {
@@ -654,7 +681,8 @@ struct FloppyPicker: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(images, id: \.self) { url in
-                        MenuRow(icon: "opticaldiscdrive", title: url.lastPathComponent) {
+                        MenuRow(icon: "opticaldiscdrive",
+                                title: ConfigStore.relativeName(url, in: floppyDir)) {
                             NSLog("iPadUAE overlay: insert DF%d %@", drive, url.path)
                             ipaduae_insert_floppy(Int32(drive), url.path)
                             onDone()

@@ -46,19 +46,64 @@ enum ConfigStore {
             .map { String($0.dropFirst(key.count + 1)) }
     }
 
+    // MARK: Crash-safe machine changes
+
+    /// A machine/media change can leave default.uae unbootable — worst case
+    /// the core hits a ROM/CPU mismatch (NUMSG_KS68EC020 & friends) and
+    /// restart-loops forever BEFORE video init, so no UI ever appears to
+    /// undo the change. Every restart-triggering change therefore snapshots
+    /// the previous (known-bootable) config and arms a marker; the overlay
+    /// clears it once the app has visibly booted, and a clean quit clears
+    /// it too (ipaduae_fast_exit). If a launch still sees the marker, the
+    /// previous session died before its first stable boot after the change
+    /// — restore the snapshot and tell the user.
+    static let riskyChangeKey = "riskyConfigChangePending"
+    static let recoveredKey = "didRecoverConfig"
+    static var lastGoodURL: URL {
+        configurationsDir.appendingPathComponent(".last-good.uae")
+    }
+
+    private static func snapshotBeforeRiskyChange() {
+        // Keep the oldest good config through a burst of changes: only
+        // snapshot when no change is already pending.
+        guard !UserDefaults.standard.bool(forKey: riskyChangeKey) else { return }
+        try? FileManager.default.removeItem(at: lastGoodURL)
+        guard (try? FileManager.default.copyItem(at: configURL, to: lastGoodURL)) != nil else { return }
+        UserDefaults.standard.set(true, forKey: riskyChangeKey)
+    }
+
+    /// Called by the overlay once the emulator has been up for a while.
+    static func markBootStable() {
+        UserDefaults.standard.removeObject(forKey: riskyChangeKey)
+    }
+
+    /// Called from main() before real_main reads default.uae.
+    static func recoverFromCrashedChange() {
+        guard UserDefaults.standard.bool(forKey: riskyChangeKey),
+              FileManager.default.fileExists(atPath: lastGoodURL.path) else { return }
+        try? FileManager.default.removeItem(at: configURL)
+        try? FileManager.default.copyItem(at: lastGoodURL, to: configURL)
+        UserDefaults.standard.removeObject(forKey: riskyChangeKey)
+        UserDefaults.standard.set(true, forKey: recoveredKey)
+        NSLog("iPadUAE: previous session never reached a stable boot after a config change — restored last good config")
+    }
+
     // MARK: Machine changes (each restarts the emulator)
 
     static func selectKickstart(path: String) {
+        snapshotBeforeRiskyChange()
         set("kickstart_rom_file", path)
         restart()
     }
 
     static func selectBuiltInAROS() {
+        snapshotBeforeRiskyChange()
         set("kickstart_rom_file", ":AROS")
         restart()
     }
 
     static func mountHardfile(url: URL) {
+        snapshotBeforeRiskyChange()
         // RDB images carry their own geometry (zeros); plain hardfiles get
         // the classic 32/1/2/512 defaults.
         let rdb = isRDB(url: url)
@@ -68,6 +113,7 @@ enum ConfigStore {
     }
 
     static func unmountHardfile() {
+        snapshotBeforeRiskyChange()
         removeAll("hardfile2")
         restart()
     }
@@ -132,6 +178,7 @@ enum ConfigStore {
     }
 
     static func apply(machine m: Machine) {
+        snapshotBeforeRiskyChange()
         // cpu_type would fight cpu_model/fpu_model — manage the explicit
         // keys only. 24-bit addressing only for small 68000/EC020 setups.
         removeAll("cpu_type")
@@ -295,6 +342,7 @@ enum ConfigStore {
     static func loadConfiguration(name: String) {
         let src = configurationsDir.appendingPathComponent("\(name).uae")
         guard FileManager.default.fileExists(atPath: src.path) else { return }
+        snapshotBeforeRiskyChange()
         try? FileManager.default.removeItem(at: configURL)
         try? FileManager.default.copyItem(at: src, to: configURL)
         healPaths(in: configURL)
@@ -350,10 +398,41 @@ enum ConfigStore {
             .filter { extensions.contains($0.pathExtension.lowercased()) }
             .sorted { $0.lastPathComponent.localizedCaseInsensitiveCompare($1.lastPathComponent) == .orderedAscending }
     }
+
+    /// Recursive variant for user media (Floppies/Kickstarts/HardDrives):
+    /// users drop whole folder trees in via the Files app, so the pickers
+    /// must see nested files too. Sorted by relative path so files group
+    /// by folder in the list.
+    static func mediaFiles(in dir: URL, extensions: [String]) -> [URL] {
+        guard let enumerator = FileManager.default.enumerator(
+            at: dir, includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles, .skipsPackageDescendants]) else { return [] }
+        var found: [URL] = []
+        for case let url as URL in enumerator {
+            if extensions.contains(url.pathExtension.lowercased()),
+               (try? url.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true {
+                found.append(url)
+            }
+        }
+        return found.sorted {
+            relativeName($0, in: dir)
+                .localizedCaseInsensitiveCompare(relativeName($1, in: dir)) == .orderedAscending
+        }
+    }
+
+    /// "Games/Lemmings.adf" for nested files; bare filename at the top level.
+    static func relativeName(_ url: URL, in dir: URL) -> String {
+        let base = dir.standardizedFileURL.path + "/"
+        let path = url.standardizedFileURL.path
+        return path.hasPrefix(base) ? String(path.dropFirst(base.count)) : url.lastPathComponent
+    }
 }
 
 /// Called from main() before real_main reads default.uae.
 @_cdecl("ipaduae_heal_config_paths")
 public func ipaduae_heal_config_paths() {
+    // Order matters: restore the last good config first (if the previous
+    // session crashed mid-change), then heal container paths in it.
+    ConfigStore.recoverFromCrashedChange()
     ConfigStore.healAllConfigurations()
 }
