@@ -5,6 +5,7 @@
 // The WinUAE core is linked with NO_MAIN_IN_MAIN_C, so this replicates the
 // small main() from vendor/WinUAE/main.cpp:1342.
 #include <SDL3/SDL_main.h>
+#include <SDL3/SDL_events.h>
 #import <Foundation/Foundation.h>
 
 // od-unix entry points (TCHAR == char in the Unix port).
@@ -54,6 +55,19 @@ static void prepare_data_directories(void)
 
 extern "C" void ipaduae_install_overlay(void);
 extern "C" void ipaduae_heal_config_paths(void);
+extern "C" void ipaduae_fast_exit(const char *why);
+
+// SDL runs event watches synchronously from inside applicationWillTerminate,
+// so this fires even when the emulator loop is between pumps (or already
+// stuck in teardown, where the queued event would never be polled). Without
+// it, iOS gives the app 5s to die and then reports a 0x8BADF00D crash.
+static bool terminating_watch(void *, SDL_Event *event)
+{
+    if (event->type == SDL_EVENT_TERMINATING) {
+        ipaduae_fast_exit("SDL_EVENT_TERMINATING");
+    }
+    return true;
+}
 
 int main(int argc, char *argv[])
 {
@@ -74,6 +88,10 @@ int main(int argc, char *argv[])
     // (GCMouse/trackpad) pointers on the regular mouse path.
     setenv("SDL_TOUCH_MOUSE_EVENTS", "0", 1);
     setenv("SDL_MOUSE_TOUCH_EVENTS", "0", 1);
+
+    // Registered before real_main: watches survive SDL_Init, and the
+    // termination race is lost if we wait until the emulator is up.
+    SDL_AddEventWatch(terminating_watch, NULL);
 
     // Mounts the SwiftUI control overlay once SDL's window exists; the
     // emulator loop pumps the UIKit runloop, so the dispatch fires normally.

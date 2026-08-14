@@ -9,6 +9,27 @@
 #include "savestate.h"
 #include "keyboard.h"
 #include <sys/stat.h>
+#include <unistd.h>
+#include <CoreFoundation/CoreFoundation.h>
+
+/* iOS termination must be immediate: the desktop-style teardown
+ * (do_leave_program → drawing_free etc.) waits unbounded on emulator
+ * threads, and once real_main stops pumping the runloop the app can no
+ * longer answer FrontBoard — after 5s iOS kills it with 0x8BADF00D.
+ * There is no quit-to-desktop on iOS: any quit means the process is
+ * going away. The autosave was already queued on willResignActive and
+ * written file data survives _exit, so skip teardown entirely. */
+extern "C" void ipaduae_fast_exit(const char *why)
+{
+    fprintf(stderr, "iPadUAE: fast exit (%s)\n", why ? why : "?");
+    /* A clean quit is not a crash: clear the pending-config-change marker
+     * so the next launch doesn't roll back a change that worked fine
+     * (ConfigStore.riskyChangeKey — kept in sync by hand). */
+    CFPreferencesSetAppValue(CFSTR("riskyConfigChangePending"), NULL,
+                             kCFPreferencesCurrentApplication);
+    CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication);
+    _exit(0);
+}
 
 /* Toggle 1:1 pointer sync (tablet/mousehack) at runtime — no reboot.
  * inputdevice_mh_abs() calls mousehack_enable() on every absolute event,

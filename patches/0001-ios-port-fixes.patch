@@ -109,10 +109,24 @@ index 9618298b..ff7f421a 100644
  }
  
 diff --git a/od-unix/graphics.cpp b/od-unix/graphics.cpp
-index 51e73167..66d26cd0 100644
+index 51e73167..3619805c 100644
 --- a/od-unix/graphics.cpp
 +++ b/od-unix/graphics.cpp
-@@ -239,7 +239,11 @@ void graphics_leave(void)
+@@ -1,6 +1,13 @@
+ #include "sysconfig.h"
+ #include "sysdeps.h"
+ 
++#ifdef __APPLE__
++#include <TargetConditionals.h>
++#if TARGET_OS_IPHONE
++extern "C" void ipaduae_fast_exit(const char *why);
++#endif
++#endif
++
+ #include "custom.h"
+ #ifdef AVIOUTPUT
+ #include "avioutput.h"
+@@ -239,7 +246,11 @@ void graphics_leave(void)
      unix_graphics_initialized = false;
  }
  
@@ -125,7 +139,24 @@ index 51e73167..66d26cd0 100644
  
  bool handle_events(void)
  {
-@@ -318,7 +322,20 @@ void toggle_fullscreen(int monid, int mode)
+@@ -253,7 +264,16 @@ int handle_msgpump(bool)
+     bool quit_requested = false;
+     int got = unix_video_poll(&quit_requested);
+     if (quit_requested) {
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++        /* On iOS a quit only ever means the OS is ending the process
++         * (scene teardown / termination). The full uae_quit() →
++         * do_leave_program() teardown can wedge waiting on emulator
++         * threads and trips the 5s termination watchdog (0x8BADF00D),
++         * so exit immediately instead. */
++        ipaduae_fast_exit("quit requested");
++#else
+         uae_quit();
++#endif
+     }
+     unix_host_check_quit();
+     return got;
+@@ -318,7 +338,20 @@ void toggle_fullscreen(int monid, int mode)
  }
  bool toggle_rtg(int monid, int)
  {
