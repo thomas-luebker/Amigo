@@ -6,6 +6,11 @@
 // config's `joyport1=kbd2` (keyboard layout B: cursor keys + right Ctrl).
 
 import SwiftUI
+import UIKit
+
+/// iPhone screens get compact input overlays; iPad keeps the original
+/// sizes everywhere.
+let inputCompact = UIDevice.current.userInterfaceIdiom == .phone
 
 // SDL3 scancodes (USB HID usage IDs).
 enum SC {
@@ -180,9 +185,18 @@ struct FunctionKeyBar: View {
     ]
 
     var body: some View {
-        HStack(spacing: 5) {
-            ForEach(Self.fkeys, id: \.1) { label, code in
-                KeyButton(key: Key(label: label, code: code), width: 52, height: 38)
+        // One 10-key strip on iPad; two rows of five on iPhone, where the
+        // strip would overflow a portrait screen.
+        let rows = inputCompact
+            ? [Array(Self.fkeys[0..<5]), Array(Self.fkeys[5..<10])]
+            : [Self.fkeys]
+        VStack(spacing: 5) {
+            ForEach(0..<rows.count, id: \.self) { r in
+                HStack(spacing: 5) {
+                    ForEach(rows[r], id: \.1) { label, code in
+                        KeyButton(key: Key(label: label, code: code), width: 52, height: 38)
+                    }
+                }
             }
         }
         .padding(6)
@@ -226,23 +240,29 @@ struct VirtualJoystickView: View {
         activeCodes = codes
     }
 
+    // Compact circles on iPhone; the drag math scales with the size.
+    private var dpadSize: CGFloat { inputCompact ? 120 : 150 }
+    private var fireSize: CGFloat { inputCompact ? 90 : 110 }
+    private var deadZone: CGFloat { inputCompact ? 15 : 18 }
+
     var body: some View {
         HStack {
             // D-pad: drag anywhere in the circle; 8-way via dead zone.
             Circle()
                 .fill(.white.opacity(0.12))
-                .frame(width: 150, height: 150)
+                .frame(width: dpadSize, height: dpadSize)
                 .overlay(Circle().stroke(.red.opacity(0.5), lineWidth: 2))
                 .interactiveArea("joy-dpad")
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { v in
-                            let dx = v.location.x - 75, dy = v.location.y - 75
+                            let c = dpadSize / 2
+                            let dx = v.location.x - c, dy = v.location.y - c
                             var codes: Set<Int> = []
-                            if dx < -18 { codes.insert(SC.left) }
-                            if dx > 18 { codes.insert(SC.right) }
-                            if dy < -18 { codes.insert(SC.up) }
-                            if dy > 18 { codes.insert(SC.down) }
+                            if dx < -deadZone { codes.insert(SC.left) }
+                            if dx > deadZone { codes.insert(SC.right) }
+                            if dy < -deadZone { codes.insert(SC.up) }
+                            if dy > deadZone { codes.insert(SC.down) }
                             setDirection(codes)
                         }
                         .onEnded { _ in setDirection([]) }
@@ -251,7 +271,7 @@ struct VirtualJoystickView: View {
             // Fire button (right Ctrl in layout B).
             Circle()
                 .fill(.red.opacity(0.55))
-                .frame(width: 110, height: 110)
+                .frame(width: fireSize, height: fireSize)
                 .overlay(Text("FIRE").font(.headline).foregroundStyle(.white))
                 .interactiveArea("joy-fire")
                 .gesture(
@@ -268,7 +288,7 @@ struct VirtualJoystickView: View {
                         }
                 )
         }
-        .padding(.horizontal, 40)
-        .padding(.bottom, 30)
+        .padding(.horizontal, inputCompact ? 24 : 40)
+        .padding(.bottom, inputCompact ? 16 : 30)
     }
 }

@@ -204,13 +204,14 @@ index 19edeeef..880e1afe 100644
      uint64_t block_count = 0;
      if (ioctl(fd, DKIOCGETBLOCKSIZE, &block_size) == 0 && block_size > 0 && blocksize) {
 diff --git a/od-unix/input.cpp b/od-unix/input.cpp
-index 71889a1d..347e906c 100644
+index 71889a1d..829ac32d 100644
 --- a/od-unix/input.cpp
 +++ b/od-unix/input.cpp
-@@ -1095,10 +1095,69 @@ static bool joystick_axis_is_dpad_or_hat(int joy, int axis)
+@@ -1095,11 +1095,103 @@ static bool joystick_axis_is_dpad_or_hat(int joy, int axis)
          kind == UNIX_AXIS_HAT_X || kind == UNIX_AXIS_HAT_Y;
  }
  
+-void unix_input_joystick_device_changed(void)
 +/* Controllers on iOS connect while the emulator is already running, and
 + * the desktop GUI that would let a user route one to an Amiga port by
 + * hand does not exist in this port — without this, a paired controller
@@ -251,11 +252,12 @@ index 71889a1d..347e906c 100644
 +}
 +
 +void unix_input_set_controller(int port, int cd32, int autofire)
-+{
+ {
 +    unix_controller_pref_port = port < -1 || port > 1 ? 1 : port;
 +    unix_controller_pref_mode = cd32 ? JSEM_MODE_JOYSTICK_CD32 : JSEM_MODE_DEFAULT;
 +    unix_controller_pref_autofire = autofire ? 1 : 0;
-+    if (unix_joystick_sdl_initialized) {
+     if (unix_joystick_sdl_initialized) {
+-        joystick_open_devices();
 +        joystick_apply_controller_prefs();
 +    }
 +}
@@ -265,19 +267,53 @@ index 71889a1d..347e906c 100644
 +    return unix_joystick_count > 0 ? joystick_get_friendlyname(0) : NULL;
 +}
 +
- void unix_input_joystick_device_changed(void)
- {
-     if (unix_joystick_sdl_initialized) {
-         joystick_open_devices();
-+        /* Mirror win32's WM_DEVICECHANGE: the core snapshotted input
-+         * devices at startup and must rescan, or hot-connected
-+         * controllers stay invisible to it. */
-+        inputdevice_devicechange(&changed_prefs);
-+        joystick_apply_controller_prefs();
++/* Identity of the current SDL device set. Needed because the rescan
++ * below cycles the SDL joystick subsystem, which re-posts ADDED events
++ * for every still-present controller; without comparing signatures the
++ * handler re-triggers itself forever (event storm, starves emulation —
++ * seen with a controller connected at launch). */
++static uae_u32 joystick_device_signature(void)
++{
++    int count = 0;
++    uae_u32 sig = 0;
++    SDL_JoystickID *ids = SDL_GetJoysticks(&count);
++    sig = (uae_u32)count * 2654435761u;
++    if (ids) {
++        for (int i = 0; i < count; i++) {
++            sig = sig * 31 + (uae_u32)ids[i];
++        }
++        SDL_free(ids);
      }
++    return sig;
++}
++
++void unix_input_joystick_device_changed(void)
++{
++    static uae_u32 last_signature;
++    static bool in_progress;
++
++    if (!unix_joystick_sdl_initialized || in_progress) {
++        return;
++    }
++    uae_u32 sig = joystick_device_signature();
++    if (sig == last_signature) {
++        return;  /* re-enumeration echo, not a real change */
++    }
++    in_progress = true;
++    joystick_open_devices();
++    /* Mirror win32's WM_DEVICECHANGE: the core snapshotted input
++     * devices at startup and must rescan, or hot-connected
++     * controllers stay invisible to it. */
++    inputdevice_devicechange(&changed_prefs);
++    joystick_apply_controller_prefs();
++    in_progress = false;
++    /* The rescan itself may have re-enumerated; record the state we
++     * actually processed. */
++    last_signature = joystick_device_signature();
  }
  #else
-@@ -1117,6 +1176,8 @@ static int joystick_get_flags(int) { return 0; }
+ static int joystick_init(void) { return input_init(); }
+@@ -1117,6 +1209,8 @@ static int joystick_get_flags(int) { return 0; }
  static bool joystick_has_button(int, int) { return false; }
  static bool joystick_axis_is_dpad_or_hat(int, int) { return false; }
  void unix_input_joystick_device_changed(void) {}
@@ -286,7 +322,7 @@ index 71889a1d..347e906c 100644
  #endif
  
  inputdevice_functions inputdevicefunc_joystick = {
-@@ -1198,6 +1259,14 @@ void unix_input_mouse_motion(int dx, int dy)
+@@ -1198,6 +1292,14 @@ void unix_input_mouse_motion(int dx, int dy)
      }
  }
  

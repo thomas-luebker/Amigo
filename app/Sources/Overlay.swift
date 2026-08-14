@@ -370,7 +370,8 @@ struct OverlayRoot: View {
                         AmigaKeyboardView(maxHeight: UIDevice.current.userInterfaceIdiom == .phone
                                           ? geo.size.height * 0.48 : .infinity)
                             .interactiveArea("keyboard")
-                            .padding(.bottom, state.showJoystick ? 200 : 12)
+                            .padding(.bottom, state.showJoystick
+                                     ? (inputCompact ? 140 : 200) : 12)
                             .padding(.horizontal, 12)
                     }
                 }
@@ -385,7 +386,9 @@ struct OverlayRoot: View {
                         NumpadView()
                             .interactiveArea("numpad")
                             .padding(.trailing, 16)
-                            .padding(.bottom, state.showJoystick ? 200 : 60)
+                            .padding(.bottom, state.showJoystick
+                                     ? (inputCompact ? 140 : 200)
+                                     : (inputCompact ? 24 : 60))
                     }
                 }
                 .opacity(state.overlayOpacity)
