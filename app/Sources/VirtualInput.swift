@@ -72,7 +72,22 @@ struct AmigaKeyboardView: View {
     ]
 
     private static let spacing: CGFloat = 5
-    private static let rowHeight: CGFloat = 40
+    private static let maxRowHeight: CGFloat = 40
+
+    /// Cap from the presenting container (55% of its height on iPhone —
+    /// the emulator display must stay visible above the keyboard). iPad
+    /// containers are tall enough that rows stay at maxRowHeight.
+    var maxHeight: CGFloat = .infinity
+
+    /// Tighter vertical gaps when height-capped (iPhone) — the saved
+    /// pixels go into the keys themselves.
+    private var vSpacing: CGFloat { maxHeight.isFinite ? 3 : Self.spacing }
+
+    private var rowHeight: CGFloat {
+        let chrome = 16 + CGFloat(Self.rows.count - 1) * vSpacing
+        let fit = (maxHeight - chrome) / CGFloat(Self.rows.count)
+        return min(Self.maxRowHeight, max(21, fit))
+    }
 
     /// One key-unit width that lets every row fit the available width, so a
     /// 1-unit key is identical in every row (rows left-align, right edges
@@ -88,21 +103,21 @@ struct AmigaKeyboardView: View {
     var body: some View {
         GeometryReader { geo in
             let unit = Self.keyUnit(for: geo.size.width)
-            VStack(spacing: Self.spacing) {
+            VStack(spacing: vSpacing) {
                 ForEach(0..<Self.rows.count, id: \.self) { r in
                     HStack(spacing: Self.spacing) {
                         ForEach(Self.rows[r]) { key in
                             KeyButton(key: key,
                                       width: unit * key.width,
-                                      height: Self.rowHeight)
+                                      height: rowHeight)
                         }
                         Spacer(minLength: 0)
                     }
                 }
             }
         }
-        .frame(height: CGFloat(Self.rows.count) * Self.rowHeight
-                     + CGFloat(Self.rows.count - 1) * Self.spacing + 16)
+        .frame(height: CGFloat(Self.rows.count) * rowHeight
+                     + CGFloat(Self.rows.count - 1) * vSpacing + 16)
         .padding(8)
         .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
     }

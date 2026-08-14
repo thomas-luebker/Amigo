@@ -2,30 +2,26 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Merged into the generated Info.plist. Keys here exist because the
-	     INFOPLIST_KEY_ build-setting equivalents are missing or broken in
-	     Xcode 26 (UIFileSharingEnabled has no xcspec mapping and is
-	     silently dropped if set as a build setting). -->
-	<key>UIFileSharingEnabled</key>
-	<true/>
-	<!-- Required for GCMouse: without it iPadOS synthesizes touches for
-	     trackpad clicks but silently drops two-finger scroll (SDL docs:
-	     "you should set UIApplicationSupportsIndirectInputEvents"). -->
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<!-- SDL3 is rebuilt with SDL_CAMERA=OFF (scripts/build-sdl3.sh), so no
-	     camera API is referenced and no camera/mic purpose string is needed.
-	     Bluetooth is genuine — game controllers via GameController. -->
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>iPadUAE uses Bluetooth to connect game controllers for Amiga input.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>iPadUAE uses Bluetooth to connect game controllers for Amiga input.</string>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UIRequiresFullScreen</key>
 	<false/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
