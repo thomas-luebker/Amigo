@@ -413,7 +413,7 @@ struct OverlayRoot: View {
 }
 
 struct ControlPanel: View {
-    enum Submenu { case none, df0, df1, kickstart, harddrive, machine, controller, configs, states, about }
+    enum Submenu { case none, df0, df1, kickstart, harddrive, machine, controller, configs, states, help, about }
     @State private var submenu: Submenu = .none
     @ObservedObject private var state = OverlayState.shared
 
@@ -436,6 +436,7 @@ struct ControlPanel: View {
             case .controller: ControllerPanel { submenu = .none }
             case .configs: ConfigurationsPanel { submenu = .none }
             case .states: StatePanel { submenu = .none }
+            case .help: HelpPanel { submenu = .none }
             case .about: AboutPanel { submenu = .none }
             }
         }
@@ -534,6 +535,7 @@ struct ControlPanel: View {
             MenuRow(icon: "arrow.counterclockwise", title: "Reset") { ipaduae_reset(0) }
             MenuRow(icon: "exclamationmark.arrow.circlepath", title: "Hard Reset") { ipaduae_reset(1) }
             Divider().padding(.vertical, 4)
+            MenuRow(icon: "questionmark.circle", title: "Controls & Help…") { submenu = .help }
             MenuRow(icon: "info.circle", title: "About & Licenses…") { submenu = .about }
             Text("Add disks & Kickstart ROMs via Files:\nOn My iPad › Amigo")
                 .font(.footnote)
