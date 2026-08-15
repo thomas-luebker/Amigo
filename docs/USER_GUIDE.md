@@ -41,10 +41,13 @@ is bundled.
 ## Controls
 
 **Touch (trackpad style, default):** slide to move · tap = left click ·
-two-finger tap = right click.
+two-finger tap = right click · two-finger slide = scroll. **To drag** (move
+icons, draw, select): tap, then touch again and drag — or hold still a moment
+until the button engages, then drag.
 
 **1:1 Mouse (menu toggle):** pointer follows your finger · touch = left click ·
-second finger = right button · two-finger drag = scroll.
+second finger = right button · two-finger drag = scroll. Exact positioning
+needs Kickstart 2.0+; on 1.3 your finger drags the pointer instead.
 
 **Hardware:** Magic Keyboard, trackpad, and Bluetooth mice work directly.
 
