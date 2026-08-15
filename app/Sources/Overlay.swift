@@ -457,8 +457,8 @@ struct ControlPanel: View {
             MenuRow(icon: "square.stack.3d.up", title: "Configurations (save/load setups)…") { submenu = .configs }
             MenuRow(icon: "clock.arrow.circlepath", title: "Save States…") { submenu = .states }
             Divider().padding(.vertical, 4)
-            MenuRow(icon: state.vsync ? "speedometer" : "speedometer",
-                    title: state.vsync ? "Speed: Smooth (vsync on)" : "Speed: Fast (vsync off)",
+            MenuRow(icon: "speedometer",
+                    title: state.vsync ? "Display Sync: On (smooth)" : "Display Sync: Off (fast)",
                     active: state.vsync) {
                 state.vsync.toggle()
                 UserDefaults.standard.set(state.vsync, forKey: "vsync")
