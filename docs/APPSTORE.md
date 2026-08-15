@@ -83,6 +83,9 @@ unchanged; only App Store metadata and the on-device display name changed.
       iPhone-sized virtual keyboard
     • Bluetooth game controllers now work — pair one and play. New
       Controller menu with CD32 pad mode, port routing and autofire
+    • New CPU Speed setting: "Original" paces like real hardware and
+      dramatically reduces battery drain — now the default for classic
+      machines. "Maximum" remains for power setups
     • Disk images and Kickstart ROMs are found in subfolders — organize
       your Files › Amigo library however you like
     • Fixed a rare crash when leaving the app
