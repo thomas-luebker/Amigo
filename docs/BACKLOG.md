@@ -13,6 +13,30 @@ Planning home: the Obsidian note "iPadUAE — Roadmap & Open Questions"
 - [ ] Keyboard layout polish (flex widths uneven).
 - [ ] In-app `.fileImporter` import (nice-to-have; Files app already works).
 
+## From the r/amiga launch thread (2026-08-15, prioritized)
+
+- [ ] **Portrait "keyboard below screen" layout** — extend the safe-area
+  inset seam (`ipaduae_set_safe_area` pattern) with a bottom inset fed by
+  the measured keyboard height; touch mapping follows `s_present_dst`
+  automatically. Needs an aspect Fit/Stretch toggle (portrait currently
+  stretches non-uniformly). ~1 day; time near the iPhone release.
+- [ ] **CD support, stage 1: mounting UI + CD32 preset** — core already
+  compiles cue/iso/ccd/mds/nrg (akiko, cdtv, blkdev_cdimage, cda_play).
+  App needs: CDs folder, picker, `cdimage0`/`cd32cd` config writing,
+  CD32 machine preset + extended ROM handling. ~1-2 days.
+- [ ] **CD support, stage 2: CHD** — all source vendored with unix shims;
+  zlib+LZMA already linked. Only blocker: static libFLAC for iOS + a
+  non-pkg-config detection path, then flip WINUAE_UNIX_WITH_CHD(_FLAC).
+  ~0.5 day, zero C++ changes. Pointless before stage 1.
+- [ ] **Vision Pro "Designed for iPad"** — ASC availability checkbox, no
+  build change. Verify on visionOS sim first: overlay UIWindow composites,
+  right-click reachable (recommend Bluetooth mouse in help). Native
+  target: 1-2 weeks, only if compat mode shows demand.
+
+Done: controller-routing-lost-on-restart fix, LHA/LZX/7z pickers,
+Controls & Help panel, tap-then-drag + hold-to-drag + KS1.3 1:1
+fallback (all 0.7.1 candidates). iPhone: shipped with 0.7.0.
+
 ## Killer features (medium)
 
 - [x] **Save-state UI** — shipped: 3 slots + 5-min autosave (quick-state
