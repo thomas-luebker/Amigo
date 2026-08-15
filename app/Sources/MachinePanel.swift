@@ -44,6 +44,18 @@ struct MachinePanel: View {
                         if newCPU < 68030 { m.mmu = false }
                     }
 
+                    Text("CPU Speed").font(.caption).foregroundStyle(.secondary)
+                    Picker("CPU Speed", selection: $m.maxSpeed) {
+                        Text("Original").tag(false)
+                        Text("Maximum").tag(true)
+                    }
+                    .pickerStyle(.segmented)
+                    .disabled(m.cpu == 68000)
+                    Text(m.cpu == 68000
+                         ? "68000 runs cycle-exact — always original speed."
+                         : "Original paces like real hardware — cooler and easier on the battery. Maximum uses all available power for the fastest Amiga.")
+                        .font(.footnote).foregroundStyle(.secondary)
+
                     Text("Chipset").font(.caption).foregroundStyle(.secondary)
                     Picker("Chipset", selection: $m.chipset) {
                         Text("OCS").tag("ocs")

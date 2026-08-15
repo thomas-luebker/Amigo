@@ -151,15 +151,23 @@ enum ConfigStore {
         var rtgMB: Int        // 0, 8, 16, 32
         var network: Bool     // bsdsocket_emu
         var mmu: Bool = false // emulate the 68030/040/060 MMU
+        // cpu_speed max vs real. Maximum spends every spare host cycle on
+        // extra guest CPU speed — a permanently pegged core (~2.4x the
+        // battery drain of Original, measured). Original paces like real
+        // hardware and lets the host sleep. 68000 is cycle-exact and always
+        // paces originally regardless of this flag.
+        var maxSpeed: Bool = false
 
         static let a500 = Machine(chipset: "ecs_agnus", cpu: 68000, chipHalfMB: 2,
                                   fastMB: 0, z3MB: 0, rtgMB: 0, network: false)
         static let a1200 = Machine(chipset: "aga", cpu: 68020, chipHalfMB: 4,
                                    fastMB: 8, z3MB: 0, rtgMB: 0, network: false)
         static let turbo = Machine(chipset: "aga", cpu: 68060, chipHalfMB: 4,
-                                   fastMB: 8, z3MB: 64, rtgMB: 0, network: false, mmu: true)
+                                   fastMB: 8, z3MB: 64, rtgMB: 0, network: false, mmu: true,
+                                   maxSpeed: true)
         static let rtgStation = Machine(chipset: "aga", cpu: 68040, chipHalfMB: 4,
-                                        fastMB: 8, z3MB: 128, rtgMB: 16, network: true, mmu: true)
+                                        fastMB: 8, z3MB: 128, rtgMB: 16, network: true, mmu: true,
+                                        maxSpeed: true)
     }
 
     static func currentMachine() -> Machine {
@@ -174,7 +182,8 @@ enum ConfigStore {
             z3MB: intVal("z3mem_size", 0),
             rtgMB: intVal("gfxcard_size", 0),
             network: currentValue("bsdsocket_emu") == "true",
-            mmu: (currentValue("mmu_model").flatMap { Int($0) } ?? 0) > 0)
+            mmu: (currentValue("mmu_model").flatMap { Int($0) } ?? 0) > 0,
+            maxSpeed: (currentValue("cpu_speed") ?? "max") == "max")
     }
 
     static func apply(machine m: Machine) {
@@ -194,7 +203,7 @@ enum ConfigStore {
         let wants32bit = m.cpu >= 68030 || m.z3MB > 0 || m.rtgMB > 0
         set("cpu_24bit_addressing", wants32bit ? "false" : "true")
         set("cpu_compatible", m.cpu >= 68030 ? "false" : "true")
-        set("cpu_speed", "max")
+        set("cpu_speed", m.maxSpeed ? "max" : "real")
         set("cachesize", "0")  // no JIT on iOS
         // Interpreter throughput: accuracy features cost real speed with no
         // JIT available. Keep cycle-exactness for 68000 (game timing);
