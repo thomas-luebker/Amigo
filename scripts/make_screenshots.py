@@ -40,8 +40,8 @@ IPHONE_SHOTS = [
      "Virtual Amiga keyboard sized for iPhone"),
     ("04_menu", "Everything one tap away",
      "Disks, drives, machine and display — without leaving the Amiga"),
-    ("05_joystick", "Touch controls when you need them",
-     "Virtual joystick and keyboard overlays — or none at all"),
+    ("05_overlays", "Touch controls when you need them",
+     "Keyboard, numpad and joystick overlays with adjustable transparency"),
 ]
 
 SHOTS = [
