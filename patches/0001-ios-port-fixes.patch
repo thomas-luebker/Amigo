@@ -109,7 +109,7 @@ index 9618298b..ff7f421a 100644
  }
  
 diff --git a/od-unix/graphics.cpp b/od-unix/graphics.cpp
-index 51e73167..3619805c 100644
+index 51e73167..d9be9a68 100644
 --- a/od-unix/graphics.cpp
 +++ b/od-unix/graphics.cpp
 @@ -1,6 +1,13 @@
@@ -178,6 +178,20 @@ index 51e73167..3619805c 100644
  }
  void close_rtg(int, bool) {}
  void toggle_mousegrab(void) { unix_video_toggle_mouse_grab(); }
+@@ -331,7 +364,12 @@ void desktop_coords(int, int *dw, int *dh, int *x, int *y, int *w, int *h)
+ 
+ bool vsync_switchmode(int, int) { return false; }
+ void vsync_clear(void) {}
+-int vsync_isdone(frame_time_t*) { return 1; }
++// Mirror od-win32 semantics: <= 0 means "frame time still available".
++// Returning 1 here (old stub) marked every frame as already done, which
++// dead-coded ALL vsyncmintime-based sleeping in custom.cpp — including
++// the cpu_idle STOP-state sleeps — so the host never idled. -1 = no host
++// vsync pacing, -2 = host vsync but no vblank wait thread (we have none).
++int vsync_isdone(frame_time_t*) { return isvsync() ? -2 : -1; }
+ void doflashscreen(void) {}
+ void updatedisplayarea(int) {}
+ void flush_line(struct vidbuffer*, int) {}
 diff --git a/od-unix/hardfile_host.cpp b/od-unix/hardfile_host.cpp
 index 19edeeef..880e1afe 100644
 --- a/od-unix/hardfile_host.cpp
@@ -204,10 +218,10 @@ index 19edeeef..880e1afe 100644
      uint64_t block_count = 0;
      if (ioctl(fd, DKIOCGETBLOCKSIZE, &block_size) == 0 && block_size > 0 && blocksize) {
 diff --git a/od-unix/input.cpp b/od-unix/input.cpp
-index 71889a1d..829ac32d 100644
+index 71889a1d..e7ac120b 100644
 --- a/od-unix/input.cpp
 +++ b/od-unix/input.cpp
-@@ -1095,11 +1095,103 @@ static bool joystick_axis_is_dpad_or_hat(int joy, int axis)
+@@ -1095,12 +1095,119 @@ static bool joystick_axis_is_dpad_or_hat(int joy, int axis)
          kind == UNIX_AXIS_HAT_X || kind == UNIX_AXIS_HAT_Y;
  }
  
@@ -252,12 +266,11 @@ index 71889a1d..829ac32d 100644
 +}
 +
 +void unix_input_set_controller(int port, int cd32, int autofire)
- {
++{
 +    unix_controller_pref_port = port < -1 || port > 1 ? 1 : port;
 +    unix_controller_pref_mode = cd32 ? JSEM_MODE_JOYSTICK_CD32 : JSEM_MODE_DEFAULT;
 +    unix_controller_pref_autofire = autofire ? 1 : 0;
-     if (unix_joystick_sdl_initialized) {
--        joystick_open_devices();
++    if (unix_joystick_sdl_initialized) {
 +        joystick_apply_controller_prefs();
 +    }
 +}
@@ -266,6 +279,22 @@ index 71889a1d..829ac32d 100644
 +{
 +    return unix_joystick_count > 0 ? joystick_get_friendlyname(0) : NULL;
 +}
++
++/* Called from target_run() on every emulator (re)boot: a restart reloads
++ * the config file, whose joyport defaults (mouse/kbd2) silently replace a
++ * routed controller; the stored preference must be re-asserted after the
++ * config has been applied or the pad goes dead until the panel is
++ * touched again. */
++void unix_input_reapply_controller(void)
+ {
+     if (unix_joystick_sdl_initialized) {
+-        joystick_open_devices();
++        /* The reload already reset the port to its default occupant, so
++         * the previous assignment no longer exists in prefs. */
++        unix_controller_assigned_port = -1;
++        joystick_apply_controller_prefs();
+     }
+ }
 +
 +/* Identity of the current SDL device set. Needed because the rescan
 + * below cycles the SDL joystick subsystem, which re-posts ADDED events
@@ -283,7 +312,7 @@ index 71889a1d..829ac32d 100644
 +            sig = sig * 31 + (uae_u32)ids[i];
 +        }
 +        SDL_free(ids);
-     }
++    }
 +    return sig;
 +}
 +
@@ -310,10 +339,11 @@ index 71889a1d..829ac32d 100644
 +    /* The rescan itself may have re-enumerated; record the state we
 +     * actually processed. */
 +    last_signature = joystick_device_signature();
- }
++}
  #else
  static int joystick_init(void) { return input_init(); }
-@@ -1117,6 +1209,8 @@ static int joystick_get_flags(int) { return 0; }
+ static void joystick_close(void) {}
+@@ -1117,6 +1224,8 @@ static int joystick_get_flags(int) { return 0; }
  static bool joystick_has_button(int, int) { return false; }
  static bool joystick_axis_is_dpad_or_hat(int, int) { return false; }
  void unix_input_joystick_device_changed(void) {}
@@ -322,7 +352,7 @@ index 71889a1d..829ac32d 100644
  #endif
  
  inputdevice_functions inputdevicefunc_joystick = {
-@@ -1198,6 +1292,14 @@ void unix_input_mouse_motion(int dx, int dy)
+@@ -1198,6 +1307,14 @@ void unix_input_mouse_motion(int dx, int dy)
      }
  }
  
@@ -338,17 +368,19 @@ index 71889a1d..829ac32d 100644
  {
      if (button >= 0 && button < 3) {
 diff --git a/od-unix/input.h b/od-unix/input.h
-index 89704c0e..07470b5d 100644
+index 89704c0e..186425e5 100644
 --- a/od-unix/input.h
 +++ b/od-unix/input.h
-@@ -12,6 +12,7 @@ enum {
+@@ -12,7 +12,9 @@ enum {
      UNIX_INPUT_LOCK_SCROLL = 1 << 2
  };
  void unix_input_keyboard_key(int scancode, bool pressed, int lockstate);
 +void unix_input_mouse_motion_abs(int x, int y);
  void unix_input_release_keys(void);
  void unix_input_joystick_device_changed(void);
++void unix_input_reapply_controller(void);
  
+ #endif /* WINUAE_OD_UNIX_INPUT_H */
 diff --git a/od-unix/rtg.cpp b/od-unix/rtg.cpp
 index ce574a41..cf28cb71 100644
 --- a/od-unix/rtg.cpp
@@ -511,6 +543,26 @@ index ce574a41..cf28cb71 100644
  }
  
  #ifndef GFXBOARD
+diff --git a/od-unix/support.cpp b/od-unix/support.cpp
+index 07e6a3c1..6d88b57c 100644
+--- a/od-unix/support.cpp
++++ b/od-unix/support.cpp
+@@ -166,7 +166,14 @@ uae_u32 getlocaltime(void)
+     return (uae_u32)time(NULL);
+ }
+ 
+-void target_run(void) {}
++/* Runs in real_main2 after the (restart) config has been loaded and both
++ * pref sets synced — re-assert the host controller routing the reload
++ * just reset to its joyport defaults. */
++void unix_input_reapply_controller(void);
++void target_run(void)
++{
++    unix_input_reapply_controller();
++}
+ void target_quit(void) {}
+ void target_restart(void) {}
+ void target_reset(void) {}
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
 index 13e88b9d..73094503 100644
 --- a/od-unix/video_sdl.cpp

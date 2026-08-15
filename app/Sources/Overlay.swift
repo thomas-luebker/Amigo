@@ -574,7 +574,8 @@ struct KickstartPicker: View {
     let onDone: () -> Void
     private var roms: [URL] {
         ConfigStore.mediaFiles(in: ConfigStore.kickstartsDir,
-                               extensions: ["rom", "bin", "zip", "a500", "a600", "a1200", "a4000"])
+                               extensions: ["rom", "bin", "zip", "lha", "7z",
+                                            "a500", "a600", "a1200", "a4000"])
     }
     private var current: String { ConfigStore.currentValue("kickstart_rom_file") ?? ":AROS" }
 
@@ -740,7 +741,8 @@ struct FloppyPicker: View {
 
     private var images: [URL] {
         ConfigStore.mediaFiles(in: floppyDir,
-                               extensions: ["adf", "adz", "dms", "ipf", "zip", "gz"])
+                               extensions: ["adf", "adz", "dms", "ipf", "zip", "gz",
+                                            "lha", "lzh", "lzx", "7z"])
     }
 
     var body: some View {

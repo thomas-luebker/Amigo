@@ -30,7 +30,7 @@ Tap the **gear** (top-right; it fades while you work — tap to bring it back):
 | Folder | Put here |
 |---|---|
 | `Kickstarts` | Amiga Kickstart ROM files |
-| `Floppies` | `.adf` disk images |
+| `Floppies` | `.adf` disk images (also `.adz`, `.dms`, `.ipf`, and `.zip`/`.lha`/`.lzx`/`.7z` archives) |
 | `HardDrives` | `.hdf` hard-disk images |
 | `Configuration` | saved setups (`.uae`) |
 
