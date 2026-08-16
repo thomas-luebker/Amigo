@@ -20,10 +20,9 @@ Planning home: the Obsidian note "iPadUAE — Roadmap & Open Questions"
   menu toggle (default Stretch).
 - [x] **Cursor keys type again** (r/amiga 08-16) — kbd2 occupies the
   joystick port only while the Virtual Joystick overlay is shown.
-- [ ] **CD support, stage 1: mounting UI + CD32 preset** — core already
-  compiles cue/iso/ccd/mds/nrg (akiko, cdtv, blkdev_cdimage, cda_play).
-  App needs: CDs folder, picker, `cdimage0`/`cd32cd` config writing,
-  CD32 machine preset + extended ROM handling. ~1-2 days.
+- [x] **CD support, stage 1: mounting UI + CD32 preset** — done: CDs
+  folder, CD-ROM picker (cue/ccd/mds/nrg/iso), cdimage0 plumbing, CD32
+  via `quickstart=cd32,0` (built-in machine + auto ROM resolution).
 - [ ] **CD support, stage 2: CHD** — all source vendored with unix shims;
   zlib+LZMA already linked. Only blocker: static libFLAC for iOS + a
   non-pkg-config detection path, then flip WINUAE_UNIX_WITH_CHD(_FLAC).
