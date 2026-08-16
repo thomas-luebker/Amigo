@@ -31,7 +31,8 @@ struct HelpPanel: View {
                     row("exclamationmark.circle", "Exact positioning needs Kickstart 2.0+; on 1.3 your finger drags the pointer instead")
 
                     section("Apple Pencil")
-                    row("pencil.tip", "Hover moves the pointer · touch = left button · squeeze = right click")
+                    row("pencil.tip", "Touch = left button · double-tap = right click (Pencil 2 & Pro)")
+                    row("pencil.and.outline", "Hover moves the pointer without clicking (M2 or newer iPad) · squeeze = right click (Apple Pencil Pro only)")
 
                     section("Keyboard & overlays")
                     row("keyboard", "Amiga Keyboard, F-keys, Numpad and Virtual Joystick live in the gear menu")

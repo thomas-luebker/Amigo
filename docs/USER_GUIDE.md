@@ -57,6 +57,10 @@ needs Kickstart 2.0+; on 1.3 your finger drags the pointer instead.
 
 **Hardware:** Magic Keyboard, trackpad, and Bluetooth mice work directly.
 
+**Apple Pencil:** touch = left button; double-tap = right click (Pencil 2 &
+Pro). Hover-as-pointer needs an M2 or newer iPad with a compatible Pencil;
+squeeze (= right click) is Apple Pencil Pro only.
+
 **Cursor keys** type as cursor keys. Showing the **Virtual Joystick** turns
 them (plus right Ctrl) into the emulated joystick — hide it to type again.
 

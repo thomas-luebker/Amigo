@@ -37,7 +37,9 @@ unchanged; only App Store metadata and the on-device display name changed.
       emulators without JIT
     • 1:1 touch pointer — the Amiga mouse follows your finger — or classic
       trackpad-style relative mode, with two-finger scrolling in both
-    • Apple Pencil support: hover moves the pointer, squeeze clicks
+    • Apple Pencil support: tap and double-tap on Pencil 2 and Pro;
+      hover pointer and squeeze-to-click with Apple Pencil Pro
+      (hover needs an M2 or newer iPad)
     • TV output via USB-C or AirPlay — fullscreen Amiga on the big screen
     • Save states with automatic saving
     • Bluetooth game controllers — plug and play, with CD32 pad mode,
