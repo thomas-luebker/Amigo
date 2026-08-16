@@ -97,6 +97,7 @@ final class OverlayInstaller {
         // the joyport drops kbd2 until the user shows it (didSet keeps
         // the core in sync from then on).
         ipaduae_set_kbd_joystick(OverlayState.shared.showJoystick ? 1 : 0)
+        ipaduae_set_aspect_fit(OverlayState.shared.aspectFit ? 1 : 0)
         // The overlay only installs once SDL's window (and thus video) is
         // up; 30s beyond that counts as a stable boot, so a crash later on
         // won't roll back the last machine/media change.
@@ -213,6 +214,9 @@ final class OverlayState: ObservableObject {
     // in video_sdl.cpp for why auto-detection must not run on the very first
     // boot before this preference has a chance to sync.
     @Published var externalDisplay = UserDefaults.standard.object(forKey: "externalDisplay") as? Bool ?? false
+    /// Letterbox the picture to its own proportions instead of stretching
+    /// to fill (matters most in portrait, where full-stretch is grotesque).
+    @Published var aspectFit = UserDefaults.standard.object(forKey: "aspectFit") as? Bool ?? false
     /// Opacity of the input overlays (keyboard, numpad, F-keys, joystick).
     /// Floor of 0.25 keeps them findable — invisible-but-touchable panels
     /// would eat emulator input with no visual explanation.
@@ -380,12 +384,25 @@ struct OverlayRoot: View {
                         AmigaKeyboardView(maxHeight: UIDevice.current.userInterfaceIdiom == .phone
                                           ? geo.size.height * 0.48 : .infinity)
                             .interactiveArea("keyboard")
+                            // Report the strip the keyboard occupies so the
+                            // core lays the picture out above it instead of
+                            // underneath (the r/amiga portrait request).
+                            // Every layout pass re-reports; cheap & idempotent.
+                            .background(GeometryReader { kb -> Color in
+                                let frac = (geo.size.height - kb.frame(in: .global).minY)
+                                    / max(geo.size.height, 1)
+                                DispatchQueue.main.async {
+                                    ipaduae_set_bottom_inset(Float(max(0, min(0.7, frac))))
+                                }
+                                return Color.clear
+                            })
                             .padding(.bottom, state.showJoystick
                                      ? (inputCompact ? 140 : 200) : 12)
                             .padding(.horizontal, 12)
                     }
                 }
                 .opacity(state.overlayOpacity)
+                .onDisappear { ipaduae_set_bottom_inset(0) }
             }
 
             if state.showNumpad {
@@ -496,6 +513,13 @@ struct ControlPanel: View {
                 state.fullscreenDisplay.toggle()
                 UserDefaults.standard.set(state.fullscreenDisplay, forKey: "fullscreenDisplay")
                 ipaduae_set_safe_area(state.fullscreenDisplay ? 0 : 1)
+            }
+            MenuRow(icon: state.aspectFit ? "aspectratio" : "aspectratio.fill",
+                    title: state.aspectFit ? "Picture: Fit (keeps proportions)" : "Picture: Stretch (fills screen)",
+                    active: state.aspectFit) {
+                state.aspectFit.toggle()
+                UserDefaults.standard.set(state.aspectFit, forKey: "aspectFit")
+                ipaduae_set_aspect_fit(state.aspectFit ? 1 : 0)
             }
             MenuRow(icon: "tv", title: state.externalDisplay ? "TV Out: On (when connected)" : "TV Out: Off",
                     active: state.externalDisplay) {

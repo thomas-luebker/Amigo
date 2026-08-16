@@ -135,6 +135,25 @@ extern "C" void ipaduae_set_kbd_joystick(int on)
     unix_input_set_kbd_joystick(on);
 }
 
+/* Bottom strip of the window reserved for the virtual keyboard (fraction
+ * of window height); the picture lays out above it. 0 restores overlay. */
+extern float unix_video_bottom_inset;
+
+extern "C" void ipaduae_set_bottom_inset(float fraction)
+{
+    if (fraction < 0.0f) fraction = 0.0f;
+    if (fraction > 0.7f) fraction = 0.7f;
+    unix_video_bottom_inset = fraction;
+}
+
+/* Picture proportions: fit (letterbox) vs the historical stretch. */
+extern bool unix_video_aspect_fit;
+
+extern "C" void ipaduae_set_aspect_fit(int on)
+{
+    unix_video_aspect_fit = on != 0;
+}
+
 /* Live toggle for the on-screen LED status line. */
 extern "C" void ipaduae_set_leds(int on)
 {

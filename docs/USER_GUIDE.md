@@ -20,7 +20,10 @@ Tap the **gear** (top-right; it fades while you work — tap to bring it back):
 - **Machine** — model, CPU, memory, RTG graphics card, networking, MMU
 - **Configurations** — save/load whole setups
 - **Amiga Keyboard / Virtual Joystick** — on-screen overlays
-- **Display / Speed / RTG Accel / LED Bar / 1:1 Mouse** — display & input options
+- **Display / Picture / Speed / RTG Accel / LED Bar / 1:1 Mouse** — display &
+  input options. The picture automatically moves above the Amiga keyboard
+  while it's shown (portrait-friendly); **Picture: Fit** keeps proportions
+  instead of stretching.
 - **Reset**
 
 ## Adding your own files (Files app)

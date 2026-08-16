@@ -19,3 +19,5 @@ void ipaduae_state_op(int slot, int save);
 void ipaduae_set_controller(int port, int cd32, int autofire);
 const char *ipaduae_controller_name(void);
 void ipaduae_set_kbd_joystick(int on);
+void ipaduae_set_bottom_inset(float fraction);
+void ipaduae_set_aspect_fit(int on);
