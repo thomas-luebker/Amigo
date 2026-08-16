@@ -23,10 +23,9 @@ Planning home: the Obsidian note "iPadUAE — Roadmap & Open Questions"
 - [x] **CD support, stage 1: mounting UI + CD32 preset** — done: CDs
   folder, CD-ROM picker (cue/ccd/mds/nrg/iso), cdimage0 plumbing, CD32
   via `quickstart=cd32,0` (built-in machine + auto ROM resolution).
-- [ ] **CD support, stage 2: CHD** — all source vendored with unix shims;
-  zlib+LZMA already linked. Only blocker: static libFLAC for iOS + a
-  non-pkg-config detection path, then flip WINUAE_UNIX_WITH_CHD(_FLAC).
-  ~0.5 day, zero C++ changes. Pointless before stage 1.
+- [x] **CD support, stage 2: CHD** — done: vendored static libFLAC 1.5.0
+  (scripts/build-flac-ios.sh), CMake escape hatch, CHD flags on, .chd in
+  the CD picker.
 - [ ] **Vision Pro "Designed for iPad"** — ASC availability checkbox, no
   build change. Verify on visionOS sim first: overlay UIWindow composites,
   right-click reachable (recommend Bluetooth mouse in help). Native
