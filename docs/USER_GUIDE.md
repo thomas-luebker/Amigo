@@ -37,7 +37,7 @@ Tap the **gear** (top-right; it fades while you work — tap to bring it back):
 | `Kickstarts` | Amiga Kickstart ROM files |
 | `Floppies` | `.adf` disk images (also `.adz`, `.dms`, `.ipf`, and `.zip`/`.lha`/`.lzx`/`.7z` archives) |
 | `HardDrives` | `.hdf` hard-disk images |
-| `CDs` | CD images (`.cue`+`.bin`, `.ccd`, `.mds`, `.nrg`, `.iso`) |
+| `CDs` | CD images (`.cue`+`.bin`, `.ccd`, `.mds`, `.nrg`, `.iso`, compressed `.chd`) |
 | `Configuration` | saved setups (`.uae`) |
 
 Drag files in with the Files app or AirDrop them to the iPad, then pick them

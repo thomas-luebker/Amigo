@@ -18,12 +18,14 @@ case "$PLATFORM" in
     SYSROOT=iphoneos
     ARCHS=arm64
     SDL_FRAMEWORK="$ROOT/vendor/SDL3/SDL3.xcframework/ios-arm64/SDL3.framework"
+    FLAC_LIB="$ROOT/vendor/FLAC/lib-ios/libFLAC.a"
     ;;
   simulator)
     BUILD="$ROOT/build/ios-sim"
     SYSROOT=iphonesimulator
     ARCHS="$(uname -m)"
     SDL_FRAMEWORK="$ROOT/vendor/SDL3/SDL3.xcframework/ios-arm64_x86_64-simulator/SDL3.framework"
+    FLAC_LIB="$ROOT/vendor/FLAC/lib-ios-sim/libFLAC.a"
     ;;
   *)
     echo "usage: $0 [device|simulator]" >&2; exit 1 ;;
@@ -50,8 +52,10 @@ cmake -S "$ROOT/core-ios" -B "$BUILD" \
   -DWINUAE_UNIX_WITH_JIT=OFF \
   -DWINUAE_UNIX_WITH_QT_UI=OFF \
   -DWINUAE_UNIX_WITH_INTEGRATED_QT_UI=OFF \
-  -DWINUAE_UNIX_WITH_CHD=OFF \
-  -DWINUAE_UNIX_WITH_CHD_FLAC=OFF \
+  -DWINUAE_UNIX_WITH_CHD=ON \
+  -DWINUAE_UNIX_WITH_CHD_FLAC=ON \
+  -DWINUAE_UNIX_FLAC_INCLUDE_DIR="$ROOT/vendor/FLAC/include" \
+  -DWINUAE_UNIX_FLAC_STATIC_LIB="$FLAC_LIB" \
   -DWINUAE_UNIX_WITH_LIBMPEG2=OFF \
   -DWINUAE_UNIX_WITH_LIBPNG=OFF \
   -DWINUAE_UNIX_WITH_UAENET_PCAP=OFF \

@@ -785,7 +785,7 @@ struct CDPicker: View {
     let onDone: () -> Void
     private var images: [URL] {
         ConfigStore.mediaFiles(in: ConfigStore.cdsDir,
-                               extensions: ["cue", "ccd", "mds", "nrg", "iso"])
+                               extensions: ["cue", "ccd", "mds", "nrg", "iso", "chd"])
     }
     private var mounted: String? { ConfigStore.currentCD }
 

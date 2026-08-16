@@ -62,7 +62,7 @@ struct AboutPanel: View {
                         .foregroundStyle(.red)
 
                     section("Third-Party Software")
-                    Text("**SDL 3** — © Sam Lantinga and contributors, zlib license.\n**AROS Kickstart replacement ROM** — © the AROS Development Team, AROS Public License.\n**LZMA SDK** — Igor Pavlov, public domain.\nAmiga is a trademark of Amiga Corporation. This app contains no Amiga ROMs or software; users supply their own files.")
+                    Text("**SDL 3** — © Sam Lantinga and contributors, zlib license.\n**AROS Kickstart replacement ROM** — © the AROS Development Team, AROS Public License.\n**LZMA SDK** — Igor Pavlov, public domain.\n**libFLAC** — © Xiph.Org Foundation, BSD license.\nAmiga is a trademark of Amiga Corporation. This app contains no Amiga ROMs or software; users supply their own files.")
                         .font(.footnote)
 
                     section("License")

@@ -1,3 +1,25 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 4756e337..9b77808e 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -622,7 +622,16 @@ if(WINUAE_UNIX_WITH_CHD)
+     endif()
+ 
+     set(WINUAE_UNIX_CHD_FLAC_OK OFF)
+-    if(WINUAE_UNIX_WITH_CHD_FLAC AND PkgConfig_FOUND)
++    if(WINUAE_UNIX_WITH_CHD_FLAC AND WINUAE_UNIX_FLAC_INCLUDE_DIR AND WINUAE_UNIX_FLAC_STATIC_LIB)
++        # Cross-compile escape hatch (iOS): pkg-config can't answer for a
++        # different sysroot, so accept an explicit prebuilt static libFLAC
++        # plus its include dir and skip detection entirely.
++        set(WINUAE_UNIX_CHD_FLAC_OK ON)
++        set(FLAC_INCLUDE_DIRS "${WINUAE_UNIX_FLAC_INCLUDE_DIR}")
++        set(FLAC_LIBRARIES "${WINUAE_UNIX_FLAC_STATIC_LIB}")
++        set(FLAC_LIBRARY_DIRS "")
++        set(FLAC_CFLAGS_OTHER "")
++    elseif(WINUAE_UNIX_WITH_CHD_FLAC AND PkgConfig_FOUND)
+         if(APPLE AND WINUAE_UNIX_MACOS_DEPS_PREFIX)
+             unset(__pkg_config_checked_FLAC CACHE)
+             unset(pkgcfg_lib_FLAC_FLAC CACHE)
 diff --git a/custom.cpp b/custom.cpp
 index fee66a3a..f0102034 100644
 --- a/custom.cpp

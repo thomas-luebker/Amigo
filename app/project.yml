@@ -44,9 +44,9 @@ targets:
         CURRENT_PROJECT_VERSION: 20260816
         MARKETING_VERSION: "0.7.1"
         SUPPORTS_MACCATALYST: NO
-        OTHER_LDFLAGS: "-lz -luaecore"
-        "LIBRARY_SEARCH_PATHS[sdk=iphoneos*]": "$(PROJECT_DIR)/../build/ios"
-        "LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*]": "$(PROJECT_DIR)/../build/ios-sim"
+        OTHER_LDFLAGS: "-lz -luaecore -lFLAC"
+        "LIBRARY_SEARCH_PATHS[sdk=iphoneos*]": "$(PROJECT_DIR)/../build/ios $(PROJECT_DIR)/../vendor/FLAC/lib-ios"
+        "LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*]": "$(PROJECT_DIR)/../build/ios-sim $(PROJECT_DIR)/../vendor/FLAC/lib-ios-sim"
         HEADER_SEARCH_PATHS: "$(PROJECT_DIR)/../vendor/WinUAE $(PROJECT_DIR)/../vendor/WinUAE/od-unix $(PROJECT_DIR)/../vendor/WinUAE/od-unix/include $(PROJECT_DIR)/../vendor/WinUAE/include"
         CLANG_CXX_LANGUAGE_STANDARD: "c++17"
         SWIFT_OBJC_BRIDGING_HEADER: "Sources/Amigo-Bridging-Header.h"
