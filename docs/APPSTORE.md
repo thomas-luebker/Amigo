@@ -77,6 +77,23 @@ unchanged; only App Store metadata and the on-device display name changed.
     in keywords are a rejection trigger; "amiga" is needed for search and
     is standard across shipping emulators.)
 
+## What's New — 0.7.1
+
+    • Drag with touch: tap-then-drag, or hold until the button engages —
+      move icons, select, draw in Deluxe Paint. Works on Kickstart 1.3 too
+    • Cursor keys now type as cursor keys — the emulated joystick only
+      claims them while the Virtual Joystick overlay is shown
+    • New Controls & Help screen in the gear menu — every gesture explained
+    • New Keyboard Style option: keep the classic see-through overlay, or
+      put the screen above the keyboard (great in portrait) — plus a
+      Picture Fit/Stretch setting
+    • Floppy and Kickstart pickers now open LHA, LZX and 7z archives
+    • Fixed: a paired game controller stopped responding after changing
+      the machine or Kickstart
+
+    (If 0.7.0's review is cancelled and this ships directly over 0.6.5,
+    prepend the 0.7.0 list below.)
+
 ## What's New — 0.7.0
 
     • Amigo now runs on iPhone! Landscape and portrait, with an
