@@ -79,6 +79,9 @@ unchanged; only App Store metadata and the on-device display name changed.
 
 ## What's New — 0.7.1
 
+    • CD32 console! One tap in the new CD-ROM menu turns Amigo into a
+      CD32 — supply the CD32 Kickstart ROM and your CD images (CUE/BIN,
+      CCD, MDS, NRG, ISO and space-saving CHD)
     • Drag with touch: tap-then-drag, or hold until the button engages —
       move icons, select, draw in Deluxe Paint. Works on Kickstart 1.3 too
     • Cursor keys now type as cursor keys — the emulated joystick only
