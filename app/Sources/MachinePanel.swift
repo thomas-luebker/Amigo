@@ -26,6 +26,11 @@ struct MachinePanel: View {
                         presetChip("A1200", .a1200)
                         presetChip("A1200 Turbo", .turbo)
                         presetChip("RTG + Net", .rtgStation)
+                        cd32Chip
+                    }
+                    if ConfigStore.cd32Active {
+                        Text("CD32 console active — WinUAE's built-in CD32 machine with its own Kickstart. Applying any preset or setting below switches back to a computer.")
+                            .font(.footnote).foregroundStyle(.secondary)
                     }
 
                     Text("CPU").font(.caption).foregroundStyle(.secondary)
@@ -134,6 +139,23 @@ struct MachinePanel: View {
             }
             .buttonStyle(.plain)
         }
+    }
+
+    /// CD32 can't be staged in the Machine struct (it's a WinUAE built-in
+    /// quickstart, ROMs included) — the chip applies immediately.
+    private var cd32Chip: some View {
+        Button {
+            ConfigStore.applyCD32()
+            onDone()
+        } label: {
+            Text("CD32")
+                .font(.footnote.weight(.medium))
+                .padding(.horizontal, 8).padding(.vertical, 6)
+                .background(ConfigStore.cd32Active ? Color.red.opacity(0.8) : Color.white.opacity(0.15),
+                            in: Capsule())
+                .foregroundStyle(.primary)
+        }
+        .buttonStyle(.plain)
     }
 
     private func presetChip(_ label: String, _ preset: ConfigStore.Machine) -> some View {

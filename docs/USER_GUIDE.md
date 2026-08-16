@@ -17,6 +17,8 @@ Tap the **gear** (top-right; it fades while you work — tap to bring it back):
 - **Insert / Eject disks** — floppy drives DF0/DF1
 - **Kickstart ROM** — built-in AROS, or your own
 - **Hard Drive** — mount an `.hdf`
+- **CD-ROM (CD32)** — insert a CD image; one tap switches to a full CD32
+  console (needs the CD32 Kickstart + extended ROM in `Kickstarts`)
 - **Machine** — model, CPU, memory, RTG graphics card, networking, MMU
 - **Configurations** — save/load whole setups
 - **Amiga Keyboard / Virtual Joystick** — on-screen overlays
@@ -35,6 +37,7 @@ Tap the **gear** (top-right; it fades while you work — tap to bring it back):
 | `Kickstarts` | Amiga Kickstart ROM files |
 | `Floppies` | `.adf` disk images (also `.adz`, `.dms`, `.ipf`, and `.zip`/`.lha`/`.lzx`/`.7z` archives) |
 | `HardDrives` | `.hdf` hard-disk images |
+| `CDs` | CD images (`.cue`+`.bin`, `.ccd`, `.mds`, `.nrg`, `.iso`) |
 | `Configuration` | saved setups (`.uae`) |
 
 Drag files in with the Files app or AirDrop them to the iPad, then pick them

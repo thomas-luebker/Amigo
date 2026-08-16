@@ -18,6 +18,7 @@ enum ConfigStore {
     }
     static var kickstartsDir: URL { winuaeDir.appendingPathComponent("Kickstarts") }
     static var hardDrivesDir: URL { winuaeDir.appendingPathComponent("HardDrives") }
+    static var cdsDir: URL { winuaeDir.appendingPathComponent("CDs") }
 
     private static func readLines() -> [String] {
         guard let text = try? String(contentsOf: configURL, encoding: .utf8) else { return [] }
@@ -118,6 +119,57 @@ enum ConfigStore {
         restart()
     }
 
+    // MARK: CD-ROM (CD32/CDTV media; blkdev_cdimage handles cue/ccd/mds/nrg/iso)
+
+    static var currentCD: String? { currentValue("cdimage0") }
+
+    static func mountCD(url: URL) {
+        snapshotBeforeRiskyChange()
+        set("cdimage0", url.path)
+        restart()
+    }
+
+    static func ejectCD() {
+        snapshotBeforeRiskyChange()
+        removeAll("cdimage0")
+        restart()
+    }
+
+    /// CD32 console preset. `quickstart=cd32,0` invokes WinUAE's own
+    /// built-in CD32 machine (EC020, AGA, Akiko, NVRAM) AND resolves the
+    /// CD32 Kickstart + extended ROM from the startup ROM scan — so the
+    /// user just needs the ROMs in Kickstarts. The explicit machine keys
+    /// are removed first: set() appends, and lines after quickstart would
+    /// override the built-in machine.
+    static var cd32Active: Bool { currentValue("quickstart") != nil }
+
+    /// The ROM scan recognizes CD32 ROMs wherever they are; this filename
+    /// heuristic only powers the "ROM missing?" hint in the CD panel.
+    static var cd32ROMLikelyPresent: Bool {
+        !mediaFiles(in: kickstartsDir, extensions: ["rom", "bin", "cd32"])
+            .filter { $0.lastPathComponent.lowercased().contains("cd32") }.isEmpty
+    }
+
+    static func applyCD32() {
+        snapshotBeforeRiskyChange()
+        for key in ["cpu_type", "cpu_model", "fpu_model", "chipset", "chipset_compatible",
+                    "cpu_24bit_addressing", "cpu_compatible", "cycle_exact",
+                    "cpu_cycle_exact", "cpu_memory_cycle_exact", "blitter_cycle_exact",
+                    "cpu_data_cache", "mmu_model", "chipmem_size", "fastmem_size",
+                    "z3mem_size", "gfxcard_size", "gfxcard_type", "gfxcard_hardware_sprite",
+                    "kickstart_rom_file", "kickstart_ext_rom_file", "cachesize"] {
+            removeAll(key)
+        }
+        set("quickstart", "cd32,0")
+        // Console games need authentic pacing, not a pegged host core.
+        set("cpu_speed", "real")
+        restart()
+    }
+
+    static func leaveCD32() {
+        removeAll("quickstart")
+    }
+
     /// 1:1 pointer sync (WinUAE tablet/mousehack mode): the Amiga pointer
     /// follows the finger/mouse position absolutely. Needs Kickstart 2.0+.
     static var tabletMode: Bool {
@@ -191,6 +243,9 @@ enum ConfigStore {
         // cpu_type would fight cpu_model/fpu_model — manage the explicit
         // keys only. 24-bit addressing only for small 68000/EC020 setups.
         removeAll("cpu_type")
+        // Leaving the CD32 preset: the quickstart line would override
+        // everything below (config lines are parsed in order).
+        leaveCD32()
         set("chipset", m.chipset)
         set("chipset_compatible", "-")
         set("cpu_model", String(m.cpu))

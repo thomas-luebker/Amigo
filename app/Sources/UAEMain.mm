@@ -37,7 +37,7 @@ static void prepare_data_directories(void)
         }
     }
 
-    for (NSString *sub in @[ @"Configuration", @"Kickstarts", @"Floppies", @"HardDrives", @"SaveStates", @"SaveImages" ]) {
+    for (NSString *sub in @[ @"Configuration", @"Kickstarts", @"Floppies", @"HardDrives", @"CDs", @"SaveStates", @"SaveImages" ]) {
         [fm createDirectoryAtPath:[base stringByAppendingPathComponent:sub]
       withIntermediateDirectories:YES attributes:nil error:NULL];
     }

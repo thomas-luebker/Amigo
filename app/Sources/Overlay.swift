@@ -445,7 +445,7 @@ struct OverlayRoot: View {
 }
 
 struct ControlPanel: View {
-    enum Submenu { case none, df0, df1, kickstart, harddrive, machine, controller, configs, states, help, about }
+    enum Submenu { case none, df0, df1, kickstart, harddrive, cdrom, machine, controller, configs, states, help, about }
     @State private var submenu: Submenu = .none
     @ObservedObject private var state = OverlayState.shared
 
@@ -464,6 +464,7 @@ struct ControlPanel: View {
             case .df1: FloppyPicker(drive: 1) { submenu = .none }
             case .kickstart: KickstartPicker { submenu = .none }
             case .harddrive: HardDrivePicker { submenu = .none }
+            case .cdrom: CDPicker { submenu = .none }
             case .machine: MachinePanel { submenu = .none }
             case .controller: ControllerPanel { submenu = .none }
             case .configs: ConfigurationsPanel { submenu = .none }
@@ -485,6 +486,7 @@ struct ControlPanel: View {
             Divider().padding(.vertical, 4)
             MenuRow(icon: "memorychip", title: "Kickstart ROM…") { submenu = .kickstart }
             MenuRow(icon: "internaldrive", title: "Hard Drive…") { submenu = .harddrive }
+            MenuRow(icon: "opticaldisc", title: "CD-ROM (CD32)…") { submenu = .cdrom }
             MenuRow(icon: "cpu", title: "Machine (CPU / RAM / RTG / Net)…") { submenu = .machine }
             MenuRow(icon: "gamecontroller", title: "Controller (CD32 pad)…") { submenu = .controller }
             MenuRow(icon: "square.stack.3d.up", title: "Configurations (save/load setups)…") { submenu = .configs }
@@ -775,6 +777,67 @@ struct HardDrivePicker: View {
                 }
             }
             .frame(maxHeight: 420)
+        }
+    }
+}
+
+struct CDPicker: View {
+    let onDone: () -> Void
+    private var images: [URL] {
+        ConfigStore.mediaFiles(in: ConfigStore.cdsDir,
+                               extensions: ["cue", "ccd", "mds", "nrg", "iso"])
+    }
+    private var mounted: String? { ConfigStore.currentCD }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Button(action: onDone) { Label("Back", systemImage: "chevron.left") }
+                    .buttonStyle(.plain)
+                Spacer()
+                Text("CD-ROM").font(.headline)
+            }
+            .padding(.bottom, 6)
+            Text("Inserting a CD restarts the Amiga. For CD32 games, switch on the CD32 preset below.")
+                .font(.footnote).foregroundStyle(.secondary).padding(.bottom, 4)
+
+            if !ConfigStore.cd32Active {
+                MenuRow(icon: "gamecontroller",
+                        title: "Switch to CD32 console…") {
+                    ConfigStore.applyCD32()
+                    onDone()
+                }
+                if !ConfigStore.cd32ROMLikelyPresent {
+                    Text("No CD32 Kickstart found — put the CD32 ROM (and its extended ROM) into Files › Amigo › Kickstarts first, or the console can't start.")
+                        .font(.footnote).foregroundStyle(.orange).padding(.bottom, 2)
+                }
+            } else {
+                Text("CD32 console active — leave it via a preset in the Machine panel.")
+                    .font(.footnote).foregroundStyle(.secondary).padding(.bottom, 2)
+            }
+            if mounted != nil {
+                MenuRow(icon: "eject", title: "Eject CD") {
+                    ConfigStore.ejectCD()
+                    onDone()
+                }
+            }
+            Divider().padding(.vertical, 4)
+            if images.isEmpty {
+                Text("No CD images found.\nDrop .cue (+bin), .ccd, .mds, .nrg or .iso files into Files › Amigo › CDs.")
+                    .font(.footnote).foregroundStyle(.secondary).padding(.vertical, 8)
+            }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(images, id: \.self) { url in
+                        MenuRow(icon: mounted?.contains(url.path) == true ? "checkmark.circle.fill" : "opticaldisc",
+                                title: ConfigStore.relativeName(url, in: ConfigStore.cdsDir)) {
+                            ConfigStore.mountCD(url: url)
+                            onDone()
+                        }
+                    }
+                }
+            }
+            .frame(maxHeight: 380)
         }
     }
 }

@@ -48,7 +48,8 @@ struct HelpPanel: View {
                     row("desktopcomputer", "Magic Keyboard, trackpads and Bluetooth mice work directly")
 
                     section("Your files (Files app · On My iPad › Amigo)")
-                    row("folder", "Kickstarts — ROM files · Floppies — ADF/ADZ/DMS/IPF, also ZIP/LHA/LZX/7z · HardDrives — HDF · Configuration — saved setups")
+                    row("folder", "Kickstarts — ROM files · Floppies — ADF/ADZ/DMS/IPF, also ZIP/LHA/LZX/7z · HardDrives — HDF · CDs — CUE/CCD/MDS/NRG/ISO · Configuration — saved setups")
+                    row("opticaldisc", "CD32: put the CD32 Kickstart (+ extended ROM) in Kickstarts, drop a CD image in CDs, then CD-ROM menu › Switch to CD32 console")
                 }
                 .padding(.vertical, 4)
             }
