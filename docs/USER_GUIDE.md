@@ -51,6 +51,9 @@ needs Kickstart 2.0+; on 1.3 your finger drags the pointer instead.
 
 **Hardware:** Magic Keyboard, trackpad, and Bluetooth mice work directly.
 
+**Cursor keys** type as cursor keys. Showing the **Virtual Joystick** turns
+them (plus right Ctrl) into the emulated joystick — hide it to type again.
+
 ## Tips
 
 - **Hi-color graphics wrong?** Keep **RTG Accel** off (default) — correct at all

@@ -18,3 +18,4 @@ void ipaduae_set_pen_hover(int active);
 void ipaduae_state_op(int slot, int save);
 void ipaduae_set_controller(int port, int cd32, int autofire);
 const char *ipaduae_controller_name(void);
+void ipaduae_set_kbd_joystick(int on);

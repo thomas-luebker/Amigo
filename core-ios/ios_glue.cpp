@@ -125,6 +125,16 @@ extern "C" const char *ipaduae_controller_name(void)
     return unix_input_controller_name();
 }
 
+/* Keyboard-layout-B joystick (cursor keys + right Ctrl on the joystick
+ * port): on while the virtual joystick overlay is shown, off otherwise
+ * so cursor keys type as cursor keys. */
+extern void unix_input_set_kbd_joystick(int on);
+
+extern "C" void ipaduae_set_kbd_joystick(int on)
+{
+    unix_input_set_kbd_joystick(on);
+}
+
 /* Live toggle for the on-screen LED status line. */
 extern "C" void ipaduae_set_leds(int on)
 {

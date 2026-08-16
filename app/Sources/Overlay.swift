@@ -93,6 +93,10 @@ final class OverlayInstaller {
         // Controller routing prefs must be live before the first
         // connect event, not first panel-open.
         ControllerPanel.applyStored()
+        // Free the cursor keys: the joystick overlay starts hidden, so
+        // the joyport drops kbd2 until the user shows it (didSet keeps
+        // the core in sync from then on).
+        ipaduae_set_kbd_joystick(OverlayState.shared.showJoystick ? 1 : 0)
         // The overlay only installs once SDL's window (and thus video) is
         // up; 30s beyond that counts as a stable boot, so a crash later on
         // won't roll back the last machine/media change.
@@ -191,7 +195,13 @@ final class OverlayState: ObservableObject {
     static let shared = OverlayState()
     @Published var expanded = false
     @Published var showKeyboard = false
-    @Published var showJoystick = false
+    /// Showing the joystick overlay also puts keyboard layout B (cursor
+    /// keys + right Ctrl) on the Amiga joystick port — the overlay sends
+    /// those scancodes. Hidden, the port drops to "none" so cursor keys
+    /// type as cursor keys (a controller assignment overrides either way).
+    @Published var showJoystick = false {
+        didSet { ipaduae_set_kbd_joystick(showJoystick ? 1 : 0) }
+    }
     @Published var showFKeys = false
     @Published var showNumpad = false
     @Published var fullscreenDisplay = UserDefaults.standard.bool(forKey: "fullscreenDisplay")

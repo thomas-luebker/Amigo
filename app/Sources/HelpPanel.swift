@@ -36,6 +36,7 @@ struct HelpPanel: View {
                     section("Keyboard & overlays")
                     row("keyboard", "Amiga Keyboard, F-keys, Numpad and Virtual Joystick live in the gear menu")
                     row("shift", "Shift / Ctrl / Alt / Amiga keys latch: tap the modifier, then the key")
+                    row("arrowkeys", "Cursor keys type normally — showing the Virtual Joystick turns them (plus right Ctrl) into joystick port 2")
                     row("circle.lefthalf.filled", "The slider in the menu sets overlay transparency")
 
                     section("Game controllers")
