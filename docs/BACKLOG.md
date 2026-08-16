@@ -15,11 +15,11 @@ Planning home: the Obsidian note "iPadUAE — Roadmap & Open Questions"
 
 ## From the r/amiga launch thread (2026-08-15, prioritized)
 
-- [ ] **Portrait "keyboard below screen" layout** — extend the safe-area
-  inset seam (`ipaduae_set_safe_area` pattern) with a bottom inset fed by
-  the measured keyboard height; touch mapping follows `s_present_dst`
-  automatically. Needs an aspect Fit/Stretch toggle (portrait currently
-  stretches non-uniformly). ~1 day; time near the iPhone release.
+- [x] **Portrait "keyboard below screen" layout** — done: keyboard strip
+  reported as bottom inset, picture lays out above it; Picture Fit/Stretch
+  menu toggle (default Stretch).
+- [x] **Cursor keys type again** (r/amiga 08-16) — kbd2 occupies the
+  joystick port only while the Virtual Joystick overlay is shown.
 - [ ] **CD support, stage 1: mounting UI + CD32 preset** — core already
   compiles cue/iso/ccd/mds/nrg (akiko, cdtv, blkdev_cdimage, cda_play).
   App needs: CDs folder, picker, `cdimage0`/`cd32cd` config writing,
