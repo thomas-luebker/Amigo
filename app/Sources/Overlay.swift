@@ -217,6 +217,10 @@ final class OverlayState: ObservableObject {
     /// Letterbox the picture to its own proportions instead of stretching
     /// to fill (matters most in portrait, where full-stretch is grotesque).
     @Published var aspectFit = UserDefaults.standard.object(forKey: "aspectFit") as? Bool ?? false
+    /// Classic keyboard style: translucent overlay on the full-bleed
+    /// picture (the pre-0.7.1 look, default). Off = the picture lays out
+    /// above the keyboard instead (portrait-friendly, no occlusion).
+    @Published var keyboardOverlayStyle = UserDefaults.standard.object(forKey: "keyboardOverlayStyle") as? Bool ?? true
     /// Opacity of the input overlays (keyboard, numpad, F-keys, joystick).
     /// Floor of 0.25 keeps them findable — invisible-but-touchable panels
     /// would eat emulator input with no visual explanation.
@@ -389,8 +393,9 @@ struct OverlayRoot: View {
                             // underneath (the r/amiga portrait request).
                             // Every layout pass re-reports; cheap & idempotent.
                             .background(GeometryReader { kb -> Color in
-                                let frac = (geo.size.height - kb.frame(in: .global).minY)
-                                    / max(geo.size.height, 1)
+                                let frac = state.keyboardOverlayStyle ? 0
+                                    : (geo.size.height - kb.frame(in: .global).minY)
+                                      / max(geo.size.height, 1)
                                 DispatchQueue.main.async {
                                     ipaduae_set_bottom_inset(Float(max(0, min(0.7, frac))))
                                 }
@@ -536,6 +541,13 @@ struct ControlPanel: View {
             MenuRow(icon: "keyboard", title: state.showKeyboard ? "Hide Amiga Keyboard" : "Amiga Keyboard",
                     active: state.showKeyboard) {
                 state.showKeyboard.toggle()
+            }
+            MenuRow(icon: state.keyboardOverlayStyle ? "square.on.square" : "rectangle.bottomthird.inset.filled",
+                    title: state.keyboardOverlayStyle ? "Keyboard Style: Overlay (see-through)"
+                                                      : "Keyboard Style: Screen above",
+                    active: !state.keyboardOverlayStyle) {
+                state.keyboardOverlayStyle.toggle()
+                UserDefaults.standard.set(state.keyboardOverlayStyle, forKey: "keyboardOverlayStyle")
             }
             MenuRow(icon: "f.cursive", title: state.showFKeys ? "Hide Function Keys" : "Function Keys (F1–F10)",
                     active: state.showFKeys) {
