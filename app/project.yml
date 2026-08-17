@@ -59,6 +59,9 @@ targets:
         embed: true
       - sdk: CoreGraphics.framework
       - sdk: ImageIO.framework
+      # GCKeyboard: authoritative per-side shift state (see
+      # ipaduae_hw_shift_state — iOS phantom-releases the other shift).
+      - sdk: GameController.framework
     # A pre-build step so the C core is always up to date when you Archive
     # from the Xcode GUI (Product → Archive) without running scripts first.
     preBuildScripts:

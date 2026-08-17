@@ -5,6 +5,34 @@
 // entry points are the same ones WinUAE's Windows GUI thread uses (they go
 // through changed_prefs / config change queueing).
 
+#import <GameController/GameController.h>
+
+/* Authoritative per-side shift state, read straight from the hardware.
+ *
+ * iOS delivers a phantom release for one shift when the other is pressed,
+ * so the key *event* stream cannot be trusted to track the two sides
+ * (that is why both used to collapse into a single Amiga shift, which
+ * broke games using the two shifts as separate controls — pinball
+ * flippers). Polling the button state instead is immune to phantom
+ * events. SDL owns keyChangedHandler, so this only ever reads.
+ *
+ * Returns 1 when a hardware keyboard is present and the state is valid. */
+extern "C" int ipaduae_hw_shift_state(int *left, int *right)
+{
+    GCKeyboardInput *input = GCKeyboard.coalescedKeyboard.keyboardInput;
+    if (!input) {
+        return 0;
+    }
+    GCControllerButtonInput *l = [input buttonForKeyCode:GCKeyCodeLeftShift];
+    GCControllerButtonInput *r = [input buttonForKeyCode:GCKeyCodeRightShift];
+    if (!l && !r) {
+        return 0;
+    }
+    *left = (l && l.isPressed) ? 1 : 0;
+    *right = (r && r.isPressed) ? 1 : 0;
+    return 1;
+}
+
 // Core prototypes (TCHAR == char in the Unix port; overloads must match
 // the mangled symbols in libuaecore.a exactly).
 extern void disk_insert(int num, const char *name);
