@@ -4,9 +4,10 @@
 match the App Store product "Amigo — Amiga Emulator"; the bundle ID and the
 `ipaduae_*` internal symbols keep their historical names.)
 
-An iPad port of [WinUAE](https://github.com/tonioni/WinUAE), built directly on the
-upstream Unix/SDL3 layer (`od-unix/`), targeting iPadOS and App Store distribution.
-**Version 0.6.4.** Licensed **GPL-2** (see `LICENSE`), like WinUAE itself.
+An iOS port of [WinUAE](https://github.com/tonioni/WinUAE), built directly on the
+upstream Unix/SDL3 layer (`od-unix/`). Runs on iPad and iPhone, and on Apple
+Silicon Macs as a "Designed for iPad" app (see [`docs/MACOS.md`](docs/MACOS.md)).
+**Version 0.7.1.** Licensed **GPL-2** (see `LICENSE`), like WinUAE itself.
 
 Runs full **AmigaOS 3.2 Workbench** on device with RTG graphics (reliable
 across resets), networking, hard drives, 1:1 touch pointer + two-finger
@@ -25,6 +26,8 @@ mousehack-after-reboot fix and an SDL3 UIScene fix (second scene re-ran
 ## Docs
 
 - [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) — how to use the app
+- [`docs/MACOS.md`](docs/MACOS.md) — running Amigo on an Apple Silicon Mac, and
+  where to put your ROMs and disk images there
 - [`docs/TESTER_GUIDE.md`](docs/TESTER_GUIDE.md) — TestFlight tester guide
 - [`docs/TESTFLIGHT.md`](docs/TESTFLIGHT.md) — release/archive steps
 - [`docs/LICENSING.md`](docs/LICENSING.md) — GPL-2 / App Store plan

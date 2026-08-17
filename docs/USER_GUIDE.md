@@ -44,6 +44,10 @@ Drag files in with the Files app or AirDrop them to the iPad, then pick them
 from the gear menu. You supply your own ROMs and software — nothing copyrighted
 is bundled.
 
+**On a Mac?** Amigo also runs on Apple Silicon Macs, where these folders live
+inside the app's sandbox container instead — see [MACOS.md](MACOS.md) for how to
+find them.
+
 ## Controls
 
 **Touch (trackpad style, default):** slide to move · tap = left click ·
