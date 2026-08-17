@@ -20,6 +20,23 @@ index 4756e337..9b77808e 100644
          if(APPLE AND WINUAE_UNIX_MACOS_DEPS_PREFIX)
              unset(__pkg_config_checked_FLAC CACHE)
              unset(pkgcfg_lib_FLAC_FLAC CACHE)
+diff --git a/cfgfile.cpp b/cfgfile.cpp
+index bfc350a6..eec8ebc7 100644
+--- a/cfgfile.cpp
++++ b/cfgfile.cpp
+@@ -6561,6 +6561,12 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
+ 		p->m68k_speed--;
+ 		return 1;
+ 	}
++	// cpu_idle is a GUI/registry-only setting on Windows (quickstart presets
++	// set 150 in code); config-file-driven ports need a key for it or it is
++	// stuck at default_prefs' 0 and STOP-state host sleeping never engages.
++	if (cfgfile_intval (option, value, _T("cpu_idle"), &p->cpu_idle, 1)) {
++		return 1;
++	}
+ 	if (cfgfile_intval (option, value, _T("cpu_speed"), &p->m68k_speed, 1)) {
+ 		p->m68k_speed *= CYCLE_UNIT;
+ 		return 1;
 diff --git a/custom.cpp b/custom.cpp
 index fee66a3a..f0102034 100644
 --- a/custom.cpp
@@ -609,7 +626,7 @@ index 07e6a3c1..6d88b57c 100644
  void target_restart(void) {}
  void target_reset(void) {}
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..b3dedfdc 100644
+index 13e88b9d..617f42b8 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -657,7 +674,47 @@ index 13e88b9d..b3dedfdc 100644
  
  #ifdef WINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE
  #ifndef APIENTRY
-@@ -500,6 +524,11 @@ static int unix_input_lock_state_from_sdl(SDL_Keymod mod)
+@@ -278,8 +302,39 @@ static bool pop_queued_video_frame(unix_pending_video_frame *frame)
+     return true;
+ }
+ 
++// Static-screen upload skip: hash of the last frame uploaded into the
++// current texture. When the incoming frame hashes identically, the texture
++// already holds these pixels and SDL_UpdateTexture — the dominant CPU cost
++// of an idle desktop (measured ~30% of all samples on an RTG Workbench) —
++// is skipped. The render/present below still runs every frame, so cursor
++// sprite, status LEDs and overlays stay live.
++static uae_u64 s_present_hash;
++static bool s_present_hash_valid;
++
++static uae_u64 hash_video_frame(const struct unix_video_frame *frame)
++{
++    const int row_bytes_used = frame->width * frame->pixbytes;
++    uae_u64 h = 1469598103934665603ULL ^ (uae_u64)frame->height << 32 ^ (uae_u64)row_bytes_used;
++    for (int y = 0; y < frame->height; y++) {
++        const uae_u8 *row = (const uae_u8 *)frame->pixels + (size_t)y * frame->rowbytes;
++        int n = row_bytes_used;
++        while (n >= 8) {
++            uae_u64 w;
++            memcpy(&w, row, 8);
++            h = (h ^ w) * 1099511628211ULL;
++            row += 8;
++            n -= 8;
++        }
++        while (n-- > 0) {
++            h = (h ^ *row++) * 1099511628211ULL;
++        }
++    }
++    return h;
++}
++
+ static void destroy_frame_textures(void)
+ {
++    s_present_hash_valid = false;
+     for (SDL_Texture *texture : s_textures) {
+         SDL_DestroyTexture(texture);
+     }
+@@ -500,6 +555,11 @@ static int unix_input_lock_state_from_sdl(SDL_Keymod mod)
  
  static int statusbar_source_height(void)
  {
@@ -669,7 +726,7 @@ index 13e88b9d..b3dedfdc 100644
      return TD_TOTAL_HEIGHT;
  }
  
-@@ -672,6 +701,89 @@ static bool get_renderer_output_size(int *width, int *height)
+@@ -672,6 +732,89 @@ static bool get_renderer_output_size(int *width, int *height)
      return get_window_pixel_size(width, height);
  }
  
@@ -759,7 +816,7 @@ index 13e88b9d..b3dedfdc 100644
  static bool make_video_layout(const struct unix_video_frame *frame, const struct gfx_filterdata *filter,
      int output_width, int output_height, struct unix_video_layout *layout)
  {
-@@ -684,10 +796,42 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -684,10 +827,42 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      get_window_pixel_scale(output_width, output_height, &layout->pixel_scale_x, &layout->pixel_scale_y);
  
      int status_height = std::max(1, (int)(statusbar_display_height() * layout->pixel_scale_y + 0.5f));
@@ -784,8 +841,7 @@ index 13e88b9d..b3dedfdc 100644
 +            safe_w = (int)(sa.w * px);
 +            safe_h = (int)(sa.h * py);
 +        }
-     }
--    const int frame_area_height = std::max(1, output_height - status_height);
++    }
 +#endif
 +
 +    /* Reserve the keyboard strip at the window bottom. The reservation
@@ -800,12 +856,13 @@ index 13e88b9d..b3dedfdc 100644
 +
 +    if (status_height >= safe_h) {
 +        status_height = std::max(0, safe_h - 1);
-+    }
+     }
+-    const int frame_area_height = std::max(1, output_height - status_height);
 +    const int frame_area_height = std::max(1, safe_h - status_height);
  
      SDL_FRect source_rect = filtered_frame_rect(frame, filter);
      SDL_FRect dst = {};
-@@ -696,37 +840,44 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -696,37 +871,44 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      if (frame->filter_index == GF_RTG && mode == 2) { /* center */
          dst.w = source_rect.w * layout->pixel_scale_x;
          dst.h = source_rect.h * layout->pixel_scale_y;
@@ -860,7 +917,7 @@ index 13e88b9d..b3dedfdc 100644
          (float)status_height
      };
      return true;
-@@ -1183,7 +1334,7 @@ static bool unix_gl_ensure_context(int width, int height)
+@@ -1183,7 +1365,7 @@ static bool unix_gl_ensure_context(int width, int height)
          return false;
      }
      SDL_GL_MakeCurrent(s_window, s_gl_context);
@@ -869,7 +926,25 @@ index 13e88b9d..b3dedfdc 100644
      if (!unix_gl_build_program()) {
          SDL_GL_DestroyContext(s_gl_context);
          s_gl_context = NULL;
-@@ -1728,7 +1879,7 @@ bool unix_video_init(int width, int height, int pixbytes)
+@@ -1334,6 +1516,17 @@ static bool unix_gl_upload_frame(const struct unix_video_frame *frame)
+     if (!unix_gl_ensure_textures(frame->width, frame->height, frame->pixbytes, frame->backbuffers)) {
+         return false;
+     }
++    // Static-screen upload skip (see hash_video_frame): the current GL
++    // texture already holds these pixels — rebind it and present without
++    // re-uploading. Do NOT rotate backbuffers on a skipped frame.
++    const uae_u64 frame_hash = hash_video_frame(frame);
++    const bool frame_unchanged = s_present_hash_valid && frame_hash == s_present_hash;
++    if (frame_unchanged) {
++        glBindTexture(GL_TEXTURE_2D, s_gl_texture);
++        return true;
++    }
++    s_present_hash = frame_hash;
++    s_present_hash_valid = true;
+     if (!s_gl_textures.empty()) {
+         s_texture_index = (s_texture_index + 1) % (int)s_gl_textures.size();
+         s_gl_texture = s_gl_textures[s_texture_index];
+@@ -1728,7 +1921,7 @@ bool unix_video_init(int width, int height, int pixbytes)
              s_available = false;
              return false;
          }
@@ -878,16 +953,24 @@ index 13e88b9d..b3dedfdc 100644
          SDL_SetRenderDrawColor(s_renderer, 0, 0, 0, 255);
          SDL_RenderClear(s_renderer);
          SDL_RenderPresent(s_renderer);
-@@ -1736,6 +1887,8 @@ bool unix_video_init(int width, int height, int pixbytes)
+@@ -1736,7 +1929,15 @@ bool unix_video_init(int width, int height, int pixbytes)
  
      apply_window_mode();
  
+-    return ensure_texture(width, height, pixbytes, 1);
 +    unix_ext_display_open_if_available();
 +
-     return ensure_texture(width, height, pixbytes, 1);
++    // Keep whatever backbuffer count the present path last established:
++    // hardcoding 1 here made this call and the present's ensure_texture
++    // (frame->backbuffers, typically 2) disagree — every frame destroyed
++    // and recreated all frame textures, twice. unix_video_init runs at the
++    // top of every present, so pass the current count when one exists.
++    return ensure_texture(width, height, pixbytes,
++        s_texture_backbuffers > 0 ? s_texture_backbuffers : 1);
  }
  
-@@ -1744,6 +1897,7 @@ void unix_video_shutdown(void)
+ void unix_video_shutdown(void)
+@@ -1744,6 +1945,7 @@ void unix_video_shutdown(void)
      unix_input_release_keys();
      unix_video_set_mouse_grab(false);
  
@@ -895,7 +978,7 @@ index 13e88b9d..b3dedfdc 100644
      destroy_frame_textures();
      if (s_status_texture) {
          SDL_DestroyTexture(s_status_texture);
-@@ -1790,6 +1944,120 @@ void unix_video_shutdown(void)
+@@ -1790,6 +1992,120 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -1016,7 +1099,7 @@ index 13e88b9d..b3dedfdc 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +2091,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +2139,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -1027,7 +1110,7 @@ index 13e88b9d..b3dedfdc 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2142,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2190,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
@@ -1058,7 +1141,7 @@ index 13e88b9d..b3dedfdc 100644
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2177,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2225,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -1073,7 +1156,7 @@ index 13e88b9d..b3dedfdc 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1888,6 +2192,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1888,6 +2240,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          case SDL_EVENT_MOUSE_BUTTON_DOWN:
          case SDL_EVENT_MOUSE_BUTTON_UP:
          {
@@ -1089,7 +1172,7 @@ index 13e88b9d..b3dedfdc 100644
              if (!input_events) {
                  break;
              }
-@@ -1915,7 +2228,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2276,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -1099,7 +1182,7 @@ index 13e88b9d..b3dedfdc 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2240,293 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2288,293 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -1395,7 +1478,7 @@ index 13e88b9d..b3dedfdc 100644
          case SDL_EVENT_JOYSTICK_ADDED:
          case SDL_EVENT_JOYSTICK_REMOVED:
          case SDL_EVENT_GAMEPAD_ADDED:
-@@ -1962,6 +2555,166 @@ int unix_video_poll_window_events(bool *quit_requested)
+@@ -1962,6 +2603,166 @@ int unix_video_poll_window_events(bool *quit_requested)
      return unix_video_poll_internal(quit_requested, false);
  }
  
@@ -1562,7 +1645,38 @@ index 13e88b9d..b3dedfdc 100644
  static void unix_video_present_on_event_thread(const struct unix_video_frame *frame)
  {
      if (!frame || !frame->pixels || frame->width <= 0 || frame->height <= 0 || frame->rowbytes <= 0) {
-@@ -2010,6 +2763,7 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -1981,15 +2782,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+     if (!ensure_texture(frame->width, frame->height, frame->pixbytes, frame->backbuffers)) {
+         return;
+     }
+-    if (!s_textures.empty()) {
+-        s_texture_index = (s_texture_index + 1) % (int)s_textures.size();
+-        s_texture = s_textures[s_texture_index];
++    const uae_u64 frame_hash = hash_video_frame(frame);
++    const bool frame_unchanged = s_present_hash_valid && frame_hash == s_present_hash;
++    if (!frame_unchanged) {
++        // Changed content: rotate to the next backbuffer and upload. An
++        // unchanged frame must NOT rotate — the current texture is the one
++        // holding these pixels; the older backbuffers hold stale frames.
++        if (!s_textures.empty()) {
++            s_texture_index = (s_texture_index + 1) % (int)s_textures.size();
++            s_texture = s_textures[s_texture_index];
++        }
+     }
+ 
+     SDL_SetTextureScaleMode(s_texture,
+         filter && filter->gfx_filter_bilinear ? SDL_SCALEMODE_LINEAR : SDL_SCALEMODE_NEAREST);
+ 
+-    SDL_UpdateTexture(s_texture, NULL, frame->pixels, frame->rowbytes);
++    if (!frame_unchanged) {
++        SDL_UpdateTexture(s_texture, NULL, frame->pixels, frame->rowbytes);
++        s_present_hash = frame_hash;
++        s_present_hash_valid = true;
++    }
+     SDL_SetRenderLogicalPresentation(s_renderer, 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
+     int output_width = 0;
+     int output_height = 0;
+@@ -2010,6 +2822,7 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
          SDL_RenderTexture(s_renderer, s_status_texture, NULL, &layout.status_dst);
      }
      SDL_RenderPresent(s_renderer);
