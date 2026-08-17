@@ -156,6 +156,115 @@ unchanged; only App Store metadata and the on-device display name changed.
     icons/widgets to the Home Screen, and is fully contained within its
     own sandboxed window. Happy to provide a screen recording if useful.
 
+## German localization (de-DE) — DE is ~45% of downloads
+
+### Subtitle (30 chars max)
+
+    Klassisches Amiga-Erlebnis
+
+### Promotional Text (170 chars)
+
+    Das komplette Amiga-Erlebnis: RTG-Grafik, 68000–68060, Touch- oder
+    Trackpad-Zeiger, Tastaturen und Controller. Kostenlos und Open
+    Source, ohne Werbung.
+
+### Keywords (100 chars max)
+
+    amiga,emulator,retro,workbench,uae,winuae,68000,adf,hdf,whdload,a500,a1200,spiele,klassiker
+
+    (91 chars. "spiele"/"klassiker" replace "rtg" — German search terms
+    outrank a niche graphics acronym in the DE storefront.)
+
+### Beschreibung (4000 chars max)
+
+    Amigo bringt den klassischen Commodore Amiga auf iPhone und iPad.
+    Die App ist eine native Portierung von WinUAE, dem genauesten
+    Amiga-Emulator, und emuliert die gesamte klassische Palette — vom
+    A500 bis zur 68060-Workstation mit RTG-Grafik und Netzwerk.
+
+    FUNKTIONEN
+
+    • Emuliert 68000–68060 CPUs, OCS/ECS/AGA-Chipsätze, FPU und MMU
+    • RTG-Grafikkarte (Picasso96-kompatibel) für hochauflösende
+      Workbench-Desktops
+    • Schneller Interpreter-Kern: ein 68060 ist im Benchmark schneller
+      als Desktop-Emulatoren ohne JIT
+    • 1:1-Touch-Zeiger — die Amiga-Maus folgt dem Finger — oder
+      klassischer Trackpad-Modus, mit Zwei-Finger-Scrollen in beiden
+    • Apple-Pencil-Unterstützung: Tippen und Doppeltipp mit Pencil 2
+      und Pro; Hover-Zeiger und Squeeze-Klick mit dem Apple Pencil Pro
+      (Hover ab M2-iPad)
+    • TV-Ausgabe über USB-C oder AirPlay — der Amiga im Vollbild auf
+      dem großen Bildschirm
+    • Spielstände (Save States) mit automatischem Sichern
+    • Bluetooth-Controller — einfach koppeln und spielen, mit
+      CD32-Pad-Modus, Port-Zuordnung und Autofeuer
+    • Hardware-Tastaturen, Mäuse und Trackpads werden unterstützt
+    • Virtuelle Amiga-Tastatur, Ziffernblock, Funktionstasten und
+      Joystick-Overlays
+    • Disketten-Images (ADF/ADZ/DMS) und Festplatten-Images (HDF, RDB
+      und plain) — einfach über die Dateien-App hinzufügen
+    • Internetzugang für Amiga-Software über die bsdsocket-Bibliothek
+    • Benannte Maschinen-Konfigurationen speichern und umschalten
+    • Läuft sofort mit dem mitgelieferten quelloffenen
+      AROS-Kickstart-Ersatz-ROM
+
+    EIGENES SYSTEM MITBRINGEN
+
+    Amigo enthält kein Amiga-Betriebssystem, keine Spiele und keine
+    urheberrechtlich geschützten ROMs. Wer eigene Kickstart-ROMs und
+    AmigaOS besitzt (z. B. aus einer lizenzierten Distribution), kopiert
+    sie über die Dateien-App in den Amigo-Ordner — für das authentische
+    Erlebnis. Das mitgelieferte AROS-ROM startet viele Titel auch ohne
+    eigene Amiga-Dateien.
+
+    FREIE SOFTWARE
+
+    Amigo ist kostenlos — ohne Werbung, Käufe oder Konten. Die App steht
+    unter der GNU GPL v2; der vollständige Quellcode jeder
+    veröffentlichten Version ist auf github.com/thomas-luebker/Amigo
+    verfügbar.
+
+    Basiert auf WinUAE von Toni Wilen; ursprüngliches UAE von Bernd
+    Schmidt. Amiga ist eine Marke der Amiga Corporation. Diese App ist
+    nicht mit dem Markeninhaber verbunden und wird von ihm nicht
+    unterstützt.
+
+### Neue Funktionen — 0.7.1 (de)
+
+    • CD32-Konsole! Ein Tipp im neuen CD-ROM-Menü macht Amigo zum CD32 —
+      CD32-Kickstart-ROM und CD-Images bereitstellen (CUE/BIN, CCD, MDS,
+      NRG, ISO und platzsparendes CHD)
+    • Ziehen per Touch: Tippen-dann-Ziehen oder Halten bis die Taste
+      einrastet — Icons verschieben, auswählen, in Deluxe Paint zeichnen.
+      Funktioniert auch mit Kickstart 1.3
+    • Cursortasten tippen jetzt als Cursortasten — der emulierte Joystick
+      belegt sie nur, solange das Joystick-Overlay sichtbar ist
+    • Neuer Hilfe-Bildschirm im Zahnrad-Menü — jede Geste erklärt
+    • Neue Tastatur-Option: klassisches durchscheinendes Overlay oder
+      Bildschirm über der Tastatur (ideal im Hochformat) — plus
+      Bildanpassung (Einpassen/Strecken)
+    • Disketten- und Kickstart-Auswahl öffnet jetzt LHA-, LZX- und
+      7z-Archive
+    • Behoben: gekoppelter Controller reagierte nach Maschinen- oder
+      Kickstart-Wechsel nicht mehr
+
+### Neue Funktionen — 0.7.0 (de)
+
+    • Amigo läuft jetzt auf dem iPhone! Quer- und Hochformat, mit
+      iPhone-gerechter virtueller Tastatur
+    • Bluetooth-Controller funktionieren jetzt — koppeln und spielen.
+      Neues Controller-Menü mit CD32-Pad-Modus, Port-Zuordnung und
+      Autofeuer
+    • Neue CPU-Tempo-Einstellung: „Original" taktet wie echte Hardware
+      und schont den Akku deutlich — jetzt Standard für klassische
+      Maschinen. „Maximum" bleibt für Power-Setups
+    • Disketten-Images und Kickstart-ROMs werden auch in Unterordnern
+      gefunden — die eigene Bibliothek frei organisieren
+    • Seltener Absturz beim Verlassen der App behoben
+    • Startet der Emulator nach einer Maschinen-Änderung nicht mehr,
+      wird die Änderung jetzt automatisch rückgängig gemacht
+
 ## URLs (App Store Connect fields)
 
     Privacy Policy URL:
