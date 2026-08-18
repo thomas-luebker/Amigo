@@ -22,6 +22,17 @@ enum ConfigStore {
     static var floppiesDir: URL { winuaeDir.appendingPathComponent("Floppies") }
     static var saveStatesDir: URL { winuaeDir.appendingPathComponent("SaveStates") }
 
+    /// Drive count as the config currently has it. `floppyNtype=-1` is a
+    /// disabled slot; anything else is a drive. This is the truth a loaded
+    /// setup carries, so it beats a remembered preference.
+    static var configuredFloppyDrives: Int {
+        var count = 1
+        for i in 0..<4 where (currentValue("floppy\(i)type") ?? "-1") != "-1" {
+            count = i + 1
+        }
+        return count
+    }
+
     /// Number of emulated floppy drives (1…4). Persisted into the config
     /// so the count survives a restart, and pushed to the running core so
     /// it takes effect without one.
@@ -424,6 +435,9 @@ enum ConfigStore {
         try? FileManager.default.removeItem(at: configURL)
         try? FileManager.default.copyItem(at: src, to: configURL)
         healPaths(in: configURL)
+        // The loaded setup carries its own drive count; adopt it rather
+        // than leaving the menu showing this device's previous one.
+        OverlayState.shared.refreshFloppyDrivesFromConfig()
         restart()
     }
 

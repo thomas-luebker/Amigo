@@ -105,7 +105,6 @@ final class OverlayInstaller {
         ipaduae_set_kbd_joystick(OverlayState.shared.showJoystick ? 1 : 0)
         ipaduae_set_aspect_fit(OverlayState.shared.aspectFit ? 1 : 0)
         ipaduae_set_crt(Int32(OverlayState.shared.crtLevel))
-        ConfigStore.setFloppyDrives(OverlayState.shared.floppyDrives)
         // Drops land on SDL's view, under the overlay window — the
         // overlay rejects touches outside its own controls.
         MediaDropDelegate.shared.install(on: scene)
@@ -266,12 +265,19 @@ final class OverlayState: ObservableObject {
     }
 
     /// Emulated floppy drives, 1…4. DF2/DF3 only appear in the menu once
-    /// the count reaches them.
-    @Published var floppyDrives = UserDefaults.standard.object(forKey: "floppyDrives") as? Int ?? 2 {
-        didSet {
-            UserDefaults.standard.set(floppyDrives, forKey: "floppyDrives")
-            ConfigStore.setFloppyDrives(floppyDrives)
-        }
+    /// the count reaches them. Seeded from the config rather than from a
+    /// remembered preference: loading a saved setup that has four drives
+    /// must not be overridden by whatever this device last chose.
+    @Published var floppyDrives = ConfigStore.configuredFloppyDrives {
+        didSet { ConfigStore.setFloppyDrives(floppyDrives) }
+    }
+
+    /// Re-read the drive count after something else rewrote the config
+    /// (loading a saved setup). Assigning re-runs didSet, which writes the
+    /// same values back — idempotent.
+    func refreshFloppyDrivesFromConfig() {
+        let n = ConfigStore.configuredFloppyDrives
+        if n != floppyDrives { floppyDrives = n }
     }
 
     /// Tick the drive on each floppy step. Hardware-gated: only devices
