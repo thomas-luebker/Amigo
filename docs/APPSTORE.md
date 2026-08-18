@@ -14,7 +14,23 @@ unchanged; only App Store metadata and the on-device display name changed.
 
     Classic Amiga computing
 
+    (ASC currently has "Classic Amiga Emulator" live instead — this doc
+    and the store disagree. Pick one before the 0.7.2 submission.)
+
 ## Promotional Text (170 chars, changeable without review)
+
+LIVE on 0.7.1 since 2026-08-18. The 0.7.1 What's New in ASC is the 0.7.0
+list (the "prepend" note below became a replace), so the Reddit-feedback
+batch is announced here instead — promo text is the only field editable
+without a review.
+
+    New in 0.7.1: CD32 console with CD/CHD images, drag with touch for
+    Deluxe Paint, cursor keys fixed, LHA/LZX/7z archives, and an in-app
+    Controls & Help screen.
+
+    (158 chars. Set as one line; wrapped here for readability.)
+
+Evergreen fallback, for when the 0.7.1 news goes stale:
 
     Full classic Amiga experience: RTG graphics, 68000–68060, touch or
     trackpad pointer, hardware keyboards and controllers. Free and open
@@ -75,9 +91,10 @@ unchanged; only App Store metadata and the on-device display name changed.
 
     amiga,emulator,retro,workbench,uae,winuae,68000,adf,hdf,whdload,a500,a1200,rtg
 
-    (98 chars. "Commodore" deliberately omitted — third-party trademarks
-    in keywords are a rejection trigger; "amiga" is needed for search and
-    is standard across shipping emulators.)
+    (78 chars — a stray leading space was live through 0.7.1 and is
+    trimmed on 0.7.2. "Commodore" deliberately omitted — third-party
+    trademarks in keywords are a rejection trigger; "amiga" is needed
+    for search and is standard across shipping emulators.)
 
 ## What's New — 0.7.1
 
@@ -158,11 +175,36 @@ unchanged; only App Store metadata and the on-device display name changed.
 
 ## German localization (de-DE) — DE is ~45% of downloads
 
+STATUS 2026-08-18: LIVE IN ASC on version 0.7.2 (PREPARE_FOR_SUBMISSION)
+— description, keywords, What's New, promotional text and the German
+subtitle are all filled in. Ships with the 0.7.2 submission.
+
+The blocker was structural, not a review window: `POST
+/v1/appStoreVersionLocalizations` against a released version returns 409
+ENTITY_ERROR.RELATIONSHIP.INVALID, "Cannot create localization after the
+app version has been submitted for review". Localizations can only be
+added to a version in PREPARE_FOR_SUBMISSION. Creating the 0.7.2 version
+record also spawned a second, editable appInfo, which is what unlocked
+the German subtitle. Note the de-DE description is stored unwrapped (one
+line per paragraph/bullet) so it reflows on iPhone; en-US still carries
+the doc's hard wraps.
+
+Before submitting 0.7.2: top both What's New lists with the actual 0.7.2
+changes (they currently hold the 0.7.1 batch, which never reached the
+store — see the Promotional Text note above), and confirm in the ASC UI
+that de-DE inherits the en-US screenshots (it has no sets of its own).
+
 ### Subtitle (30 chars max)
 
     Klassisches Amiga-Erlebnis
 
 ### Promotional Text (170 chars)
+
+    Neu in 0.7.1: CD32-Konsole mit CD/CHD-Images, Ziehen per Touch für
+    Deluxe Paint, Cursortasten repariert, LHA/LZX/7z-Archive und ein
+    Hilfe-Bildschirm für alle Gesten.
+
+    (165 chars. Set as one line. Evergreen fallback below.)
 
     Das komplette Amiga-Erlebnis: RTG-Grafik, 68000–68060, Touch- oder
     Trackpad-Zeiger, Tastaturen und Controller. Kostenlos und Open
@@ -256,9 +298,9 @@ unchanged; only App Store metadata and the on-device display name changed.
     • Bluetooth-Controller funktionieren jetzt — koppeln und spielen.
       Neues Controller-Menü mit CD32-Pad-Modus, Port-Zuordnung und
       Autofeuer
-    • Neue CPU-Tempo-Einstellung: „Original" taktet wie echte Hardware
+    • Neue CPU-Tempo-Einstellung: „Original“ taktet wie echte Hardware
       und schont den Akku deutlich — jetzt Standard für klassische
-      Maschinen. „Maximum" bleibt für Power-Setups
+      Maschinen. „Maximum“ bleibt für Power-Setups
     • Disketten-Images und Kickstart-ROMs werden auch in Unterordnern
       gefunden — die eigene Bibliothek frei organisieren
     • Seltener Absturz beim Verlassen der App behoben
