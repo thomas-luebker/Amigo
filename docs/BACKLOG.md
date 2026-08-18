@@ -102,19 +102,37 @@ whose job was to *read* the machine config wrote an inferred value back.
   Mouse / mousehack is NOT the cause**, which was the leading theory
   until this trace killed it.
 
-  The only delta between broken and working is `jport1`: a controller was
-  paired when it failed, absent when it worked. Suspect
-  `joystick_apply_controller_prefs` (`od-unix/input.cpp:1120`), which
-  rewrites *both* ports on controller connect and then calls
-  `inputdevice_copyconfig`. Hypothesis: port 0 ends up bound to something
-  other than `JSEM_MICE` — possibly because adding the pad shifts SDL
-  device enumeration. Mousehack writes the pointer position directly into
-  the guest regardless of port binding, so the cursor survives while
-  buttons, which need port 0, die. That matches the symptom exactly.
+  **The controller hypothesis is DISPROVEN.** The console stayed attached
+  across a re-pair and logged 176 clicks in both states:
 
-  To confirm: re-pair the controller with the console attached and watch
-  whether `jport0` stops reading `(id 200 mode 0)` at that instant.
-  Pre-existing code — not from the 0.7.2 work.
+      28 clicks   jport0=(id 200 mode 0)  jport1=(id -1  mode 0)   no pad
+     148 clicks   jport0=(id 200 mode 0)  jport1=(id 100 mode 7)   pad on
+
+  `JSEM_JOYS` = 100 and `JSEM_MODE_JOYSTICK_CD32` = 7, so that is the pad
+  correctly on port 1 in CD32 mode — and **port 0 stayed bound to the
+  mouse throughout, with 148 clicks delivered while the pad was
+  attached**. `joystick_apply_controller_prefs` does *not* displace the
+  mouse. Do not spend time there.
+
+  So the trigger is still unknown. What is now excluded, each by
+  measurement rather than argument: mousehack/1:1 Mouse (clicks work with
+  `tablet=1`), the controller and its port routing (above), a missing
+  `UIApplicationSupportsIndirectInputEvents` (present in the plist), and
+  the Pencil hover recognizer driving the absolute path (it is
+  `allowedTouchTypes = [.pencil]`, so a mouse cannot reach it).
+
+  Still open as suspects: the `UIDropInteraction` added to SDL's root
+  view for drag & drop (no mechanism, but it is on the view that handles
+  input), and a stuck button state — if a button-down is delivered and
+  its matching up is swallowed, the guest sees the button held forever
+  and every later click is a no-op. The latter fits "cleared by a
+  restart" better than anything else and has precedent in this codebase
+  (the FINGER_CANCELED stuck-touch class).
+
+  Next time it happens, catch it live: the diagnostic is a single
+  `write_log` in `unix_input_mouse_button` (see this entry's trace
+  format). If `btn=0 down` appears with no matching `up`, that is the
+  answer.
 
 - [ ] **Display stays stale after a WHDLoad title exits back to RTG.**
   Reported from the amimcp session: launched Turrican 2 AGA (native AGA,
