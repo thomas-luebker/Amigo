@@ -84,6 +84,46 @@ whose job was to *read* the machine config wrote an inferred value back.
   scanline fields. *Not bisected against the DF1 fix, so which of the two
   cured it is unconfirmed; the `gf[]` write is by far the likelier cause.*
 
+### Bugs found on device 2026-08-18 (not yet fixed)
+
+- [ ] **Clicks stop reaching the guest after pairing a controller.** The
+  cursor keeps moving; nothing is clickable, from *any* source — mouse,
+  trackpad, Pencil, touch. Cleared by restarting the app; not persisted
+  in the config.
+
+  Instrumented `unix_input_mouse_button` on the device and captured the
+  healthy state for comparison:
+
+      iPadUAE click: btn=0 down tablet=1 mh_alive=52 \
+        jport0=(id 200 mode 0) jport1=(id -1 mode 0) mouseactive=1
+
+  `JSEM_MICE` is 200 (`include/inputdevice.h:355`), so port 0 is bound to
+  mouse device 0 — correct — and clicks work. Note `tablet=1`: **1:1
+  Mouse / mousehack is NOT the cause**, which was the leading theory
+  until this trace killed it.
+
+  The only delta between broken and working is `jport1`: a controller was
+  paired when it failed, absent when it worked. Suspect
+  `joystick_apply_controller_prefs` (`od-unix/input.cpp:1120`), which
+  rewrites *both* ports on controller connect and then calls
+  `inputdevice_copyconfig`. Hypothesis: port 0 ends up bound to something
+  other than `JSEM_MICE` — possibly because adding the pad shifts SDL
+  device enumeration. Mousehack writes the pointer position directly into
+  the guest regardless of port binding, so the cursor survives while
+  buttons, which need port 0, die. That matches the symptom exactly.
+
+  To confirm: re-pair the controller with the console attached and watch
+  whether `jport0` stops reading `(id 200 mode 0)` at that instant.
+  Pre-existing code — not from the 0.7.2 work.
+
+- [ ] **Display stays stale after a WHDLoad title exits back to RTG.**
+  Reported from the amimcp session: launched Turrican 2 AGA (native AGA,
+  kills the OS) in the guest; after F10 the iPad's picture stayed frozen
+  while the guest was demonstrably fine — clean 1280x720 screen grabs,
+  CPU 0%, clock ticking, windows opening. So the emulator is running and
+  Amigo is not repainting. Look at the RTG re-init path on the native-AGA
+  → RTG transition.
+
 ### Candidates — undecided
 
 - [ ] **Pro Controller in Project X.** DotMatrixHead reported the pad not
