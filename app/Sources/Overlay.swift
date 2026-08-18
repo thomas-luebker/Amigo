@@ -488,7 +488,10 @@ struct ControlPanel: View {
             MenuRow(icon: "internaldrive", title: "Hard Drive…") { submenu = .harddrive }
             MenuRow(icon: "opticaldisc", title: "CD-ROM (CD32)…") { submenu = .cdrom }
             MenuRow(icon: "cpu", title: "Machine (CPU / RAM / RTG / Net)…") { submenu = .machine }
-            MenuRow(icon: "gamecontroller", title: "Controller (CD32 pad)…") { submenu = .controller }
+            // "Controller (CD32 pad)…" read as CD32-only: users asking for
+            // gamepad support scanned right past it. CD32 mode lives inside
+            // the panel; the row says what people are looking for.
+            MenuRow(icon: "gamecontroller", title: "Game Controller (Bluetooth/USB)…") { submenu = .controller }
             MenuRow(icon: "square.stack.3d.up", title: "Configurations (save/load setups)…") { submenu = .configs }
             MenuRow(icon: "clock.arrow.circlepath", title: "Save States…") { submenu = .states }
             Divider().padding(.vertical, 4)
@@ -699,7 +702,7 @@ struct ControllerPanel: View {
                 Button(action: onDone) { Label("Back", systemImage: "chevron.left") }
                     .buttonStyle(.plain)
                 Spacer()
-                Text("Controller").font(.headline)
+                Text("Game Controller").font(.headline)
             }
             .padding(.bottom, 6)
 
@@ -707,7 +710,7 @@ struct ControllerPanel: View {
                 Label(name, systemImage: "gamecontroller.fill")
                     .font(.footnote).foregroundStyle(.secondary).padding(.bottom, 4)
             } else {
-                Text("No controller connected.\nPair one in Settings › Bluetooth — it is picked up automatically.")
+                Text("No controller connected.\nPair one in Settings › Bluetooth, or plug it into USB-C — it is picked up automatically.")
                     .font(.footnote).foregroundStyle(.secondary).padding(.bottom, 4)
             }
 

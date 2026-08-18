@@ -42,7 +42,7 @@ struct HelpPanel: View {
                     row("circle.lefthalf.filled", "The slider in the menu sets overlay transparency")
 
                     section("Game controllers")
-                    row("gamecontroller", "Pair in iOS Settings › Bluetooth, then assign a port in the Controller panel")
+                    row("gamecontroller", "Pair in iOS Settings › Bluetooth or plug into USB-C, then pick a port in Game Controller — Xbox, PlayStation, Switch Pro and MFi pads all work")
                     row("button.horizontal.top.press", "CD32 pad mode for CD32 titles; optional autofire")
 
                     section("Hardware")
