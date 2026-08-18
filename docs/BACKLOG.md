@@ -16,37 +16,73 @@ See APPSTORE.md for what went into de-DE and why it could not be done on
 
 ### Blocking — before submission
 
-- [ ] **Per-side shift keys.** Code is on `fix/shift-keys` (rebased onto
-  main 2026-08-18, still one commit, still untested). The only bug from
-  the r/amiga launch thread that 0.7.1 did not answer — DotMatrixHead:
-  both shifts arrive as left shift, "makes playing pinball impossible".
-  The approach is right: read per-side state from `GCKeyboard` instead of
-  the event stream, which phantom-releases one shift when the other goes
-  down. To land: build Release to the test iPad, stream the log, press
-  each shift alone and both together on a hardware keyboard, confirm iOS
-  reports the sides separately, then **remove the temporary diagnostic
-  log line** and merge. Not verifiable from the agent side — needs hands
-  on a keyboard. Note the branch also edits
-  `patches/0001-ios-port-fixes.patch`, so re-run `scripts/apply-patches`
-  after checking it out.
 - [ ] **Push the 0.7.2 What's New to ASC.** Drafted for both locales and
-  dry-run clean (en-US 824 → 1681 chars, de-DE 1551 → 2495, both well
-  under the 4000 limit). The script prepends and is idempotent. Not yet
-  written — an outward-facing store edit, awaiting an explicit go-ahead.
+  dry-run clean (en-US 824 → 1982 chars, de-DE → ~2800, both under the
+  4000 limit). The script prepends rather than replaces and is
+  idempotent. Not yet written — an outward-facing store edit awaiting an
+  explicit go-ahead. Script: `whatsnew.py --write`.
+
+That is the only thing left.
 
 ### Done in 0.7.2
+
+- [x] **Per-side shift keys — FIXED and hardware-verified 2026-08-18.**
+  Merged from `fix/shift-keys` (branch can be deleted). Tested on the
+  iPad Pro M4 with a physical keyboard, all four press/release orderings,
+  `hw=1` throughout (GameController answering with real per-side state):
+
+  | case | trace |
+  |---|---|
+  | L alone | `L1 R0 → L0 R0` |
+  | R alone | `L0 R1 → L0 R0` |
+  | L held, R tapped | `L1 R0 → L1 R1 → L1 R0` — left survives |
+  | both, L released first | `L1 R1 → L0 R1 → L0 R0` — right survives |
+
+  Rows 3 and 4 are the reported bug (holding one flipper while tapping
+  the other). No phantom release, sides fully independent. Diagnostic
+  `write_log` removed and the patch regenerated — only hunk offsets and
+  the blob hash moved. **Closes the last r/amiga launch-thread item.**
+
+  Worth knowing: the branch was correct all along and sat blocked for a
+  month on a five-minute test. The `GCKeyboard` approach, the no-hardware
+  fallback and the stuck-shift reconcile were all right as written.
+
+- [x] **Menu restructure.** The main menu had reached 36 rows (four added
+  by this release) and only worked because `ViewThatFits` drops it into a
+  ScrollView. Display and Input & Overlays are now submenus; the main
+  menu is 20 rows, 24 with DF2/DF3 enabled. Warp deliberately stayed at
+  the top level — it is a mid-load control and burying it defeats it.
 
 - [x] **Subtitle decided: "Classic Amiga Emulator."** ASC already held it;
   APPSTORE.md's "Classic Amiga computing" was the outlier and is gone.
   The German subtitle stays "Klassisches Amiga-Erlebnis" on purpose — a
   literal translation would repeat "Amiga Emulator" from the app name.
+
 - [x] **de-DE screenshots.** Confirmed through the API: de-DE has zero
   screenshot sets, en-US has both required ones (APP_IPHONE_67,
   APP_IPAD_PRO_3GEN_129). Zero sets on a secondary locale is exactly the
   condition for Apple's fallback to the primary locale. The API cannot
   render the fallback, so the only remaining confirmation is visual in
-  the ASC UI — or the submission itself, which fails on genuinely
-  missing assets.
+  the ASC UI — or the submission itself.
+
+### Regressions introduced and fixed on 2026-08-18
+
+Both found by running on the device, both the same root mistake: code
+whose job was to *read* the machine config wrote an inferred value back.
+
+- [x] **DF1 silently disabled.** The shipped `default.uae` carries no
+  `floppyNtype` lines, and in WinUAE absent means *default* — DF0 **and**
+  DF1 — not disabled. `configuredFloppyDrives` parsed the text, read
+  absent as `-1`, returned 1, and a `didSet` wrote `floppy1type=-1` back.
+  Now reads `currprefs.floppyslots` through `ipaduae_floppy_drives()` and
+  the `didSet` is gone. *Devices already carrying `floppy1type=-1` need
+  one manual "+ DF1" to heal — a reinstall does not undo it.*
+- [x] **RTG stopped activating.** The CRT toggle drove
+  `gfx_filter_bilinear` across all three `gf[]` slots — including
+  `GF_RTG` — on every launch. The card mapped fine ("Card 05: UAE RTG",
+  16M Z3) but the guest stayed at `RTG=0/0`. Scanlines now touch only
+  scanline fields. *Not bisected against the DF1 fix, so which of the two
+  cured it is unconfirmed; the `gf[]` write is by far the likelier cause.*
 
 ### Candidates — undecided
 
@@ -85,10 +121,21 @@ running config mentions is skipped in both directions, so a mounted image
 is never raced against mid-write. All access goes through
 `NSFileCoordinator`. The container is user-visible in Files as "Amigo".
 
-- [ ] **Verify on two real devices.** Not testable from here: needs the
-  same iCloud account on iPad and Mac, a setup saved on one appearing on
-  the other, and a save state round-tripping. Also worth watching the
-  first sync with media enabled on a large HardDrives folder.
+- [x] **Verified on the iPad Pro M4 (2026-08-18).** Container resolves at
+  `/private/var/mobile/Library/Mobile Documents/iCloud~de~amiga-imager~uae`,
+  the first pass pushes, later passes report "Up to date" — idempotent.
+  Note the first-ever `url(forUbiquityContainerIdentifier:)` call takes
+  ~25 s, so an early log check reads as a failure when it is not.
+- [ ] **Still to check: the second device.** A setup saved on the iPad
+  appearing on the Mac, and a save state round-tripping. Also worth
+  watching the first sync with media enabled on a large HardDrives
+  folder.
+- [ ] **Mount exclusion is safe but awkward.** The most valuable thing to
+  sync is usually the Workbench HDF that is currently mounted — exactly
+  the file that is skipped. "Unmount to sync" is a workaround, not an
+  answer. Doing better means quiescing the emulator and flushing before
+  the copy. Scope it separately if media sync is to be more than
+  "CDs, ROMs and unmounted disks".
 
 ## Quick wins — all done 2026-08-18
 
@@ -129,10 +176,10 @@ is never raced against mid-write. All access goes through
 - [x] **CD support, stage 2: CHD** — done: vendored static libFLAC 1.5.0
   (scripts/build-flac-ios.sh), CMake escape hatch, CHD flags on, .chd in
   the CD picker.
-- [ ] **Both shift keys read as left shift** (DotMatrixHead) — "makes
-  playing pinball impossible". Code on `fix/shift-keys`, hardware test
-  pending; see the 0.7.2 section above. The last open item from that
-  thread.
+- [x] **Both shift keys read as left shift** (DotMatrixHead) — "makes
+  playing pinball impossible". **FIXED and hardware-verified 2026-08-18**,
+  merged; see the 0.7.2 section above. This was the last open item from
+  the thread — every reported issue now has an answer.
 - [ ] **Pro Controller not working in Project X** (DotMatrixHead) —
   uninvestigated; see the 0.7.2 section above.
 - [ ] **Vision Pro "Designed for iPad"** — ASC availability checkbox, no
