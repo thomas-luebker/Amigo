@@ -626,7 +626,7 @@ index 07e6a3c1..6d88b57c 100644
  void target_restart(void) {}
  void target_reset(void) {}
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..265a24cb 100644
+index 13e88b9d..5e1a3a81 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -1133,7 +1133,7 @@ index 13e88b9d..265a24cb 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2213,55 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2213,52 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
@@ -1177,9 +1177,6 @@ index 13e88b9d..265a24cb 100644
 +                    want_l = s_ev_l || s_ev_r;
 +                    want_r = false;
 +                }
-+                write_log(_T("iPadUAE shift: %s %s hw=%d l=%d r=%d -> L%d R%d\n"),
-+                    is_left ? _T("L") : _T("R"), down ? _T("down") : _T("up"),
-+                    have_hw ? 1 : 0, hw_l, hw_r, want_l ? 1 : 0, want_r ? 1 : 0);
 +                unix_input_keyboard_key((int)SDL_SCANCODE_LSHIFT, want_l, lock);
 +                unix_input_keyboard_key((int)SDL_SCANCODE_RSHIFT, want_r, lock);
 +                break;
@@ -1189,7 +1186,7 @@ index 13e88b9d..265a24cb 100644
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2273,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2270,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -1204,7 +1201,7 @@ index 13e88b9d..265a24cb 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1888,6 +2288,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1888,6 +2285,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          case SDL_EVENT_MOUSE_BUTTON_DOWN:
          case SDL_EVENT_MOUSE_BUTTON_UP:
          {
@@ -1220,7 +1217,7 @@ index 13e88b9d..265a24cb 100644
              if (!input_events) {
                  break;
              }
-@@ -1915,7 +2324,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2321,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -1230,7 +1227,7 @@ index 13e88b9d..265a24cb 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2336,293 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2333,293 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -1526,7 +1523,7 @@ index 13e88b9d..265a24cb 100644
          case SDL_EVENT_JOYSTICK_ADDED:
          case SDL_EVENT_JOYSTICK_REMOVED:
          case SDL_EVENT_GAMEPAD_ADDED:
-@@ -1962,6 +2651,166 @@ int unix_video_poll_window_events(bool *quit_requested)
+@@ -1962,6 +2648,166 @@ int unix_video_poll_window_events(bool *quit_requested)
      return unix_video_poll_internal(quit_requested, false);
  }
  
@@ -1693,7 +1690,7 @@ index 13e88b9d..265a24cb 100644
  static void unix_video_present_on_event_thread(const struct unix_video_frame *frame)
  {
      if (!frame || !frame->pixels || frame->width <= 0 || frame->height <= 0 || frame->rowbytes <= 0) {
-@@ -1981,15 +2830,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -1981,15 +2827,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
      if (!ensure_texture(frame->width, frame->height, frame->pixbytes, frame->backbuffers)) {
          return;
      }
@@ -1724,7 +1721,7 @@ index 13e88b9d..265a24cb 100644
      SDL_SetRenderLogicalPresentation(s_renderer, 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
      int output_width = 0;
      int output_height = 0;
-@@ -2010,6 +2870,7 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -2010,6 +2867,7 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
          SDL_RenderTexture(s_renderer, s_status_texture, NULL, &layout.status_dst);
      }
      SDL_RenderPresent(s_renderer);
