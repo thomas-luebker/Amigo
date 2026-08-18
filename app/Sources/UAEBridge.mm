@@ -6,6 +6,35 @@
 // through changed_prefs / config change queueing).
 
 #import <GameController/GameController.h>
+#import <UIKit/UIKit.h>
+
+/* Amiga -> iOS clipboard. Called from od-unix/clipboard.cpp when a
+ * Workbench program puts text on the Amiga clipboard.
+ *
+ * Writing to UIPasteboard requires no user consent and raises no privacy
+ * banner (only *reading* does), so this direction is automatic. The
+ * reverse direction never reads the pasteboard here at all — it comes in
+ * through a SwiftUI PasteButton, where the tap is the consent. */
+extern "C" int ipaduae_host_set_pasteboard_text(const char *text)
+{
+    if (!text) {
+        return 0;
+    }
+    NSString *s = [NSString stringWithUTF8String:text];
+    if (!s) {
+        return 0;
+    }
+    /* UIPasteboard wants the main thread; the emulation loop already runs
+     * there, but this can also be reached from a trap callback. */
+    if ([NSThread isMainThread]) {
+        UIPasteboard.generalPasteboard.string = s;
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            UIPasteboard.generalPasteboard.string = s;
+        });
+    }
+    return 1;
+}
 
 /* Authoritative per-side shift state, read straight from the hardware.
  *

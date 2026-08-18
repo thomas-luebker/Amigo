@@ -107,6 +107,23 @@ enum ConfigStore {
         try? FileManager.default.removeItem(at: lastGoodURL)
         guard (try? FileManager.default.copyItem(at: configURL, to: lastGoodURL)) != nil else { return }
         UserDefaults.standard.set(true, forKey: riskyChangeKey)
+        armStabilityTimer()
+    }
+
+    /// Clear the pending marker once the change has survived 30 seconds.
+    ///
+    /// Without this the marker was only ever cleared 30s after the overlay
+    /// installed — i.e. once per app *launch*. A machine change restarts
+    /// the emulator, not the app, so any change made later in a session
+    /// stayed armed for the rest of it, and a force-quit (swipe up: no
+    /// chance to run ipaduae_fast_exit) made the next launch roll it back.
+    /// Settings silently reverted; this is how the clipboard toggle was
+    /// lost. The crash-loop protection is unaffected — if the change
+    /// really does break the boot, the app is gone before this fires.
+    private static func armStabilityTimer() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+            markBootStable()
+        }
     }
 
     /// Called by the overlay once the emulator has been up for a while.

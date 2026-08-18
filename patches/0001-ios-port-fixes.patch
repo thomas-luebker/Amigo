@@ -112,7 +112,7 @@ index edf23232..9d7b7d95 100644
  		mousehack_address = (trap_get_dreg(ctx, 0) & 0xffff) + rtarea_bank.baseaddr;
  		mousehack_enable ();
 diff --git a/od-unix/clipboard.cpp b/od-unix/clipboard.cpp
-index 502930d7..b1d305a9 100644
+index 502930d7..aa21b803 100644
 --- a/od-unix/clipboard.cpp
 +++ b/od-unix/clipboard.cpp
 @@ -1,6 +1,10 @@
@@ -126,7 +126,35 @@ index 502930d7..b1d305a9 100644
  #include <limits.h>
  #include <stdio.h>
  #include <stdint.h>
-@@ -1339,12 +1343,78 @@ void clipboard_vsync(void)
+@@ -286,8 +290,27 @@ static bool read_host_clipboard_text(std::string *text, size_t max_bytes)
+ 	return false;
+ }
+ 
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++/* Implemented in the app layer (UAEBridge.mm). SDL3's UIKit backend does
++ * not deliver a working clipboard write here, and the pbcopy fallback
++ * below cannot exist on iOS — there is no /usr/bin and no usable popen —
++ * so without this the Amiga -> iOS direction failed silently. */
++extern "C" int ipaduae_host_set_pasteboard_text(const char *text);
++#endif
++
+ static bool write_host_clipboard_text(const std::string &text)
+ {
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++	/* Writing to UIPasteboard needs no user consent and raises no
++	 * banner, so this direction can stay fully automatic. */
++	if (ipaduae_host_set_pasteboard_text(text.c_str())) {
++		last_host_clipboard = text;
++		last_host_clipboard_valid = true;
++		last_host_clipboard_bitmap.clear();
++		last_host_clipboard_bitmap_valid = false;
++		return true;
++	}
++#endif
+ #ifdef UAE_UNIX_WITH_SDL3
+ 	if (SDL_SetClipboardText(text.c_str())) {
+ 		last_host_clipboard = text;
+@@ -1339,12 +1362,78 @@ void clipboard_vsync(void)
  		trap_callback(to_amiga_start_cb, NULL);
  	}
  
@@ -205,7 +233,7 @@ index 502930d7..b1d305a9 100644
  }
  
  void clipboard_host_changed(void)
-@@ -1428,7 +1498,15 @@ void amiga_clipboard_init(TrapContext *ctx)
+@@ -1428,7 +1517,15 @@ void amiga_clipboard_init(TrapContext *ctx)
  	initialized = 1;
  	host_poll_delay = 50;
  	write_log(_T("clipboard initialized\n"));
