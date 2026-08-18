@@ -12,10 +12,13 @@ unchanged; only App Store metadata and the on-device display name changed.
 
 ## Subtitle (30 chars max)
 
-    Classic Amiga computing
+    Classic Amiga Emulator
 
-    (ASC currently has "Classic Amiga Emulator" live instead — this doc
-    and the store disagree. Pick one before the 0.7.2 submission.)
+    (Decided 2026-08-18. ASC already held this string; the doc's older
+    "Classic Amiga computing" was the odd one out and has been dropped.
+    The German subtitle is deliberately NOT a translation of it —
+    "Klassisches Amiga-Erlebnis" avoids repeating "Amiga Emulator",
+    which the app name already carries.)
 
 ## Promotional Text (170 chars, changeable without review)
 
