@@ -39,6 +39,10 @@ targets:
         # silently ignored — UIFileSharingEnabled must live in this partial
         # plist or the app's documents vanish from the Files app.
         INFOPLIST_FILE: Amigo-Info.plist
+        # iCloud Drive container for configurations, save states and
+        # (opt-in) media. Needs the container registered for the team —
+        # see docs/BACKLOG.md for the one-time step.
+        CODE_SIGN_ENTITLEMENTS: Amigo.entitlements
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CURRENT_PROJECT_VERSION: 20260818

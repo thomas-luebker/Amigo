@@ -4,6 +4,23 @@
 <dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- Makes the iCloud container user-visible as "Amigo" under iCloud
+	     Drive in Files, so configurations, save states and (opt-in) disk
+	     images can be seen and dropped in from any device — not just
+	     synced invisibly. The container ID keeps the historical bundle
+	     name; don't "fix" it. -->
+	<key>NSUbiquitousContainers</key>
+	<dict>
+		<key>iCloud.de.amiga-imager.uae</key>
+		<dict>
+			<key>NSUbiquitousContainerIsDocumentScopePublic</key>
+			<true/>
+			<key>NSUbiquitousContainerName</key>
+			<string>Amigo</string>
+			<key>NSUbiquitousContainerSupportedFolderLevels</key>
+			<string>Any</string>
+		</dict>
+	</dict>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>

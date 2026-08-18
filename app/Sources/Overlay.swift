@@ -110,6 +110,12 @@ final class OverlayInstaller {
         // overlay rejects touches outside its own controls.
         MediaDropDelegate.shared.install(on: scene)
         FloppyHaptics.shared.startIfEnabled()
+        CloudSync.sync()
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil, queue: .main) { _ in
+            CloudSync.sync()
+        }
         // The overlay only installs once SDL's window (and thus video) is
         // up; 30s beyond that counts as a stable boot, so a crash later on
         // won't roll back the last machine/media change.
@@ -126,6 +132,9 @@ final class OverlayInstaller {
     private func installAutosave() {
         let timer = Timer(timeInterval: 300, repeats: true) { _ in
             ipaduae_state_op(0, 1)
+            // The save lands at the next vsync; give it a moment before
+            // offering it to iCloud.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { CloudSync.sync() }
         }
         RunLoop.main.add(timer, forMode: .common)
         autosaveTimer = timer
@@ -537,7 +546,7 @@ struct OverlayRoot: View {
 }
 
 struct ControlPanel: View {
-    enum Submenu { case none, df0, df1, df2, df3, kickstart, harddrive, cdrom, machine, controller, configs, states, help, about }
+    enum Submenu { case none, df0, df1, df2, df3, kickstart, harddrive, cdrom, machine, controller, configs, states, cloud, help, about }
     @State private var submenu: Submenu = .none
     @ObservedObject private var state = OverlayState.shared
 
@@ -563,6 +572,7 @@ struct ControlPanel: View {
             case .controller: ControllerPanel { submenu = .none }
             case .configs: ConfigurationsPanel { submenu = .none }
             case .states: StatePanel { submenu = .none }
+            case .cloud: CloudPanel { submenu = .none }
             case .help: HelpPanel { submenu = .none }
             case .about: AboutPanel { submenu = .none }
             }
@@ -606,6 +616,7 @@ struct ControlPanel: View {
             MenuRow(icon: "gamecontroller", title: "Game Controller (Bluetooth/USB)…") { submenu = .controller }
             MenuRow(icon: "square.stack.3d.up", title: "Configurations (save/load setups)…") { submenu = .configs }
             MenuRow(icon: "clock.arrow.circlepath", title: "Save States…") { submenu = .states }
+            MenuRow(icon: "icloud", title: "iCloud Sync…") { submenu = .cloud }
             Divider().padding(.vertical, 4)
             MenuRow(icon: "hare.fill",
                     title: state.warpActive ? "Warp Speed: On (sound off)" : "Warp Speed: Off",

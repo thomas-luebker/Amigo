@@ -414,6 +414,7 @@ enum ConfigStore {
         try? FileManager.default.removeItem(at: dest)
         // Persist any live-only runtime toggles into the config first.
         try? FileManager.default.copyItem(at: configURL, to: dest)
+        CloudSync.sync()
     }
 
     static func loadConfiguration(name: String) {
@@ -429,6 +430,7 @@ enum ConfigStore {
     static func deleteConfiguration(name: String) {
         try? FileManager.default.removeItem(
             at: configurationsDir.appendingPathComponent("\(name).uae"))
+        CloudSync.pushDelete(name: "\(name).uae")
     }
 
     // MARK: Path healing

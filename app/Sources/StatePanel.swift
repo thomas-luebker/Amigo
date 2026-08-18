@@ -68,8 +68,12 @@ struct StatePanel: View {
                 Button("Save") {
                     ipaduae_state_op(Int32(slot), 1)
                     // The state is written at the next vsync; re-read the
-                    // file info shortly after.
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { refresh += 1 }
+                    // file info shortly after — and only then is there
+                    // anything for iCloud to pick up.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        refresh += 1
+                        CloudSync.sync()
+                    }
                 }
                 .font(.caption.weight(.semibold))
                 .buttonStyle(.borderedProminent)
