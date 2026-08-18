@@ -7,12 +7,19 @@
 //                           (stop on the iPad, carry on at the Mac)
 //   Floppies/HardDrives/CDs/Kickstarts — opt-in, off by default
 //
-// Media is off by default on purpose. HDFs run to hundreds of megabytes
-// and would silently eat a 5 GB free iCloud tier, and a disk image that
-// the emulator has *mounted* is being written underneath us — pulling a
-// newer copy over it, or uploading it mid-write, corrupts the image. Any
-// file the running config references is therefore skipped entirely,
-// whichever direction it would have moved.
+// Media is off by default on purpose: HDFs run to hundreds of megabytes
+// and would silently eat a 5 GB free iCloud tier.
+//
+// Mount exclusion applies to WRITABLE media only — floppies and hard
+// drives. A mounted HDF is being written underneath us, so copying it in
+// either direction can capture or clobber a half-written image. CDs and
+// Kickstarts are read-only to the emulator and are always synced.
+//
+// The consequence worth knowing: your mounted Workbench HDF is exactly
+// the file that will NOT sync while it is mounted. Unmount it (Hard
+// Drive → Unmount) and the next pass carries it. Doing better means
+// quiescing the emulator mid-session, which is not worth the corruption
+// risk on a background timer.
 //
 // The container is user-visible in Files (NSUbiquitousContainers in
 // Info.plist), so "Amigo" appears under iCloud Drive and files can be
@@ -70,12 +77,15 @@ enum CloudSync {
                extensions: ["adf", "adz", "dms", "ipf", "zip", "gz", "lha", "lzh", "lzx", "7z"],
                mountSensitive: true),
         Folder(name: "HardDrives", extensions: ["hdf", "hdz", "vhd"], mountSensitive: true),
+        // CDs and ROMs are read-only media: the emulator never writes
+        // them, so there is no in-flight write to race against and no
+        // reason to skip them just because they are currently in use.
         Folder(name: "CDs",
                extensions: ["cue", "bin", "ccd", "img", "sub", "mds", "mdf", "nrg", "iso", "chd"],
-               mountSensitive: true),
+               mountSensitive: false),
         Folder(name: "Kickstarts",
                extensions: ["rom", "bin", "a500", "a600", "a1200", "a4000"],
-               mountSensitive: true),
+               mountSensitive: false),
     ]
 
     /// Files that are never mirrored: the live config the core rewrites
@@ -168,12 +178,16 @@ enum CloudSync {
     // MARK: The pass
 
     private static func syncBlocking() -> Bool {
-        guard containerURL() != nil else {
+        // Logged either way: a silent early return here is indistinguishable
+        // from a successful no-op pass, which cost real debugging time.
+        guard let container = containerURL() else {
             available = false
             lastSummary = "iCloud unavailable — sign in to iCloud Drive."
+            NSLog("iPadUAE cloud: container %@ did not resolve — signed out of iCloud, iCloud Drive off for the app, or the entitlement is missing", containerID)
             return false
         }
         available = true
+        NSLog("iPadUAE cloud: container at %@", container.path)
 
         // Read the live config once; mount checks are substring tests
         // against it, which catches every form a path appears in
@@ -351,7 +365,7 @@ struct CloudPanel: View {
                     CloudSync.syncMedia = on
                     if on { runSync() }
                 }
-            Text("Disk images are large — a few hard drives can fill a free iCloud plan. A disk the Amiga currently has mounted is never synced in either direction, so it can't be corrupted mid-write.")
+            Text("Disk images are large — a few hard drives can fill a free iCloud plan. CDs and ROMs always sync. A floppy or hard drive the Amiga has mounted is skipped while it is mounted, so it can't be copied mid-write — unmount it and the next sync carries it.")
                 .font(.caption).foregroundStyle(.secondary)
 
             Divider().padding(.vertical, 2)
