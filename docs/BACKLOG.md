@@ -87,13 +87,19 @@ whose job was to *read* the machine config wrote an inferred value back.
 ### Candidates — undecided
 
 - [ ] **Pro Controller in Project X.** DotMatrixHead reported the pad not
-  working in that game specifically. Still uninvestigated, and not
-  diagnosable without the game: the routing code
-  (`joystick_apply_controller_prefs` in `od-unix/input.cpp`) is generic
-  and has no game-specific path, so a fault would be in how Project X
-  reads the port, not in which port we assign. Triage when someone has
-  the game: try port 0 vs 1, CD32 mode off, autofire off, and confirm the
-  same pad works in another game on the same machine config.
+  working in that game specifically.
+
+  **Narrowed 2026-08-18:** a Bluetooth controller in **CD32 layout** was
+  tested against the *Turrican 2 AGA Remake* on the iPad and works. So
+  the pad path — pairing, CD32 mapping, port routing — is sound in a real
+  AGA game. That matches the code: `joystick_apply_controller_prefs` in
+  `od-unix/input.cpp` is generic with no game-specific path, so any
+  Project X fault is in how that game reads the port, not in what we
+  assign to it.
+
+  Remaining triage, when someone has the game: port 0 vs 1, CD32 mode
+  **off** (Project X is a 1991 floppy game, it predates the CD32 pad
+  protocol and may be confused by it), and autofire off.
 
 ### Explicitly not in 0.7.2 unless decided otherwise
 
