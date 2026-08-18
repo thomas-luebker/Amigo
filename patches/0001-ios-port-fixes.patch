@@ -626,7 +626,7 @@ index 07e6a3c1..6d88b57c 100644
  void target_restart(void) {}
  void target_reset(void) {}
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..617f42b8 100644
+index 13e88b9d..5e1a3a81 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -852,12 +852,12 @@ index 13e88b9d..617f42b8 100644
 +        const int inset_px = (int)((float)output_height * unix_video_bottom_inset + 0.5f);
 +        const int bottom_limit = std::min(safe_y + safe_h, output_height - inset_px);
 +        safe_h = std::max(1, bottom_limit - safe_y);
-+    }
+     }
+-    const int frame_area_height = std::max(1, output_height - status_height);
 +
 +    if (status_height >= safe_h) {
 +        status_height = std::max(0, safe_h - 1);
-     }
--    const int frame_area_height = std::max(1, output_height - status_height);
++    }
 +    const int frame_area_height = std::max(1, safe_h - status_height);
  
      SDL_FRect source_rect = filtered_frame_rect(frame, filter);
@@ -978,7 +978,7 @@ index 13e88b9d..617f42b8 100644
      destroy_frame_textures();
      if (s_status_texture) {
          SDL_DestroyTexture(s_status_texture);
-@@ -1790,6 +1992,120 @@ void unix_video_shutdown(void)
+@@ -1790,6 +1992,142 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -997,6 +997,28 @@ index 13e88b9d..617f42b8 100644
 +/* From inputdevice.cpp: nonzero while the guest mousehack driver (KS
 + * 2.0+) services absolute positioning. */
 +extern int mousehack_alive(void);
++
++/* From the app layer (UAEBridge.mm): physical state of the two shift
++ * keys, read from GameController rather than the event stream. */
++extern "C" int ipaduae_hw_shift_state(int *left, int *right);
++
++/* Lock (caps/num/scroll) state from the last real key event — reused when
++ * re-syncing shifts outside an event, since unix_input_keyboard_key
++ * applies whatever lock state it is handed. */
++static int s_shift_lock_state = 0;
++
++/* Safety net: should iOS ever drop a shift release entirely, that shift
++ * would stay stuck down in the guest. Re-sync both sides from hardware
++ * once per event pump; the setter dedupes, so this is free when idle. */
++static void shift_reconcile(void)
++{
++    int l = 0, r = 0;
++    if (!ipaduae_hw_shift_state(&l, &r)) {
++        return;
++    }
++    unix_input_keyboard_key((int)SDL_SCANCODE_LSHIFT, l != 0, s_shift_lock_state);
++    unix_input_keyboard_key((int)SDL_SCANCODE_RSHIFT, r != 0, s_shift_lock_state);
++}
 +static SDL_FingerID s_pen_ignored[16];
 +static int s_pen_ignored_count = 0;
 +
@@ -1099,49 +1121,72 @@ index 13e88b9d..617f42b8 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +2139,10 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +2161,11 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
 +#if defined(__APPLE__) && TARGET_OS_IPHONE
 +    touch_process_pending_click();
++    shift_reconcile();
 +#endif
 +
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2190,30 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2213,52 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
 +#if defined(__APPLE__) && TARGET_OS_IPHONE
-+            /* iOS conflates the two shift keys: pressing one emits a phantom
-+             * release for the other, which desyncs per-side shift tracking
-+             * (symptom: one shift "stops working" intermittently). Drive a
-+             * single Amiga shift from the combined physical state so both
-+             * physical shifts work reliably. */
++            /* iOS emits a phantom release for one shift when the other is
++             * pressed, so the event stream alone cannot track the two sides
++             * (symptom: a shift "stops working" intermittently). Earlier
++             * builds worked around it by collapsing both into a single Amiga
++             * shift, which cost per-side fidelity — fatal for games that use
++             * the two shifts as separate controls (pinball flippers).
++             *
++             * Instead take the physical button state from GameController,
++             * which phantom *events* do not affect, and keep the collapse
++             * only as a fallback when no such keyboard is visible. An
++             * explicit press is always honoured: the state may already have
++             * moved on by the time we poll a very short tap. */
 +            if (event.key.scancode == SDL_SCANCODE_LSHIFT ||
 +                event.key.scancode == SDL_SCANCODE_RSHIFT) {
-+                static bool s_lshift, s_rshift, s_amiga_shift;
 +                const bool down = (event.key.type == SDL_EVENT_KEY_DOWN);
-+                if (event.key.scancode == SDL_SCANCODE_LSHIFT) {
-+                    s_lshift = down;
++                const bool is_left = (event.key.scancode == SDL_SCANCODE_LSHIFT);
++                const int lock = unix_input_lock_state_from_sdl(event.key.mod);
++                s_shift_lock_state = lock;
++
++                static bool s_ev_l, s_ev_r;
++                if (is_left) {
++                    s_ev_l = down;
 +                } else {
-+                    s_rshift = down;
++                    s_ev_r = down;
 +                }
-+                const bool want = s_lshift || s_rshift;
-+                if (want != s_amiga_shift) {
-+                    s_amiga_shift = want;
-+                    unix_input_keyboard_key((int)SDL_SCANCODE_LSHIFT, want,
-+                        unix_input_lock_state_from_sdl(event.key.mod));
++
++                int hw_l = 0, hw_r = 0;
++                const bool have_hw = ipaduae_hw_shift_state(&hw_l, &hw_r) != 0;
++                bool want_l, want_r;
++                if (have_hw) {
++                    want_l = (hw_l != 0) || (down && is_left);
++                    want_r = (hw_r != 0) || (down && !is_left);
++                } else {
++                    /* No GameController keyboard: keep the old behaviour of
++                     * one combined Amiga shift rather than risking a shift
++                     * that sticks or never fires. */
++                    want_l = s_ev_l || s_ev_r;
++                    want_r = false;
 +                }
++                unix_input_keyboard_key((int)SDL_SCANCODE_LSHIFT, want_l, lock);
++                unix_input_keyboard_key((int)SDL_SCANCODE_RSHIFT, want_r, lock);
 +                break;
 +            }
++            s_shift_lock_state = unix_input_lock_state_from_sdl(event.key.mod);
 +#endif
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2225,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2270,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -1156,7 +1201,7 @@ index 13e88b9d..617f42b8 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1888,6 +2240,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1888,6 +2285,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          case SDL_EVENT_MOUSE_BUTTON_DOWN:
          case SDL_EVENT_MOUSE_BUTTON_UP:
          {
@@ -1172,7 +1217,7 @@ index 13e88b9d..617f42b8 100644
              if (!input_events) {
                  break;
              }
-@@ -1915,7 +2276,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2321,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -1182,7 +1227,7 @@ index 13e88b9d..617f42b8 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2288,293 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2333,293 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -1478,7 +1523,7 @@ index 13e88b9d..617f42b8 100644
          case SDL_EVENT_JOYSTICK_ADDED:
          case SDL_EVENT_JOYSTICK_REMOVED:
          case SDL_EVENT_GAMEPAD_ADDED:
-@@ -1962,6 +2603,166 @@ int unix_video_poll_window_events(bool *quit_requested)
+@@ -1962,6 +2648,166 @@ int unix_video_poll_window_events(bool *quit_requested)
      return unix_video_poll_internal(quit_requested, false);
  }
  
@@ -1645,7 +1690,7 @@ index 13e88b9d..617f42b8 100644
  static void unix_video_present_on_event_thread(const struct unix_video_frame *frame)
  {
      if (!frame || !frame->pixels || frame->width <= 0 || frame->height <= 0 || frame->rowbytes <= 0) {
-@@ -1981,15 +2782,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -1981,15 +2827,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
      if (!ensure_texture(frame->width, frame->height, frame->pixbytes, frame->backbuffers)) {
          return;
      }
@@ -1676,7 +1721,7 @@ index 13e88b9d..617f42b8 100644
      SDL_SetRenderLogicalPresentation(s_renderer, 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
      int output_width = 0;
      int output_height = 0;
-@@ -2010,6 +2822,7 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -2010,6 +2867,7 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
          SDL_RenderTexture(s_renderer, s_status_texture, NULL, &layout.status_dst);
      }
      SDL_RenderPresent(s_renderer);
