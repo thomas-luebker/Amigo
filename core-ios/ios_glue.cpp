@@ -252,3 +252,57 @@ extern "C" int ipaduae_floppy_drives(void)
     }
     return count < 1 ? 1 : count;
 }
+
+/* Clipboard sharing between iOS and the Amiga.
+ *
+ * WinUAE's clipboard machinery is complete and already compiled in: the
+ * Amiga side hooks clipboard.device through the filesys uae-boot handler,
+ * and od-unix/clipboard.cpp does the IFF FTXT/ILBM conversion. It is
+ * gated behind currprefs.clipboard_sharing, which defaults off.
+ *
+ * The two directions are deliberately asymmetric, because iOS treats them
+ * differently:
+ *
+ *   Amiga -> iOS   automatic. Writing to UIPasteboard raises no banner
+ *                  and needs no consent, so a copy in Workbench simply
+ *                  lands on the iOS clipboard.
+ *   iOS -> Amiga   explicit only. Reading UIPasteboard without user
+ *                  intent raises the "Amigo pasted from <app>" banner, so
+ *                  the poll is compiled out on iOS (clipboard.cpp) and
+ *                  the app pushes text in from a SwiftUI PasteButton
+ *                  instead — the tap is the consent, and no code here
+ *                  ever reads the pasteboard. */
+extern void unix_clipboard_push_host_text(const char *text);
+extern int unix_clipboard_ready(void);
+
+extern "C" void ipaduae_set_clipboard_sharing(int on)
+{
+    currprefs.clipboard_sharing = changed_prefs.clipboard_sharing = on != 0;
+}
+
+extern "C" int ipaduae_clipboard_sharing(void)
+{
+    return currprefs.clipboard_sharing ? 1 : 0;
+}
+
+extern "C" void ipaduae_clipboard_push_text(const char *text)
+{
+    unix_clipboard_push_host_text(text);
+}
+
+/* Paste as keystrokes. Works in any program, including everything that
+ * never supported clipboard.device, and needs no Amiga-side clipboard
+ * task — so it works even with sharing switched off. */
+extern void unix_clipboard_type_host_text(const char *text);
+
+extern "C" void ipaduae_clipboard_type_text(const char *text)
+{
+    unix_clipboard_type_host_text(text);
+}
+
+/* False until the Amiga side has started its clipboard task — lets the UI
+ * explain itself instead of dropping a paste on the floor. */
+extern "C" int ipaduae_clipboard_ready(void)
+{
+    return unix_clipboard_ready();
+}

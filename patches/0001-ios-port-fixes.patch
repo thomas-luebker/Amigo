@@ -111,6 +111,116 @@ index edf23232..9d7b7d95 100644
  	} else if (mode == 5) {
  		mousehack_address = (trap_get_dreg(ctx, 0) & 0xffff) + rtarea_bank.baseaddr;
  		mousehack_enable ();
+diff --git a/od-unix/clipboard.cpp b/od-unix/clipboard.cpp
+index 502930d7..b1d305a9 100644
+--- a/od-unix/clipboard.cpp
++++ b/od-unix/clipboard.cpp
+@@ -1,6 +1,10 @@
+ #include "sysconfig.h"
+ #include "sysdeps.h"
+ 
++#ifdef __APPLE__
++#include <TargetConditionals.h>
++#endif
++
+ #include <limits.h>
+ #include <stdio.h>
+ #include <stdint.h>
+@@ -1339,12 +1343,78 @@ void clipboard_vsync(void)
+ 		trap_callback(to_amiga_start_cb, NULL);
+ 	}
+ 
++#if !(defined(__APPLE__) && TARGET_OS_IPHONE)
++	/* Desktop: poll the host clipboard so a copy elsewhere shows up on
++	 * the Amiga automatically. */
+ 	if (host_poll_delay > 0) {
+ 		host_poll_delay--;
+ 	} else {
+ 		host_poll_delay = 100;
+ 		clipboard_read_host(NULL, false, false);
+ 	}
++#else
++	/* iOS: NEVER poll. Reading UIPasteboard without user intent raises
++	 * the system "pasted from <app>" banner every time, so a 2-second
++	 * poll would fire it continuously. The host -> Amiga direction is
++	 * driven exclusively by unix_clipboard_push_host_text(), called from
++	 * a SwiftUI PasteButton — the tap IS the consent, and the app hands
++	 * us the string, so this layer never touches the pasteboard at all.
++	 * Amiga -> host is unaffected: writing raises no banner. */
++	(void)host_poll_delay;
++#endif
++}
++
++/* iOS host -> Amiga push. The text has already been obtained by the app
++ * through an explicit user paste, so there is nothing to consent to here
++ * and no pasteboard read to make. */
++void unix_clipboard_push_host_text(const char *text)
++{
++	if (!text || clip_disabled || !initialized || !clipboard_data) {
++		return;
++	}
++	std::string s(text);
++	if (s.size() > CLIP_SIZE_LIMIT) {
++		s.resize(CLIP_SIZE_LIMIT);
++	}
++	/* Keep the dedupe state in step so an Amiga-side copy of the same
++	 * text afterwards is not bounced straight back. */
++	last_host_clipboard = s;
++	last_host_clipboard_valid = true;
++	last_host_clipboard_bitmap.clear();
++	last_host_clipboard_bitmap_valid = false;
++	queue_host_text_to_amiga(s);
++}
++
++/* iOS "type it in" push: feed the text as keystrokes instead of through
++ * clipboard.device. Most Amiga software never implemented clipboard.device
++ * — CLI, games, older editors — but all of it accepts typed characters,
++ * so this is the path that works everywhere. Again, the app supplies the
++ * text; nothing here reads the pasteboard.
++ *
++ * Capped well below CLIP_SIZE_LIMIT: this goes through the keyboard ring
++ * buffer a character at a time at emulated typing speed, so a large paste
++ * would appear to hang the machine for minutes. */
++void unix_clipboard_type_host_text(const char *text)
++{
++	if (!text) {
++		return;
++	}
++	std::string s(text);
++	static constexpr size_t TYPE_LIMIT = 4096;
++	if (s.size() > TYPE_LIMIT) {
++		s.resize(TYPE_LIMIT);
++	}
++	normalize_text_for_keybuf(&s);
++	if (!s.empty()) {
++		keybuf_inject(s.c_str());
++	}
++}
++
++/* Whether the Amiga side is up and able to receive a paste — lets the UI
++ * disable the control instead of silently dropping the text. */
++int unix_clipboard_ready(void)
++{
++	return (!clip_disabled && initialized && clipboard_data) ? 1 : 0;
+ }
+ 
+ void clipboard_host_changed(void)
+@@ -1428,7 +1498,15 @@ void amiga_clipboard_init(TrapContext *ctx)
+ 	initialized = 1;
+ 	host_poll_delay = 50;
+ 	write_log(_T("clipboard initialized\n"));
++#if !(defined(__APPLE__) && TARGET_OS_IPHONE)
++	/* Seed the Amiga with whatever is already on the host clipboard. */
+ 	clipboard_read_host(ctx, false, true);
++#else
++	/* iOS: this is a pasteboard read with no user intent behind it — it
++	 * would raise the "pasted from <app>" banner on every Amiga boot.
++	 * The user pastes explicitly instead (PasteButton). */
++	(void)ctx;
++#endif
+ }
+ 
+ void target_paste_to_keyboard(void)
 diff --git a/od-unix/config.cpp b/od-unix/config.cpp
 index 9618298b..ff7f421a 100644
 --- a/od-unix/config.cpp

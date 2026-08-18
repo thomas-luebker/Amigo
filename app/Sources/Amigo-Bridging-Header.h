@@ -25,3 +25,8 @@ void ipaduae_set_crt(int level);
 int ipaduae_floppy_led_mask(void);
 void ipaduae_set_floppy_drives(int count);
 int ipaduae_floppy_drives(void);
+void ipaduae_set_clipboard_sharing(int on);
+int ipaduae_clipboard_sharing(void);
+void ipaduae_clipboard_push_text(const char *text);
+int ipaduae_clipboard_ready(void);
+void ipaduae_clipboard_type_text(const char *text);

@@ -291,6 +291,18 @@ final class OverlayState: ObservableObject {
         didSet { FloppyHaptics.enabled = floppyHaptics }
     }
 
+    /// Amiga-side clipboard sharing. Read from the config, which is the
+    /// truth the core booted with — the Amiga starts its clipboard task at
+    /// boot, so this cannot be flipped live.
+    @Published var clipboardSharing = ConfigStore.currentValue("clipboard_sharing") == "true"
+
+    /// Changing it rewrites the config and restarts, through the same
+    /// crash-safe path as any other machine change.
+    func setClipboardSharing(_ on: Bool) {
+        clipboardSharing = on
+        ConfigStore.setClipboardSharing(on)
+    }
+
     /// Transient confirmation after a drag & drop or in-app import.
     @Published var importNotice: String?
     private var importNoticeWork: DispatchWorkItem?
@@ -538,7 +550,7 @@ struct OverlayRoot: View {
 }
 
 struct ControlPanel: View {
-    enum Submenu { case none, df0, df1, df2, df3, kickstart, harddrive, cdrom, machine, controller, configs, states, cloud, display, inputs, help, about }
+    enum Submenu { case none, df0, df1, df2, df3, kickstart, harddrive, cdrom, machine, controller, configs, states, cloud, clipboard, display, inputs, help, about }
     @State private var submenu: Submenu = .none
     @ObservedObject private var state = OverlayState.shared
 
@@ -565,6 +577,7 @@ struct ControlPanel: View {
             case .configs: ConfigurationsPanel { submenu = .none }
             case .states: StatePanel { submenu = .none }
             case .cloud: CloudPanel { submenu = .none }
+            case .clipboard: ClipboardPanel { submenu = .none }
             case .display: DisplayPanel { submenu = .none }
             case .inputs: InputPanel { submenu = .none }
             case .help: HelpPanel { submenu = .none }
@@ -611,6 +624,7 @@ struct ControlPanel: View {
             MenuRow(icon: "square.stack.3d.up", title: "Configurations (save/load setups)…") { submenu = .configs }
             MenuRow(icon: "clock.arrow.circlepath", title: "Save States…") { submenu = .states }
             MenuRow(icon: "icloud", title: "iCloud Sync…") { submenu = .cloud }
+            MenuRow(icon: "doc.on.clipboard", title: "Clipboard (copy/paste with iOS)…") { submenu = .clipboard }
             Divider().padding(.vertical, 4)
             MenuRow(icon: "display", title: "Display (picture, CRT, TV out)…") { submenu = .display }
             MenuRow(icon: "hand.tap", title: "Input & Overlays (keyboard, joystick)…") { submenu = .inputs }

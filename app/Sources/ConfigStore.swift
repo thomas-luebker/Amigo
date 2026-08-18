@@ -34,6 +34,17 @@ enum ConfigStore {
         Int(ipaduae_floppy_drives())
     }
 
+    /// Clipboard sharing with the host. The Amiga side installs its
+    /// clipboard task during the uae-boot handshake (filesys.cpp mode 17),
+    /// so this only takes effect on a restart — hence the snapshot and the
+    /// same crash-safe path used by machine changes.
+    static func setClipboardSharing(_ on: Bool) {
+        snapshotBeforeRiskyChange()
+        set("clipboard_sharing", on ? "true" : "false")
+        ipaduae_set_clipboard_sharing(on ? 1 : 0)
+        restart()
+    }
+
     /// Number of emulated floppy drives (1…4). Persisted into the config
     /// so the count survives a restart, and pushed to the running core so
     /// it takes effect without one.
