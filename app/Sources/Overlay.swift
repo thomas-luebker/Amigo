@@ -559,7 +559,7 @@ struct OverlayRoot: View {
 }
 
 struct ControlPanel: View {
-    enum Submenu { case none, df0, df1, df2, df3, kickstart, harddrive, cdrom, machine, controller, configs, states, cloud, help, about }
+    enum Submenu { case none, df0, df1, df2, df3, kickstart, harddrive, cdrom, machine, controller, configs, states, cloud, display, inputs, help, about }
     @State private var submenu: Submenu = .none
     @ObservedObject private var state = OverlayState.shared
 
@@ -586,6 +586,8 @@ struct ControlPanel: View {
             case .configs: ConfigurationsPanel { submenu = .none }
             case .states: StatePanel { submenu = .none }
             case .cloud: CloudPanel { submenu = .none }
+            case .display: DisplayPanel { submenu = .none }
+            case .inputs: InputPanel { submenu = .none }
             case .help: HelpPanel { submenu = .none }
             case .about: AboutPanel { submenu = .none }
             }
@@ -636,112 +638,8 @@ struct ControlPanel: View {
                     active: state.warpActive) {
                 state.warpActive.toggle()
             }
-            MenuRow(icon: state.crtLevel > 0 ? "tv.fill" : "tv",
-                    title: {
-                        switch state.crtLevel {
-                        case 1: return "CRT Scanlines: Light"
-                        case 2: return "CRT Scanlines: Medium"
-                        case 3: return "CRT Scanlines: Heavy"
-                        default: return "CRT Scanlines: Off"
-                        }
-                    }(),
-                    active: state.crtLevel > 0) {
-                state.crtLevel = (state.crtLevel + 1) % 4
-            }
-            if FloppyHaptics.supported {
-                MenuRow(icon: state.floppyHaptics ? "waveform" : "waveform.slash",
-                        title: state.floppyHaptics ? "Floppy Haptics: On" : "Floppy Haptics: Off",
-                        active: state.floppyHaptics) {
-                    state.floppyHaptics.toggle()
-                }
-            }
-            MenuRow(icon: "speedometer",
-                    title: state.vsync ? "Display Sync: On (smooth)" : "Display Sync: Off (fast)",
-                    active: state.vsync) {
-                state.vsync.toggle()
-                UserDefaults.standard.set(state.vsync, forKey: "vsync")
-                ipaduae_set_vsync(state.vsync ? 1 : 0)
-            }
-            MenuRow(icon: state.rtgAccel ? "bolt.fill" : "bolt.slash",
-                    title: state.rtgAccel ? "RTG Accel: On (fast)" : "RTG Accel: Off (correct >8-bit)",
-                    active: state.rtgAccel) {
-                state.rtgAccel.toggle()
-                UserDefaults.standard.set(state.rtgAccel, forKey: "rtgAccel")
-                ipaduae_set_rtg_accel(state.rtgAccel ? 1 : 0)
-            }
-            MenuRow(icon: state.showLEDs ? "circle.grid.2x1.fill" : "circle.grid.2x1",
-                    title: state.showLEDs ? "Hide LED Bar" : "Show LED Bar",
-                    active: state.showLEDs) {
-                state.showLEDs.toggle()
-                UserDefaults.standard.set(state.showLEDs, forKey: "showLEDs")
-                ipaduae_set_leds(state.showLEDs ? 1 : 0)
-                ConfigStore.set("show_leds", state.showLEDs ? "true" : "false")
-            }
-            MenuRow(icon: state.fullscreenDisplay ? "rectangle.inset.filled" : "rectangle",
-                    title: state.fullscreenDisplay ? "Display: Fullscreen (corners may crop)" : "Display: Safe Area",
-                    active: state.fullscreenDisplay) {
-                state.fullscreenDisplay.toggle()
-                UserDefaults.standard.set(state.fullscreenDisplay, forKey: "fullscreenDisplay")
-                ipaduae_set_safe_area(state.fullscreenDisplay ? 0 : 1)
-            }
-            MenuRow(icon: state.aspectFit ? "aspectratio" : "aspectratio.fill",
-                    title: state.aspectFit ? "Picture: Fit (keeps proportions)" : "Picture: Stretch (fills screen)",
-                    active: state.aspectFit) {
-                state.aspectFit.toggle()
-                UserDefaults.standard.set(state.aspectFit, forKey: "aspectFit")
-                ipaduae_set_aspect_fit(state.aspectFit ? 1 : 0)
-            }
-            MenuRow(icon: "tv", title: state.externalDisplay ? "TV Out: On (when connected)" : "TV Out: Off",
-                    active: state.externalDisplay) {
-                state.externalDisplay.toggle()
-                UserDefaults.standard.set(state.externalDisplay, forKey: "externalDisplay")
-                ipaduae_set_external_display(state.externalDisplay ? 1 : 0)
-            }
-            MenuRow(icon: state.tabletMode ? "hand.point.up.left.fill" : "hand.point.up.left",
-                    title: state.tabletMode ? "1:1 Mouse: On" : "1:1 Mouse: Off (relative/trackpad)",
-                    active: state.tabletMode) {
-                state.tabletMode.toggle()
-                ConfigStore.setTabletMode(state.tabletMode)
-            }
-            MenuRow(icon: "keyboard", title: state.showKeyboard ? "Hide Amiga Keyboard" : "Amiga Keyboard",
-                    active: state.showKeyboard) {
-                state.showKeyboard.toggle()
-            }
-            MenuRow(icon: state.keyboardOverlayStyle ? "square.on.square" : "rectangle.bottomthird.inset.filled",
-                    title: state.keyboardOverlayStyle ? "Keyboard Style: Overlay (see-through)"
-                                                      : "Keyboard Style: Screen above",
-                    active: !state.keyboardOverlayStyle) {
-                state.keyboardOverlayStyle.toggle()
-                UserDefaults.standard.set(state.keyboardOverlayStyle, forKey: "keyboardOverlayStyle")
-            }
-            MenuRow(icon: "f.cursive", title: state.showFKeys ? "Hide Function Keys" : "Function Keys (F1–F10)",
-                    active: state.showFKeys) {
-                state.showFKeys.toggle()
-            }
-            MenuRow(icon: "number.square", title: state.showNumpad ? "Hide Numpad" : "Numpad (WHDLoad quit keys)",
-                    active: state.showNumpad) {
-                state.showNumpad.toggle()
-            }
-            MenuRow(icon: "gamecontroller", title: state.showJoystick ? "Hide Joystick" : "Virtual Joystick",
-                    active: state.showJoystick) {
-                state.showJoystick.toggle()
-            }
-            // Overlay transparency: applies to keyboard/numpad/F-keys/joystick.
-            HStack(spacing: 10) {
-                Image(systemName: "circle.lefthalf.filled").frame(width: 22)
-                Slider(value: Binding(
-                    get: { state.overlayOpacity },
-                    set: {
-                        state.overlayOpacity = $0
-                        UserDefaults.standard.set($0, forKey: "overlayOpacity")
-                    }), in: 0.25...1.0)
-                Text("\(Int(state.overlayOpacity * 100)) %")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                    .frame(width: 44, alignment: .trailing)
-            }
-            .padding(.vertical, 4)
-            .padding(.horizontal, 4)
+            MenuRow(icon: "display", title: "Display (picture, CRT, TV out)…") { submenu = .display }
+            MenuRow(icon: "hand.tap", title: "Input & Overlays (keyboard, joystick)…") { submenu = .inputs }
             Divider().padding(.vertical, 4)
             MenuRow(icon: "arrow.counterclockwise", title: "Reset") { ipaduae_reset(0) }
             MenuRow(icon: "exclamationmark.arrow.circlepath", title: "Hard Reset") { ipaduae_reset(1) }
@@ -751,6 +649,159 @@ struct ControlPanel: View {
             Text("Add disks & Kickstart ROMs via Files:\nOn My iPad › Amigo")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// Everything that changes how the picture looks. Split out of the main
+/// menu, which had grown to 36 rows.
+struct DisplayPanel: View {
+    let onDone: () -> Void
+    @ObservedObject private var state = OverlayState.shared
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Button(action: onDone) { Label("Back", systemImage: "chevron.left") }
+                    .buttonStyle(.plain)
+                Spacer()
+                Text("Display").font(.headline)
+            }
+            .padding(.bottom, 6)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    MenuRow(icon: state.crtLevel > 0 ? "tv.fill" : "tv",
+                            title: {
+                                switch state.crtLevel {
+                                case 1: return "CRT Scanlines: Light"
+                                case 2: return "CRT Scanlines: Medium"
+                                case 3: return "CRT Scanlines: Heavy"
+                                default: return "CRT Scanlines: Off"
+                                }
+                            }(),
+                            active: state.crtLevel > 0) {
+                        state.crtLevel = (state.crtLevel + 1) % 4
+                    }
+                    MenuRow(icon: "speedometer",
+                            title: state.vsync ? "Display Sync: On (smooth)" : "Display Sync: Off (fast)",
+                            active: state.vsync) {
+                        state.vsync.toggle()
+                        UserDefaults.standard.set(state.vsync, forKey: "vsync")
+                        ipaduae_set_vsync(state.vsync ? 1 : 0)
+                    }
+                    MenuRow(icon: state.rtgAccel ? "bolt.fill" : "bolt.slash",
+                            title: state.rtgAccel ? "RTG Accel: On (fast)" : "RTG Accel: Off (correct >8-bit)",
+                            active: state.rtgAccel) {
+                        state.rtgAccel.toggle()
+                        UserDefaults.standard.set(state.rtgAccel, forKey: "rtgAccel")
+                        ipaduae_set_rtg_accel(state.rtgAccel ? 1 : 0)
+                    }
+                    MenuRow(icon: state.showLEDs ? "circle.grid.2x1.fill" : "circle.grid.2x1",
+                            title: state.showLEDs ? "Hide LED Bar" : "Show LED Bar",
+                            active: state.showLEDs) {
+                        state.showLEDs.toggle()
+                        UserDefaults.standard.set(state.showLEDs, forKey: "showLEDs")
+                        ipaduae_set_leds(state.showLEDs ? 1 : 0)
+                        ConfigStore.set("show_leds", state.showLEDs ? "true" : "false")
+                    }
+                    MenuRow(icon: state.fullscreenDisplay ? "rectangle.inset.filled" : "rectangle",
+                            title: state.fullscreenDisplay ? "Display: Fullscreen (corners may crop)" : "Display: Safe Area",
+                            active: state.fullscreenDisplay) {
+                        state.fullscreenDisplay.toggle()
+                        UserDefaults.standard.set(state.fullscreenDisplay, forKey: "fullscreenDisplay")
+                        ipaduae_set_safe_area(state.fullscreenDisplay ? 0 : 1)
+                    }
+                    MenuRow(icon: state.aspectFit ? "aspectratio" : "aspectratio.fill",
+                            title: state.aspectFit ? "Picture: Fit (keeps proportions)" : "Picture: Stretch (fills screen)",
+                            active: state.aspectFit) {
+                        state.aspectFit.toggle()
+                        UserDefaults.standard.set(state.aspectFit, forKey: "aspectFit")
+                        ipaduae_set_aspect_fit(state.aspectFit ? 1 : 0)
+                    }
+                    MenuRow(icon: "tv", title: state.externalDisplay ? "TV Out: On (when connected)" : "TV Out: Off",
+                            active: state.externalDisplay) {
+                        state.externalDisplay.toggle()
+                        UserDefaults.standard.set(state.externalDisplay, forKey: "externalDisplay")
+                        ipaduae_set_external_display(state.externalDisplay ? 1 : 0)
+                    }
+                }
+            }
+            .frame(maxHeight: 460)
+        }
+    }
+}
+
+/// Keyboard, joystick and the on-screen overlays.
+struct InputPanel: View {
+    let onDone: () -> Void
+    @ObservedObject private var state = OverlayState.shared
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Button(action: onDone) { Label("Back", systemImage: "chevron.left") }
+                    .buttonStyle(.plain)
+                Spacer()
+                Text("Input & Overlays").font(.headline)
+            }
+            .padding(.bottom, 6)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    if FloppyHaptics.supported {
+                        MenuRow(icon: state.floppyHaptics ? "waveform" : "waveform.slash",
+                                title: state.floppyHaptics ? "Floppy Haptics: On" : "Floppy Haptics: Off",
+                                active: state.floppyHaptics) {
+                            state.floppyHaptics.toggle()
+                        }
+                    }
+                    MenuRow(icon: state.tabletMode ? "hand.point.up.left.fill" : "hand.point.up.left",
+                            title: state.tabletMode ? "1:1 Mouse: On" : "1:1 Mouse: Off (relative/trackpad)",
+                            active: state.tabletMode) {
+                        state.tabletMode.toggle()
+                        ConfigStore.setTabletMode(state.tabletMode)
+                    }
+                    MenuRow(icon: "keyboard", title: state.showKeyboard ? "Hide Amiga Keyboard" : "Amiga Keyboard",
+                            active: state.showKeyboard) {
+                        state.showKeyboard.toggle()
+                    }
+                    MenuRow(icon: state.keyboardOverlayStyle ? "square.on.square" : "rectangle.bottomthird.inset.filled",
+                            title: state.keyboardOverlayStyle ? "Keyboard Style: Overlay (see-through)"
+                                                              : "Keyboard Style: Screen above",
+                            active: !state.keyboardOverlayStyle) {
+                        state.keyboardOverlayStyle.toggle()
+                        UserDefaults.standard.set(state.keyboardOverlayStyle, forKey: "keyboardOverlayStyle")
+                    }
+                    MenuRow(icon: "f.cursive", title: state.showFKeys ? "Hide Function Keys" : "Function Keys (F1–F10)",
+                            active: state.showFKeys) {
+                        state.showFKeys.toggle()
+                    }
+                    MenuRow(icon: "number.square", title: state.showNumpad ? "Hide Numpad" : "Numpad (WHDLoad quit keys)",
+                            active: state.showNumpad) {
+                        state.showNumpad.toggle()
+                    }
+                    MenuRow(icon: "gamecontroller", title: state.showJoystick ? "Hide Joystick" : "Virtual Joystick",
+                            active: state.showJoystick) {
+                        state.showJoystick.toggle()
+                    }
+                    // Overlay transparency: applies to keyboard/numpad/F-keys/joystick.
+                    HStack(spacing: 10) {
+                        Image(systemName: "circle.lefthalf.filled").frame(width: 22)
+                        Slider(value: Binding(
+                            get: { state.overlayOpacity },
+                            set: {
+                                state.overlayOpacity = $0
+                                UserDefaults.standard.set($0, forKey: "overlayOpacity")
+                            }), in: 0.25...1.0)
+                        Text("\(Int(state.overlayOpacity * 100)) %")
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                            .frame(width: 44, alignment: .trailing)
+                    }
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 4)
+                }
+            }
+            .frame(maxHeight: 460)
         }
     }
 }
