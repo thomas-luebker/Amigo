@@ -41,8 +41,8 @@ targets:
         INFOPLIST_FILE: Amigo-Info.plist
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        CURRENT_PROJECT_VERSION: 20260816
-        MARKETING_VERSION: "0.7.1"
+        CURRENT_PROJECT_VERSION: 20260818
+        MARKETING_VERSION: "0.7.2"
         SUPPORTS_MACCATALYST: NO
         OTHER_LDFLAGS: "-lz -luaecore -lFLAC"
         "LIBRARY_SEARCH_PATHS[sdk=iphoneos*]": "$(PROJECT_DIR)/../build/ios $(PROJECT_DIR)/../vendor/FLAC/lib-ios"
