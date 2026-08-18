@@ -184,20 +184,6 @@ extern "C" void ipaduae_set_vsync(int on)
     unix_video_apply_vsync();
 }
 
-/* Warp (turbo) mode: uncaps emulation so disk loads and boots run at
- * host speed. warpmode() is the same entry the desktop GUI and the
- * input-event path use — it pauses sound, raises gfx_framerate and
- * recomputes vsynctime, so it must not be poked at by hand. */
-extern "C" void ipaduae_set_warp(int on)
-{
-    warpmode(on ? 1 : 0);
-}
-
-extern "C" int ipaduae_warp_active(void)
-{
-    return currprefs.turbo_emulation ? 1 : 0;
-}
-
 /* CRT look. The SDL renderer already composites a scanline overlay from
  * the filter prefs (render_scanline_overlay in video_sdl.cpp), which is
  * read fresh out of currprefs every frame — so this is a live toggle

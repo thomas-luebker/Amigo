@@ -137,10 +137,29 @@ is never raced against mid-write. All access goes through
   the copy. Scope it separately if media sync is to be more than
   "CDs, ROMs and unmounted disks".
 
-## Quick wins — all done 2026-08-18
+## Quick wins — done 2026-08-18 (warp built, measured, dropped)
 
-- [x] **Warp button** — `ipaduae_set_warp` through the core's own
-  `warpmode()`; a floating button beside the gear, plus a menu row.
+- [~] **Warp button — BUILT, MEASURED, REMOVED 2026-08-18.** Wired to the
+  core's own `warpmode()` and tested on the iPad: it made the machine
+  **significantly slower**, not faster. Removed rather than shipped —
+  a control that does the opposite of its label is worse than no control.
+
+  The backlog entry said "WinUAE warp mode exists, just expose it". That
+  was wrong, and is the reason this got treated as a quick win.
+
+  Leading theory, unconfirmed: with `sound_output=exact` (our default)
+  WinUAE paces emulation from the audio buffer. `warpmode()` calls
+  `pause_sound()`, and `finish_sound_buffer()` discards the buffer under
+  turbo — so warp removes the clock the emulation was pacing against and
+  pacing falls back to `compute_vsynctime()`. `gfx_framerate=10` (frame
+  skip) may also not be honoured by the unix present path. Nothing in
+  `od-unix/` reads `turbo_emulation` except that one line in `sound.cpp`.
+
+  To retry properly: instrument emulated FPS on device, toggle warp, and
+  find what actually paces the loop with vsync off and sound discarded.
+  Real value is **floppy-based games**, where load time is wall-clock
+  bound no matter how fast the CPU is — an HDF-booting 68060 does not
+  need it, which is why this went unnoticed until someone timed it.
 - [x] **Drag & drop from Files** — drop onto the picture; a single floppy
   goes straight into DF0. The interaction sits on SDL's view, since
   `PassthroughWindow` rejects touches outside its own controls.

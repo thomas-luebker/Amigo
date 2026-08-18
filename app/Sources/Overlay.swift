@@ -249,13 +249,6 @@ final class OverlayState: ObservableObject {
     /// Read by PassthroughWindow.hitTest on every touch.
     var modalActive = false
 
-    /// Warp (turbo) emulation — uncapped speed, sound paused. Not
-    /// persisted: leaving the app in warp across a launch would look like
-    /// a broken install (silent, and the Amiga clock racing).
-    @Published var warpActive = false {
-        didSet { ipaduae_set_warp(warpActive ? 1 : 0) }
-    }
-
     /// CRT scanline strength, 0 = off … 3 = heavy.
     @Published var crtLevel = UserDefaults.standard.object(forKey: "crtLevel") as? Int ?? 0 {
         didSet {
@@ -402,25 +395,6 @@ struct OverlayRoot: View {
                 .interactiveArea("gear")
                 .onAppear(perform: wake)
 
-                // Warp lives outside the menu on purpose: it is wanted
-                // mid-load, and opening a panel over the screen you are
-                // waiting on defeats the point. Fades with the gear.
-                Button {
-                    state.warpActive.toggle()
-                    wake()
-                } label: {
-                    Image(systemName: "hare.fill")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.9))
-                        .frame(width: 34, height: 34)
-                        .background((state.warpActive ? Color.red.opacity(0.8)
-                                                     : Color.black.opacity(0.35)), in: Circle())
-                        .overlay(Circle().strokeBorder(.white.opacity(0.15), lineWidth: 0.5))
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .opacity(state.warpActive ? 1.0 : (faded ? 0.18 : 0.85))
-                .interactiveArea("warp")
 
                 if state.showFirstRunHint && !expanded {
                     HStack(spacing: 6) {
@@ -633,11 +607,6 @@ struct ControlPanel: View {
             MenuRow(icon: "clock.arrow.circlepath", title: "Save States…") { submenu = .states }
             MenuRow(icon: "icloud", title: "iCloud Sync…") { submenu = .cloud }
             Divider().padding(.vertical, 4)
-            MenuRow(icon: "hare.fill",
-                    title: state.warpActive ? "Warp Speed: On (sound off)" : "Warp Speed: Off",
-                    active: state.warpActive) {
-                state.warpActive.toggle()
-            }
             MenuRow(icon: "display", title: "Display (picture, CRT, TV out)…") { submenu = .display }
             MenuRow(icon: "hand.tap", title: "Input & Overlays (keyboard, joystick)…") { submenu = .inputs }
             Divider().padding(.vertical, 4)
