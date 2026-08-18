@@ -129,11 +129,13 @@ final class OverlayInstaller {
     private var autosaveTimer: Timer?
 
     private func installAutosave() {
+        // Deliberately does NOT sync: the autosave slot is several MB and
+        // is rewritten every five minutes forever, so syncing here meant a
+        // multi-megabyte upload every five minutes for as long as the app
+        // was open. The handoff moment that actually matters is putting
+        // the device down, which is willResignActive below.
         let timer = Timer(timeInterval: 300, repeats: true) { _ in
             ipaduae_state_op(0, 1)
-            // The save lands at the next vsync; give it a moment before
-            // offering it to iCloud.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { CloudSync.sync() }
         }
         RunLoop.main.add(timer, forMode: .common)
         autosaveTimer = timer
@@ -141,6 +143,9 @@ final class OverlayInstaller {
             forName: UIApplication.willResignActiveNotification,
             object: nil, queue: .main) { _ in
             ipaduae_state_op(0, 1)
+            // One upload when the device is put down — the "stop here,
+            // carry on over there" moment the sync exists for.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { CloudSync.sync() }
         }
     }
 
