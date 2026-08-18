@@ -19,6 +19,19 @@ enum ConfigStore {
     static var kickstartsDir: URL { winuaeDir.appendingPathComponent("Kickstarts") }
     static var hardDrivesDir: URL { winuaeDir.appendingPathComponent("HardDrives") }
     static var cdsDir: URL { winuaeDir.appendingPathComponent("CDs") }
+    static var floppiesDir: URL { winuaeDir.appendingPathComponent("Floppies") }
+    static var saveStatesDir: URL { winuaeDir.appendingPathComponent("SaveStates") }
+
+    /// Number of emulated floppy drives (1…4). Persisted into the config
+    /// so the count survives a restart, and pushed to the running core so
+    /// it takes effect without one.
+    static func setFloppyDrives(_ count: Int) {
+        let n = min(4, max(1, count))
+        for i in 0..<4 {
+            set("floppy\(i)type", i < n ? "0" : "-1")
+        }
+        ipaduae_set_floppy_drives(Int32(n))
+    }
 
     private static func readLines() -> [String] {
         guard let text = try? String(contentsOf: configURL, encoding: .utf8) else { return [] }

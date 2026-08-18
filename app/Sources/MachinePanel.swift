@@ -8,6 +8,7 @@ struct MachinePanel: View {
     let onDone: () -> Void
     @State private var m = ConfigStore.currentMachine()
     private let initial = ConfigStore.currentMachine()
+    @ObservedObject private var state = OverlayState.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -109,6 +110,23 @@ struct MachinePanel: View {
                     Toggle("MMU emulation (68030+)", isOn: $m.mmu)
                         .font(.subheadline)
                         .disabled(m.cpu < 68030)
+
+                    // Applied immediately rather than staged with the rest:
+                    // WinUAE takes a drive-count change through changed_prefs
+                    // without a restart, and multi-disk games are usually
+                    // being set up mid-session.
+                    Text("Floppy Drives").font(.caption).foregroundStyle(.secondary)
+                    Picker("Floppy Drives", selection: Binding(
+                        get: { state.floppyDrives },
+                        set: { state.floppyDrives = $0 })) {
+                        Text("DF0").tag(1)
+                        Text("+ DF1").tag(2)
+                        Text("+ DF2").tag(3)
+                        Text("+ DF3").tag(4)
+                    }
+                    .pickerStyle(.segmented)
+                    Text("Extra drives save disk swapping in multi-disk games. Applies straight away — no restart.")
+                        .font(.footnote).foregroundStyle(.secondary)
 
                     if m.z3MB > 0 || m.rtgMB > 0, m.cpu < 68020 {
                         Text("Z3 RAM and RTG need a 32-bit CPU (68020+).")

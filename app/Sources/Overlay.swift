@@ -26,6 +26,12 @@ public func ipaduae_install_overlay() {
 /// only touches inside those rects.
 final class PassthroughWindow: UIWindow {
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        // A presented modal (the document picker) covers the screen and
+        // reports no interactive rects of its own — keep filtering and it
+        // would be visible but untouchable.
+        if OverlayState.shared.modalActive {
+            return super.hitTest(point, with: event)
+        }
         let rects = OverlayState.shared.interactiveRects
         guard rects.values.contains(where: { $0.insetBy(dx: -8, dy: -8).contains(point) }) else {
             return nil
@@ -98,6 +104,12 @@ final class OverlayInstaller {
         // the core in sync from then on).
         ipaduae_set_kbd_joystick(OverlayState.shared.showJoystick ? 1 : 0)
         ipaduae_set_aspect_fit(OverlayState.shared.aspectFit ? 1 : 0)
+        ipaduae_set_crt(Int32(OverlayState.shared.crtLevel))
+        ConfigStore.setFloppyDrives(OverlayState.shared.floppyDrives)
+        // Drops land on SDL's view, under the overlay window — the
+        // overlay rejects touches outside its own controls.
+        MediaDropDelegate.shared.install(on: scene)
+        FloppyHaptics.shared.startIfEnabled()
         // The overlay only installs once SDL's window (and thus video) is
         // up; 30s beyond that counts as a stable boot, so a crash later on
         // won't roll back the last machine/media change.
@@ -225,6 +237,53 @@ final class OverlayState: ObservableObject {
     /// Floor of 0.25 keeps them findable — invisible-but-touchable panels
     /// would eat emulator input with no visual explanation.
     @Published var overlayOpacity = UserDefaults.standard.object(forKey: "overlayOpacity") as? Double ?? 1.0
+    /// True while a UIKit modal is presented over the overlay window.
+    /// Read by PassthroughWindow.hitTest on every touch.
+    var modalActive = false
+
+    /// Warp (turbo) emulation — uncapped speed, sound paused. Not
+    /// persisted: leaving the app in warp across a launch would look like
+    /// a broken install (silent, and the Amiga clock racing).
+    @Published var warpActive = false {
+        didSet { ipaduae_set_warp(warpActive ? 1 : 0) }
+    }
+
+    /// CRT scanline strength, 0 = off … 3 = heavy.
+    @Published var crtLevel = UserDefaults.standard.object(forKey: "crtLevel") as? Int ?? 0 {
+        didSet {
+            UserDefaults.standard.set(crtLevel, forKey: "crtLevel")
+            ipaduae_set_crt(Int32(crtLevel))
+        }
+    }
+
+    /// Emulated floppy drives, 1…4. DF2/DF3 only appear in the menu once
+    /// the count reaches them.
+    @Published var floppyDrives = UserDefaults.standard.object(forKey: "floppyDrives") as? Int ?? 2 {
+        didSet {
+            UserDefaults.standard.set(floppyDrives, forKey: "floppyDrives")
+            ConfigStore.setFloppyDrives(floppyDrives)
+        }
+    }
+
+    /// Tick the drive on each floppy step. Hardware-gated: only devices
+    /// with a Taptic Engine can play it at all.
+    @Published var floppyHaptics = FloppyHaptics.enabled {
+        didSet { FloppyHaptics.enabled = floppyHaptics }
+    }
+
+    /// Transient confirmation after a drag & drop or in-app import.
+    @Published var importNotice: String?
+    private var importNoticeWork: DispatchWorkItem?
+
+    func scheduleImportNoticeDismissal() {
+        importNoticeWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            withAnimation { self?.importNotice = nil }
+        }
+        importNoticeWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: work)
+    }
+
     /// Global frames of touch-interactive overlay elements, keyed by id.
     /// Read by PassthroughWindow.hitTest on every touch; written from
     /// SwiftUI geometry callbacks. Main-thread only.
@@ -321,6 +380,26 @@ struct OverlayRoot: View {
                 .interactiveArea("gear")
                 .onAppear(perform: wake)
 
+                // Warp lives outside the menu on purpose: it is wanted
+                // mid-load, and opening a panel over the screen you are
+                // waiting on defeats the point. Fades with the gear.
+                Button {
+                    state.warpActive.toggle()
+                    wake()
+                } label: {
+                    Image(systemName: "hare.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.9))
+                        .frame(width: 34, height: 34)
+                        .background((state.warpActive ? Color.red.opacity(0.8)
+                                                     : Color.black.opacity(0.35)), in: Circle())
+                        .overlay(Circle().strokeBorder(.white.opacity(0.15), lineWidth: 0.5))
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .opacity(state.warpActive ? 1.0 : (faded ? 0.18 : 0.85))
+                .interactiveArea("warp")
+
                 if state.showFirstRunHint && !expanded {
                     HStack(spacing: 6) {
                         Text("Tap here to add a disk or hard drive")
@@ -346,6 +425,19 @@ struct OverlayRoot: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                     .background(Color.orange.opacity(0.9), in: RoundedRectangle(cornerRadius: 10))
+                    .shadow(radius: 6)
+                    .transition(.opacity)
+                }
+
+                if let notice = state.importNotice, !expanded {
+                    HStack(spacing: 6) {
+                        Image(systemName: "tray.and.arrow.down.fill")
+                        Text(notice).font(.footnote.weight(.medium))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.black.opacity(0.75), in: RoundedRectangle(cornerRadius: 10))
                     .shadow(radius: 6)
                     .transition(.opacity)
                 }
@@ -445,7 +537,7 @@ struct OverlayRoot: View {
 }
 
 struct ControlPanel: View {
-    enum Submenu { case none, df0, df1, kickstart, harddrive, cdrom, machine, controller, configs, states, help, about }
+    enum Submenu { case none, df0, df1, df2, df3, kickstart, harddrive, cdrom, machine, controller, configs, states, help, about }
     @State private var submenu: Submenu = .none
     @ObservedObject private var state = OverlayState.shared
 
@@ -462,6 +554,8 @@ struct ControlPanel: View {
                 }
             case .df0: FloppyPicker(drive: 0) { submenu = .none }
             case .df1: FloppyPicker(drive: 1) { submenu = .none }
+            case .df2: FloppyPicker(drive: 2) { submenu = .none }
+            case .df3: FloppyPicker(drive: 3) { submenu = .none }
             case .kickstart: KickstartPicker { submenu = .none }
             case .harddrive: HardDrivePicker { submenu = .none }
             case .cdrom: CDPicker { submenu = .none }
@@ -481,8 +575,26 @@ struct ControlPanel: View {
             Text("Amigo").font(.headline).padding(.bottom, 6)
             MenuRow(icon: "opticaldiscdrive", title: "Insert DF0…") { submenu = .df0 }
             MenuRow(icon: "opticaldiscdrive", title: "Insert DF1…") { submenu = .df1 }
+            if state.floppyDrives > 2 {
+                MenuRow(icon: "opticaldiscdrive", title: "Insert DF2…") { submenu = .df2 }
+            }
+            if state.floppyDrives > 3 {
+                MenuRow(icon: "opticaldiscdrive", title: "Insert DF3…") { submenu = .df3 }
+            }
             MenuRow(icon: "eject", title: "Eject DF0") { ipaduae_eject_floppy(0) }
             MenuRow(icon: "eject", title: "Eject DF1") { ipaduae_eject_floppy(1) }
+            if state.floppyDrives > 2 {
+                MenuRow(icon: "eject", title: "Eject DF2") { ipaduae_eject_floppy(2) }
+            }
+            if state.floppyDrives > 3 {
+                MenuRow(icon: "eject", title: "Eject DF3") { ipaduae_eject_floppy(3) }
+            }
+            // Drive count is a property of the machine, so it is set in
+            // the Machine panel; multi-disk games are the reason anyone
+            // wants more than two.
+            MenuRow(icon: "tray.and.arrow.down", title: "Import Files (disks, ROMs, HDFs)…") {
+                MediaPickerPresenter.shared.present()
+            }
             Divider().padding(.vertical, 4)
             MenuRow(icon: "memorychip", title: "Kickstart ROM…") { submenu = .kickstart }
             MenuRow(icon: "internaldrive", title: "Hard Drive…") { submenu = .harddrive }
@@ -495,6 +607,30 @@ struct ControlPanel: View {
             MenuRow(icon: "square.stack.3d.up", title: "Configurations (save/load setups)…") { submenu = .configs }
             MenuRow(icon: "clock.arrow.circlepath", title: "Save States…") { submenu = .states }
             Divider().padding(.vertical, 4)
+            MenuRow(icon: "hare.fill",
+                    title: state.warpActive ? "Warp Speed: On (sound off)" : "Warp Speed: Off",
+                    active: state.warpActive) {
+                state.warpActive.toggle()
+            }
+            MenuRow(icon: state.crtLevel > 0 ? "tv.fill" : "tv",
+                    title: {
+                        switch state.crtLevel {
+                        case 1: return "CRT Scanlines: Light"
+                        case 2: return "CRT Scanlines: Medium"
+                        case 3: return "CRT Scanlines: Heavy"
+                        default: return "CRT Scanlines: Off"
+                        }
+                    }(),
+                    active: state.crtLevel > 0) {
+                state.crtLevel = (state.crtLevel + 1) % 4
+            }
+            if FloppyHaptics.supported {
+                MenuRow(icon: state.floppyHaptics ? "waveform" : "waveform.slash",
+                        title: state.floppyHaptics ? "Floppy Haptics: On" : "Floppy Haptics: Off",
+                        active: state.floppyHaptics) {
+                    state.floppyHaptics.toggle()
+                }
+            }
             MenuRow(icon: "speedometer",
                     title: state.vsync ? "Display Sync: On (smooth)" : "Display Sync: Off (fast)",
                     active: state.vsync) {

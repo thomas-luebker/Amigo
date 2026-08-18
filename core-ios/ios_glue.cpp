@@ -8,6 +8,8 @@
 #include "inputdevice.h"
 #include "savestate.h"
 #include "keyboard.h"
+#include "gui.h"
+#include "disk.h"
 #include <sys/stat.h>
 #include <unistd.h>
 #include <CoreFoundation/CoreFoundation.h>
@@ -180,4 +182,86 @@ extern "C" void ipaduae_set_vsync(int on)
 {
     unix_video_vsync = on != 0;
     unix_video_apply_vsync();
+}
+
+/* Warp (turbo) mode: uncaps emulation so disk loads and boots run at
+ * host speed. warpmode() is the same entry the desktop GUI and the
+ * input-event path use — it pauses sound, raises gfx_framerate and
+ * recomputes vsynctime, so it must not be poked at by hand. */
+extern "C" void ipaduae_set_warp(int on)
+{
+    warpmode(on ? 1 : 0);
+}
+
+extern "C" int ipaduae_warp_active(void)
+{
+    return currprefs.turbo_emulation ? 1 : 0;
+}
+
+/* CRT look. The SDL renderer already composites a scanline overlay from
+ * the filter prefs (render_scanline_overlay in video_sdl.cpp), which is
+ * read fresh out of currprefs every frame — so this is a live toggle
+ * with no restart and no shader pipeline.
+ *
+ * level 0 = off, 1..3 = increasing strength. The ratio packs lit lines
+ * in the low nibble and shaded lines in the high one; 1 lit / 1 shaded
+ * is the classic every-other-line look. */
+extern "C" void ipaduae_set_crt(int level)
+{
+    if (level < 0) level = 0;
+    if (level > 3) level = 3;
+    static const int opacity[4] = { 0, 25, 45, 70 };
+    for (int i = 0; i < MAX_FILTERDATA; i++) {
+        struct gfx_filterdata *gf = &currprefs.gf[i];
+        struct gfx_filterdata *cgf = &changed_prefs.gf[i];
+        gf->gfx_filter_scanlines = cgf->gfx_filter_scanlines = opacity[level];
+        /* Shaded lines are drawn black; "level" here is the brightness of
+         * the shade itself, kept at 0 so the darkening is pure. */
+        gf->gfx_filter_scanlinelevel = cgf->gfx_filter_scanlinelevel = 0;
+        gf->gfx_filter_scanlineratio = cgf->gfx_filter_scanlineratio = (1 << 4) | 1;
+        gf->gfx_filter_scanlineoffset = cgf->gfx_filter_scanlineoffset = 0;
+        /* Bilinear softens the hard pixel edges the scanlines sit on —
+         * without it the result reads as a striped grid, not a tube. */
+        gf->gfx_filter_bilinear = cgf->gfx_filter_bilinear = level ? 1 : 0;
+    }
+}
+
+/* Floppy drive activity, polled by the app for haptics. Bit N = DFN
+ * busy. gui_ledstate is maintained by gui_led() on the emulation thread;
+ * a torn read is harmless here (worst case a tick is one poll late). */
+extern "C" int ipaduae_floppy_led_mask(void)
+{
+    unsigned int mask = 0;
+    for (int i = 0; i < 4; i++) {
+        if (gui_ledstate & (1u << (LED_DF0 + i))) {
+            mask |= 1u << i;
+        }
+    }
+    return (int)mask;
+}
+
+/* Number of emulated floppy drives (1..4). Drives beyond the count are
+ * set to DRV_NONE so they vanish from the Amiga's device list. Applied
+ * through changed_prefs, so it takes effect on the next config check
+ * without a restart. */
+extern "C" void ipaduae_set_floppy_drives(int count)
+{
+    if (count < 1) count = 1;
+    if (count > 4) count = 4;
+    for (int i = 0; i < 4; i++) {
+        const int type = (i < count) ? DRV_35_DD : DRV_NONE;
+        changed_prefs.floppyslots[i].dfxtype = type;
+    }
+    set_config_changed();
+}
+
+extern "C" int ipaduae_floppy_drives(void)
+{
+    int count = 0;
+    for (int i = 0; i < 4; i++) {
+        if (currprefs.floppyslots[i].dfxtype != DRV_NONE) {
+            count = i + 1;
+        }
+    }
+    return count < 1 ? 1 : count;
 }

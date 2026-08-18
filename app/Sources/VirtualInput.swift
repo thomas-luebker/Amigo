@@ -43,12 +43,17 @@ struct Key: Identifiable {
 }
 
 struct AmigaKeyboardView: View {
+    // Every row deliberately totals the same 15.0 key-units, so one unit
+    // width fits all of them and the block ends flush on the right. The
+    // slack each row would otherwise leave is absorbed by the key a real
+    // Amiga keyboard makes oversized anyway (Esc/Del/Help, Backspace,
+    // Return, Caps, the Shifts, Space) rather than by padding the edge.
     static let rows: [[Key]] = [
-        [Key(label: "Esc", code: SC.esc), Key(label: "F1", code: SC.f1), Key(label: "F2", code: SC.f2),
+        [Key(label: "Esc", code: SC.esc, width: 1.5), Key(label: "F1", code: SC.f1), Key(label: "F2", code: SC.f2),
          Key(label: "F3", code: SC.f3), Key(label: "F4", code: SC.f4), Key(label: "F5", code: SC.f5),
          Key(label: "F6", code: SC.f6), Key(label: "F7", code: SC.f7), Key(label: "F8", code: SC.f8),
          Key(label: "F9", code: SC.f9), Key(label: "F10", code: SC.f10),
-         Key(label: "Del", code: SC.del), Key(label: "Help", code: SC.help)],
+         Key(label: "Del", code: SC.del, width: 1.75), Key(label: "Help", code: SC.help, width: 1.75)],
         [Key(label: "`", code: SC.grave), Key(label: "1", code: SC.n1), Key(label: "2", code: SC.n2),
          Key(label: "3", code: SC.n3), Key(label: "4", code: SC.n4), Key(label: "5", code: SC.n5),
          Key(label: "6", code: SC.n6), Key(label: "7", code: SC.n7), Key(label: "8", code: SC.n8),
@@ -59,19 +64,20 @@ struct AmigaKeyboardView: View {
          Key(label: "E", code: SC.e), Key(label: "R", code: SC.r), Key(label: "T", code: SC.t),
          Key(label: "Y", code: SC.y), Key(label: "U", code: SC.u), Key(label: "I", code: SC.i),
          Key(label: "O", code: SC.o), Key(label: "P", code: SC.p), Key(label: "[", code: SC.lbracket),
-         Key(label: "]", code: SC.rbracket), Key(label: "Return", code: SC.ret, width: 1.8)],
-        [Key(label: "Ctrl", code: SC.lctrl, modifier: true), Key(label: "Caps", code: SC.capslock),
+         Key(label: "]", code: SC.rbracket), Key(label: "Return", code: SC.ret, width: 1.5)],
+        [Key(label: "Ctrl", code: SC.lctrl, width: 1.5, modifier: true),
+         Key(label: "Caps", code: SC.capslock, width: 2.5),
          Key(label: "A", code: SC.a), Key(label: "S", code: SC.s), Key(label: "D", code: SC.d),
          Key(label: "F", code: SC.f), Key(label: "G", code: SC.g), Key(label: "H", code: SC.h),
          Key(label: "J", code: SC.j), Key(label: "K", code: SC.k), Key(label: "L", code: SC.l),
          Key(label: ";", code: SC.semicolon), Key(label: "'", code: SC.apostrophe)],
-        [Key(label: "Shift", code: SC.lshift, width: 1.8, modifier: true), Key(label: "Z", code: SC.z),
+        [Key(label: "Shift", code: SC.lshift, width: 2.25, modifier: true), Key(label: "Z", code: SC.z),
          Key(label: "X", code: SC.x), Key(label: "C", code: SC.c), Key(label: "V", code: SC.v),
          Key(label: "B", code: SC.b), Key(label: "N", code: SC.n), Key(label: "M", code: SC.m),
          Key(label: ",", code: SC.comma), Key(label: ".", code: SC.period), Key(label: "/", code: SC.slash),
-         Key(label: "Shift", code: SC.rshift, width: 1.4, modifier: true), Key(label: "↑", code: SC.up)],
+         Key(label: "Shift", code: SC.rshift, width: 1.75, modifier: true), Key(label: "↑", code: SC.up)],
         [Key(label: "A⃝", code: SC.lamiga, modifier: true), Key(label: "Alt", code: SC.lalt, modifier: true),
-         Key(label: "Space", code: SC.space, width: 6), Key(label: "Alt", code: SC.ralt, modifier: true),
+         Key(label: "Space", code: SC.space, width: 8), Key(label: "Alt", code: SC.ralt, modifier: true),
          Key(label: "A⃝", code: SC.ramiga, modifier: true),
          Key(label: "←", code: SC.left), Key(label: "↓", code: SC.down), Key(label: "→", code: SC.right)],
     ]
@@ -94,29 +100,29 @@ struct AmigaKeyboardView: View {
         return min(Self.maxRowHeight, max(21, fit))
     }
 
-    /// One key-unit width that lets every row fit the available width, so a
-    /// 1-unit key is identical in every row (rows left-align, right edges
-    /// stagger — like a real keyboard).
-    private static func keyUnit(for width: CGFloat) -> CGFloat {
-        rows.map { row -> CGFloat in
-            let units = row.reduce(0) { $0 + $1.width }
-            let gaps = CGFloat(row.count - 1) * spacing
-            return (width - gaps) / units
-        }.min() ?? 30
+    /// Key-unit width for one row. Every row carries the same 15.0 units
+    /// but a different key count, so the gaps between keys (fixed at
+    /// `spacing`) eat a different amount per row — the unit is therefore
+    /// solved per row so all six end flush on the right. The residual
+    /// difference in key width between rows is under 5%.
+    private static func keyUnit(for width: CGFloat, row: [Key]) -> CGFloat {
+        let units = row.reduce(0) { $0 + $1.width }
+        let gaps = CGFloat(row.count - 1) * spacing
+        return max(1, (width - gaps) / max(units, 0.001))
     }
 
     var body: some View {
         GeometryReader { geo in
-            let unit = Self.keyUnit(for: geo.size.width)
             VStack(spacing: vSpacing) {
                 ForEach(0..<Self.rows.count, id: \.self) { r in
+                    let row = Self.rows[r]
+                    let unit = Self.keyUnit(for: geo.size.width, row: row)
                     HStack(spacing: Self.spacing) {
-                        ForEach(Self.rows[r]) { key in
+                        ForEach(row) { key in
                             KeyButton(key: key,
                                       width: unit * key.width,
                                       height: rowHeight)
                         }
-                        Spacer(minLength: 0)
                     }
                 }
             }
