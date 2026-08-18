@@ -22,15 +22,16 @@ enum ConfigStore {
     static var floppiesDir: URL { winuaeDir.appendingPathComponent("Floppies") }
     static var saveStatesDir: URL { winuaeDir.appendingPathComponent("SaveStates") }
 
-    /// Drive count as the config currently has it. `floppyNtype=-1` is a
-    /// disabled slot; anything else is a drive. This is the truth a loaded
-    /// setup carries, so it beats a remembered preference.
+    /// Drive count as the *core* currently has it.
+    ///
+    /// Deliberately not parsed out of the config text: an absent
+    /// `floppyNtype` line does NOT mean "disabled", it means "WinUAE
+    /// default", which is DF0 **and** DF1. The shipped default.uae has no
+    /// floppyNtype lines at all, so reading the text and writing the
+    /// result back silently disabled DF1 on every stock setup.
+    /// currprefs.floppyslots is the post-default, post-load truth.
     static var configuredFloppyDrives: Int {
-        var count = 1
-        for i in 0..<4 where (currentValue("floppy\(i)type") ?? "-1") != "-1" {
-            count = i + 1
-        }
-        return count
+        Int(ipaduae_floppy_drives())
     }
 
     /// Number of emulated floppy drives (1…4). Persisted into the config

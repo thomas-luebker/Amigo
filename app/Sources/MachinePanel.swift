@@ -118,7 +118,7 @@ struct MachinePanel: View {
                     Text("Floppy Drives").font(.caption).foregroundStyle(.secondary)
                     Picker("Floppy Drives", selection: Binding(
                         get: { state.floppyDrives },
-                        set: { state.floppyDrives = $0 })) {
+                        set: { state.applyFloppyDrives($0) })) {
                         Text("DF0").tag(1)
                         Text("+ DF1").tag(2)
                         Text("+ DF2").tag(3)

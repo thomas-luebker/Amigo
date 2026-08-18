@@ -220,9 +220,10 @@ extern "C" void ipaduae_set_crt(int level)
         gf->gfx_filter_scanlinelevel = cgf->gfx_filter_scanlinelevel = 0;
         gf->gfx_filter_scanlineratio = cgf->gfx_filter_scanlineratio = (1 << 4) | 1;
         gf->gfx_filter_scanlineoffset = cgf->gfx_filter_scanlineoffset = 0;
-        /* Bilinear softens the hard pixel edges the scanlines sit on —
-         * without it the result reads as a striped grid, not a tube. */
-        gf->gfx_filter_bilinear = cgf->gfx_filter_bilinear = level ? 1 : 0;
+        /* Deliberately does NOT touch gfx_filter_bilinear. It is a
+         * separate rendering preference that also governs the RTG and
+         * interlace contexts, and driving it from a CRT setting meant
+         * every launch silently overwrote it for all three. */
     }
 }
 

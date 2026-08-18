@@ -265,19 +265,26 @@ final class OverlayState: ObservableObject {
     }
 
     /// Emulated floppy drives, 1…4. DF2/DF3 only appear in the menu once
-    /// the count reaches them. Seeded from the config rather than from a
-    /// remembered preference: loading a saved setup that has four drives
-    /// must not be overridden by whatever this device last chose.
-    @Published var floppyDrives = ConfigStore.configuredFloppyDrives {
-        didSet { ConfigStore.setFloppyDrives(floppyDrives) }
+    /// the count reaches them.
+    ///
+    /// Deliberately has NO didSet. An earlier version wrote the config
+    /// from here, which meant merely *reading* a machine and mirroring it
+    /// wrote an inferred value back — and silently disabled DF1 on every
+    /// stock setup. This property mirrors the core; only an explicit user
+    /// action (applyFloppyDrives) is allowed to change the machine.
+    @Published var floppyDrives = ConfigStore.configuredFloppyDrives
+
+    /// Apply a user-chosen drive count, then mirror it. The only path
+    /// that writes floppyNtype.
+    func applyFloppyDrives(_ count: Int) {
+        ConfigStore.setFloppyDrives(count)
+        floppyDrives = count
     }
 
-    /// Re-read the drive count after something else rewrote the config
-    /// (loading a saved setup). Assigning re-runs didSet, which writes the
-    /// same values back — idempotent.
+    /// Re-read the drive count after something else changed the machine
+    /// (loading a saved setup). Read-only — writes nothing back.
     func refreshFloppyDrivesFromConfig() {
-        let n = ConfigStore.configuredFloppyDrives
-        if n != floppyDrives { floppyDrives = n }
+        floppyDrives = ConfigStore.configuredFloppyDrives
     }
 
     /// Tick the drive on each floppy step. Hardware-gated: only devices
