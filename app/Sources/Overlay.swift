@@ -120,7 +120,6 @@ final class OverlayInstaller {
         // won't roll back the last machine/media change.
         DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
             ConfigStore.markBootStable()
-            RatingPrompt.noteStableBoot()
         }
     }
 
