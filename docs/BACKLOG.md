@@ -368,6 +368,52 @@ is never raced against mid-write. All access goes through
   `PassthroughWindow.hitTest`, or the picker would have been visible and
   completely untouchable.
 
+## Boot hang after screen switch + reset (2026-08-19) — REPRODUCED
+
+Distinct from the RGA NULL crash, and **the RGA guard did not fire**, so
+Toni's dummy-pointer variant held at those two sites. This is something
+else.
+
+Reproduced by the user: several screen switches, then a reset. The app
+stays **alive** (process present) but the emulation stops dead and the
+display freezes. Full log saved at
+`~/Desktop/amigo/amigo-hang-20260819.log` (684 lines).
+
+The log ends exactly here:
+
+    Unix RTG host mode list: 12 modes
+    Unix uaegfx.card 3.4 init @4000E1AC (2688 bytes modes)
+    Unix RTG P96 RESINFO: 4000E250-4000ECD0 (2688 bytes)
+    PAL mode V=49.7614Hz ... RTG=0/0
+    PAL mode V=49.9204Hz ... RTG=0/0
+    hardfile thread starting, unit 0
+    <nothing further>
+
+A healthy boot continues past that point with:
+
+    hardfile thread starting, unit 0
+    Tablet driver running (...)
+    clipboard task init: ...
+    Creating UAE bsdsocket.library 4.1
+
+So the guest never reaches its own startup. It hangs after both RDB
+partitions mount and uaegfx initialises, right as the host-side hardfile
+thread starts — which makes a deadlock between that thread and the
+emulation thread the obvious first suspect, though nothing has been
+proven.
+
+- [ ] **Determine whether the emulation thread is blocked or spinning.**
+  Alive-but-silent does not distinguish them. Worth checking host CPU use
+  while hung, and whether SDL is still presenting frames.
+- [ ] Try it with the HDF unmounted, to confirm the hardfile thread is
+  involved at all.
+- [ ] Try with RTG off — the hang follows uaegfx init, and every
+  reproduction so far has involved screen switching.
+
+Only found because the log is now written to a file. Three earlier
+attempts at this produced nothing because `devicectl --console` had gone
+silent while appearing connected.
+
 ## Upstream: the RGA thread with Toni Wilen — WE OWE HIM DATA
 
 Toni replied 2026-08-18 on two patches; Thomas answered the same day and

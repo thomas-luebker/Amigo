@@ -54,6 +54,7 @@ static void prepare_data_directories(void)
 }
 
 extern "C" void ipaduae_install_overlay(void);
+extern "C" void ipaduae_open_debug_log(const char *path);
 extern "C" void ipaduae_heal_config_paths(void);
 extern "C" void ipaduae_fast_exit(const char *why);
 
@@ -78,6 +79,15 @@ int main(int argc, char *argv[])
     fprintf(stderr, "iPadUAE: main() entered\n");
     @autoreleasepool {
         prepare_data_directories();
+        // Open the file log HERE, not at overlay install. The crash we are
+        // chasing (RGA NULL slot on 68040+RTG boot) happens before SDL's
+        // window exists, so a log opened from the overlay is never opened
+        // at all — which is exactly what happened on the first attempt.
+        // Documents already exists by this point.
+        NSString *base = NSSearchPathForDirectoriesInDomains(
+            NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+        ipaduae_open_debug_log(
+            [base stringByAppendingPathComponent:@"amigo-log.txt"].UTF8String);
     }
     // Rewrite stale container-UUID media paths (Kickstart/HDF) before the
     // core reads default.uae — reinstalls change the container UUID.
