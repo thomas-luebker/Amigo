@@ -402,6 +402,24 @@ thread starts — which makes a deadlock between that thread and the
 emulation thread the obvious first suspect, though nothing has been
 proven.
 
+**Controlled 2026-08-19: the hang is NOT caused by Toni's dummy pointers.**
+Three builds, same stress sequence (screen switches, then reset), all with
+file logging:
+
+| build | result |
+|---|---|
+| dummies + NULL guard | hang at `hardfile thread starting, unit 0` |
+| dummies, guard REMOVED | same hang, **no crash**, process alive |
+| `NULL` restored + guard (control) | same hang, identical signature |
+
+The middle row is the useful one for upstream: with the guard removed a
+genuine NULL dereference would have segfaulted, and it did not. So the
+dummy pointers hold. The bottom row rules out the obvious confound — the
+hang reproduces without them.
+
+Also: the RGA guard did not fire once in any run today, so the original
+crash was never reproduced and we still owe Toni no `reg`/`type` bits.
+
 - [ ] **Determine whether the emulation thread is blocked or spinning.**
   Alive-but-silent does not distinguish them. Worth checking host CPU use
   while hung, and whether SDL is still presenting frames.
