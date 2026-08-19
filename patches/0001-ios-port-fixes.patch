@@ -825,7 +825,7 @@ index 07e6a3c1..6d88b57c 100644
  void target_restart(void) {}
  void target_reset(void) {}
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..5e1a3a81 100644
+index 13e88b9d..0b022cda 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -913,19 +913,55 @@ index 13e88b9d..5e1a3a81 100644
      for (SDL_Texture *texture : s_textures) {
          SDL_DestroyTexture(texture);
      }
-@@ -500,6 +555,11 @@ static int unix_input_lock_state_from_sdl(SDL_Keymod mod)
+@@ -498,14 +553,45 @@ static int unix_input_lock_state_from_sdl(SDL_Keymod mod)
+     return lockstate;
+ }
  
- static int statusbar_source_height(void)
- {
++/* Source-resolution multiplier for the LED bar, 1..4 (statusline.cpp
++ * clamps at 4). Chosen per frame in make_video_layout(), once the height
++ * the bar is actually presented at is known.
++ *
++ * It used to be fixed at 1x: the bar was drawn once at TD_TOTAL_HEIGHT
++ * (about 11 pixels tall) and then magnified to fill
++ * statusbar_display_height() * pixel_scale_y — 4x to 6x on a Retina
++ * phone — with linear filtering. The two axes also disagreed, because
++ * vertical magnification came from the pixel scale while horizontal came
++ * from safe_w / frame->width, so the LEDs were stretched anisotropically:
++ * roughly 1.7:1 in landscape and 3.7:1 in portrait on an iPhone. That is
++ * the "stretched and blurry, and worse in portrait" reported from the
++ * field, on iPad as well as iPhone.
++ *
++ * Drawing the bar at the size it is presented at puts magnification near
++ * 1:1 and makes it equal in both axes. */
++static int s_status_scale = 1;
++
++static int statusbar_base_height(void)
++{
 +    /* No LED bar requested → reserve no space and draw nothing, reclaiming
 +     * the screen area for the emulated picture. */
 +    if (!(currprefs.leds_on_screen & STATUSLINE_CHIPSET)) {
 +        return 0;
 +    }
-     return TD_TOTAL_HEIGHT;
++    return TD_TOTAL_HEIGHT;
++}
++
+ static int statusbar_source_height(void)
+ {
+-    return TD_TOTAL_HEIGHT;
++    return statusbar_base_height() * s_status_scale;
  }
  
-@@ -672,6 +732,89 @@ static bool get_renderer_output_size(int *width, int *height)
++/* How large the bar appears, in the window's logical units. Deliberately
++ * independent of s_status_scale — raising the source resolution must not
++ * change the size of anything on screen. */
+ static int statusbar_display_height(void)
+ {
+-    return statusbar_source_height() * UnixStatusScale;
++    return statusbar_base_height() * UnixStatusScale;
+ }
+ 
+ static void init_status_colors(void)
+@@ -672,6 +758,89 @@ static bool get_renderer_output_size(int *width, int *height)
      return get_window_pixel_size(width, height);
  }
  
@@ -1015,7 +1051,7 @@ index 13e88b9d..5e1a3a81 100644
  static bool make_video_layout(const struct unix_video_frame *frame, const struct gfx_filterdata *filter,
      int output_width, int output_height, struct unix_video_layout *layout)
  {
-@@ -684,10 +827,42 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -684,10 +853,58 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      get_window_pixel_scale(output_width, output_height, &layout->pixel_scale_x, &layout->pixel_scale_y);
  
      int status_height = std::max(1, (int)(statusbar_display_height() * layout->pixel_scale_y + 0.5f));
@@ -1040,7 +1076,8 @@ index 13e88b9d..5e1a3a81 100644
 +            safe_w = (int)(sa.w * px);
 +            safe_h = (int)(sa.h * py);
 +        }
-+    }
+     }
+-    const int frame_area_height = std::max(1, output_height - status_height);
 +#endif
 +
 +    /* Reserve the keyboard strip at the window bottom. The reservation
@@ -1051,17 +1088,32 @@ index 13e88b9d..5e1a3a81 100644
 +        const int inset_px = (int)((float)output_height * unix_video_bottom_inset + 0.5f);
 +        const int bottom_limit = std::min(safe_y + safe_h, output_height - inset_px);
 +        safe_h = std::max(1, bottom_limit - safe_y);
-     }
--    const int frame_area_height = std::max(1, output_height - status_height);
++    }
 +
 +    if (status_height >= safe_h) {
 +        status_height = std::max(0, safe_h - 1);
++    }
++    /* Now that the presented height is settled, pick the source
++     * multiplier. update_status_texture() runs later in the same present,
++     * so this frame already draws at the new resolution. */
++    if (statusbar_base_height() > 0) {
++        const int base = statusbar_base_height();
++        const int want = std::max(1, std::min(4, (status_height + base / 2) / base));
++        if (want != s_status_scale) {
++            s_status_scale = want;
++            write_log(_T("iPadUAE statusbar: scale=%d source=%dx%d presented=%dx%d ")
++                      _T("(mag h=%.2f v=%.2f)\n"),
++                      s_status_scale, frame->width * s_status_scale, base * s_status_scale,
++                      safe_w, status_height,
++                      (float)safe_w / (float)(frame->width * s_status_scale),
++                      (float)status_height / (float)(base * s_status_scale));
++        }
 +    }
 +    const int frame_area_height = std::max(1, safe_h - status_height);
  
      SDL_FRect source_rect = filtered_frame_rect(frame, filter);
      SDL_FRect dst = {};
-@@ -696,37 +871,44 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -696,37 +913,44 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      if (frame->filter_index == GF_RTG && mode == 2) { /* center */
          dst.w = source_rect.w * layout->pixel_scale_x;
          dst.h = source_rect.h * layout->pixel_scale_y;
@@ -1116,7 +1168,27 @@ index 13e88b9d..5e1a3a81 100644
          (float)status_height
      };
      return true;
-@@ -1183,7 +1365,7 @@ static bool unix_gl_ensure_context(int width, int height)
+@@ -938,7 +1162,19 @@ static bool update_status_pixels(int width)
+ 
+     init_status_colors();
+     std::fill(s_status_pixels.begin(), s_status_pixels.end(), 0xffd4d0c8u);
++    /* statusline_set_multiplier() ignores its width/height arguments and
++     * reads currprefs.leds_on_screen_multiplier instead, so the multiplier
++     * has to be driven through that. Saved and restored around the call so
++     * a device-derived value can never reach a config file — the pref is
++     * written out as show_leds_size. statusline_mult[] retains the value
++     * after the restore, which is what statusbar_hit_slot() reads. */
++    const int saved_mult0 = currprefs.leds_on_screen_multiplier[0];
++    const int saved_mult1 = currprefs.leds_on_screen_multiplier[1];
++    currprefs.leds_on_screen_multiplier[0] = s_status_scale * 100;
++    currprefs.leds_on_screen_multiplier[1] = s_status_scale * 100;
+     statusline_set_multiplier(0, width, statusbar_source_height());
++    currprefs.leds_on_screen_multiplier[0] = saved_mult0;
++    currprefs.leds_on_screen_multiplier[1] = saved_mult1;
+     for (int y = 0; y < statusbar_source_height(); y++) {
+         draw_status_line_single(
+             0,
+@@ -1183,7 +1419,7 @@ static bool unix_gl_ensure_context(int width, int height)
          return false;
      }
      SDL_GL_MakeCurrent(s_window, s_gl_context);
@@ -1125,7 +1197,7 @@ index 13e88b9d..5e1a3a81 100644
      if (!unix_gl_build_program()) {
          SDL_GL_DestroyContext(s_gl_context);
          s_gl_context = NULL;
-@@ -1334,6 +1516,17 @@ static bool unix_gl_upload_frame(const struct unix_video_frame *frame)
+@@ -1334,6 +1570,17 @@ static bool unix_gl_upload_frame(const struct unix_video_frame *frame)
      if (!unix_gl_ensure_textures(frame->width, frame->height, frame->pixbytes, frame->backbuffers)) {
          return false;
      }
@@ -1143,7 +1215,32 @@ index 13e88b9d..5e1a3a81 100644
      if (!s_gl_textures.empty()) {
          s_texture_index = (s_texture_index + 1) % (int)s_gl_textures.size();
          s_gl_texture = s_gl_textures[s_texture_index];
-@@ -1728,7 +1921,7 @@ bool unix_video_init(int width, int height, int pixbytes)
+@@ -1412,9 +1659,9 @@ static void unix_gl_present(const struct unix_video_frame *frame, const struct g
+     unix_gl_draw_texture(s_gl_texture, layout.frame_dst, true, filter, frame->width, frame->height, scaler);
+     glDisable(GL_SCISSOR_TEST);
+ 
+-    if (unix_gl_ensure_status_texture(frame->width)) {
++    if (unix_gl_ensure_status_texture(frame->width * s_status_scale)) {
+         unix_gl_draw_texture(s_gl_status_texture, layout.status_dst, true, NULL,
+-            frame->width, statusbar_source_height());
++            frame->width * s_status_scale, statusbar_source_height());
+     }
+ 
+     SDL_GL_SwapWindow(s_window);
+@@ -1480,7 +1727,11 @@ static bool statusbar_logical_position(int window_x, int window_y, int *logical_
+         return false;
+     }
+ 
+-    const int logical_width = s_texture_width;
++    /* The bar's texture is sized to the presented width now, not to the
++     * emulated frame width, so the horizontal hit test has to work in that
++     * space — statusbar_hit_slot() measures against s_status_width. The
++     * vertical test is unrelated and stays in frame space. */
++    const int logical_width = s_status_width > 0 ? s_status_width : s_texture_width;
+     const int logical_height = s_texture_height + statusbar_display_height();
+     const int lx = window_x * logical_width / window_width;
+     const int ly = window_y * logical_height / window_height;
+@@ -1728,7 +1979,7 @@ bool unix_video_init(int width, int height, int pixbytes)
              s_available = false;
              return false;
          }
@@ -1152,7 +1249,7 @@ index 13e88b9d..5e1a3a81 100644
          SDL_SetRenderDrawColor(s_renderer, 0, 0, 0, 255);
          SDL_RenderClear(s_renderer);
          SDL_RenderPresent(s_renderer);
-@@ -1736,7 +1929,15 @@ bool unix_video_init(int width, int height, int pixbytes)
+@@ -1736,7 +1987,15 @@ bool unix_video_init(int width, int height, int pixbytes)
  
      apply_window_mode();
  
@@ -1169,7 +1266,7 @@ index 13e88b9d..5e1a3a81 100644
  }
  
  void unix_video_shutdown(void)
-@@ -1744,6 +1945,7 @@ void unix_video_shutdown(void)
+@@ -1744,6 +2003,7 @@ void unix_video_shutdown(void)
      unix_input_release_keys();
      unix_video_set_mouse_grab(false);
  
@@ -1177,7 +1274,7 @@ index 13e88b9d..5e1a3a81 100644
      destroy_frame_textures();
      if (s_status_texture) {
          SDL_DestroyTexture(s_status_texture);
-@@ -1790,6 +1992,142 @@ void unix_video_shutdown(void)
+@@ -1790,6 +2050,142 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -1320,7 +1417,7 @@ index 13e88b9d..5e1a3a81 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +2161,11 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +2219,11 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -1332,7 +1429,7 @@ index 13e88b9d..5e1a3a81 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2213,52 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2271,52 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
@@ -1385,7 +1482,7 @@ index 13e88b9d..5e1a3a81 100644
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2270,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2328,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -1400,7 +1497,7 @@ index 13e88b9d..5e1a3a81 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1888,6 +2285,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1888,6 +2343,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          case SDL_EVENT_MOUSE_BUTTON_DOWN:
          case SDL_EVENT_MOUSE_BUTTON_UP:
          {
@@ -1416,7 +1513,7 @@ index 13e88b9d..5e1a3a81 100644
              if (!input_events) {
                  break;
              }
-@@ -1915,7 +2321,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2379,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -1426,7 +1523,7 @@ index 13e88b9d..5e1a3a81 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2333,293 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2391,293 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -1722,7 +1819,7 @@ index 13e88b9d..5e1a3a81 100644
          case SDL_EVENT_JOYSTICK_ADDED:
          case SDL_EVENT_JOYSTICK_REMOVED:
          case SDL_EVENT_GAMEPAD_ADDED:
-@@ -1962,6 +2648,166 @@ int unix_video_poll_window_events(bool *quit_requested)
+@@ -1962,6 +2706,166 @@ int unix_video_poll_window_events(bool *quit_requested)
      return unix_video_poll_internal(quit_requested, false);
  }
  
@@ -1889,7 +1986,7 @@ index 13e88b9d..5e1a3a81 100644
  static void unix_video_present_on_event_thread(const struct unix_video_frame *frame)
  {
      if (!frame || !frame->pixels || frame->width <= 0 || frame->height <= 0 || frame->rowbytes <= 0) {
-@@ -1981,15 +2827,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -1981,15 +2885,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
      if (!ensure_texture(frame->width, frame->height, frame->pixbytes, frame->backbuffers)) {
          return;
      }
@@ -1920,7 +2017,20 @@ index 13e88b9d..5e1a3a81 100644
      SDL_SetRenderLogicalPresentation(s_renderer, 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
      int output_width = 0;
      int output_height = 0;
-@@ -2010,6 +2867,7 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -2006,10 +2921,19 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+     render_scanline_overlay(filter, &layout.frame_dst);
+     SDL_SetRenderClipRect(s_renderer, NULL);
+ 
+-    if (update_status_texture(frame->width)) {
++    /* Supersample the bar uniformly: frame->width * scale wide by
++     * base * scale tall. Scaling both axes by the same factor keeps the
++     * layout and the on-screen size exactly as they were and only raises
++     * the resolution. Sizing the buffer to the presented width instead
++     * would overflow — draw_status_line_single() places the row at
++     * totalwidth - (padx + VISIBLE_LEDS * td_width) * scale, which goes
++     * negative once the LED row (13 * 30 source px) is magnified past the
++     * buffer. */
++    if (update_status_texture(frame->width * s_status_scale)) {
          SDL_RenderTexture(s_renderer, s_status_texture, NULL, &layout.status_dst);
      }
      SDL_RenderPresent(s_renderer);
