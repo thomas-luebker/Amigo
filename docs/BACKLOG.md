@@ -135,7 +135,14 @@ whose job was to *read* the machine config wrote an inferred value back.
   format). If `btn=0 down` appears with no matching `up`, that is the
   answer.
 
-- [ ] **Display stays stale after a WHDLoad title exits back to RTG.**
+- [x] **Display stays stale after a WHDLoad title exits back to RTG —
+  DOES NOT REPRODUCE (2026-08-19).** Retested with Turrican 2 AGA on the
+  current build: exits cleanly and repaints. Most likely never an RTG
+  re-init fault at all but warp's `gfx_framerate = 10` frame skip — see
+  the warp entry. Reopen if it recurs, and check whether warp is involved
+  before looking at the RTG path.
+
+  *Original report:*
   Reported from the amimcp session: launched Turrican 2 AGA (native AGA,
   kills the OS) in the guest; after F10 the iPad's picture stayed frozen
   while the guest was demonstrably fine — clean 1280x720 screen grabs,
@@ -293,10 +300,25 @@ is never raced against mid-write. All access goes through
 
 ## Quick wins — done 2026-08-18 (warp built, measured, dropped)
 
-- [~] **Warp button — BUILT, MEASURED, REMOVED 2026-08-18.** Wired to the
-  core's own `warpmode()` and tested on the iPad: it made the machine
-  **significantly slower**, not faster. Removed rather than shipped —
-  a control that does the opposite of its label is worse than no control.
+- [~] **Warp button — BUILT, REMOVED 2026-08-18. The "slower" reading was
+  probably wrong; see below.** Wired to the core's own `warpmode()`. On
+  device it appeared to make the machine significantly slower, so it was
+  removed rather than shipped.
+
+  **Revised 2026-08-19.** `warpmode()` sets `gfx_framerate = 10` whenever
+  turbo is on — the display draws **one frame in ten**. At roughly 5 fps
+  the picture looks frozen and the machine feels sluggish while emulation
+  is in fact running *uncapped* underneath. That fits the observation
+  exactly, and it very likely also explains the separate "display stays
+  stale after a WHDLoad title exits" report, which came from the same
+  afternoon while warp was being tested and has NOT reproduced since warp
+  was removed (Turrican 2 AGA, verified 2026-08-19).
+
+  So warp was probably working and only *looked* broken. If it is ever
+  revisited, the fix is to stop the frame skip applying — leave
+  `gfx_framerate` at 1 and let the uncapped emulation show — rather than
+  to abandon the feature. Not proven: nobody confirmed warp was actually
+  on during the WHDLoad test.
 
   The backlog entry said "WinUAE warp mode exists, just expose it". That
   was wrong, and is the reason this got treated as a quick win.
