@@ -306,3 +306,19 @@ extern "C" int ipaduae_clipboard_ready(void)
 {
     return unix_clipboard_ready();
 }
+
+/* Whether the guest-side mousehack driver is actually servicing absolute
+ * positioning. It needs Kickstart 2.0+, so on a 1.3 setup this stays 0
+ * and the touch path silently falls back to relative drag-and-hold — the
+ * menu claimed "1:1 Mouse: On" regardless, which is what the EAB report
+ * described as "1:1 touch doesn't seem to work".
+ *
+ * Reads 0 for a moment after enabling on a capable Kickstart too: the
+ * guest driver activates on the first absolute event, so the UI must say
+ * "not active yet" rather than "unsupported". */
+extern int mousehack_alive(void);
+
+extern "C" int ipaduae_mousehack_alive(void)
+{
+    return mousehack_alive() ? 1 : 0;
+}

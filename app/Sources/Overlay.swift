@@ -723,6 +723,10 @@ struct DisplayPanel: View {
 struct InputPanel: View {
     let onDone: () -> Void
     @ObservedObject private var state = OverlayState.shared
+    /// Polled while the panel is open: mousehack goes live a moment after
+    /// the first touch, so a single read at render time would mislead.
+    @State private var mousehackLive = ipaduae_mousehack_alive() != 0
+    private let tick = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -747,6 +751,24 @@ struct InputPanel: View {
                             active: state.tabletMode) {
                         state.tabletMode.toggle()
                         ConfigStore.setTabletMode(state.tabletMode)
+                    }
+                    // 1:1 needs the guest mousehack driver (Kickstart
+                    // 2.0+). On 1.3 the core silently falls back to
+                    // relative drag-and-hold while this row still said
+                    // "On" — reported from EAB as "1:1 touch doesn't
+                    // seem to work".
+                    if state.tabletMode {
+                        Text(mousehackLive
+                             ? "Active — the pointer follows your finger exactly."
+                             : "Not active yet. 1:1 needs Kickstart 2.0 or newer; on Kickstart 1.3 touch falls back to drag-and-hold, which still draws and moves icons. On a capable ROM it turns active as soon as you touch the screen.")
+                            .font(.caption)
+                            .foregroundStyle(mousehackLive ? AnyShapeStyle(.secondary)
+                                                           : AnyShapeStyle(.orange))
+                            .padding(.horizontal, 4)
+                            .padding(.bottom, 4)
+                            .onReceive(tick) { _ in
+                                mousehackLive = ipaduae_mousehack_alive() != 0
+                            }
                     }
                     MenuRow(icon: "keyboard", title: state.showKeyboard ? "Hide Amiga Keyboard" : "Amiga Keyboard",
                             active: state.showKeyboard) {
