@@ -248,7 +248,11 @@ is never raced against mid-write. All access goes through
 
   ### Three upstream bugs found in `od-unix/clipboard.cpp`
 
-  All three are worth reporting to Toni; none are ours.
+  None of these are ours — they are upstream, in the vendored unix port.
+  We are **not** filing them with Toni: he is not closely involved these
+  days, he knows about this repo, and he can take anything he wants from
+  it. The fixes live in `patches/0001-ios-port-fixes.patch`, which is
+  where anyone looking would find them.
 
   1. **`clipboard_vsync` gated on `initialized`** — `od-win32` does not.
      The Amiga process blocks on `SIGBREAK_CTRL_D` at `cfloop2` *before*
@@ -498,6 +502,9 @@ fallback (all 0.7.1 candidates). iPhone: shipped with 0.7.0.
 - [ ] Emulation on its own thread (structural lever if benchmarks demand).
 - [ ] Root-cause the >8-bit RTG accelerated-blit bug (bisect the 8 ops),
   fix properly, offer upstream.
-- [ ] Offer the patch set upstream to Toni Wilen (iOS guards, RTG reset
+- [~] ~~Offer the patch set upstream to Toni Wilen~~ — **decided against
+  2026-08-19.** He is not closely involved any more and already knows
+  about the repo; if he wants any of it he can take it. The patch series
+  stays the record. Original note: (iOS guards, RTG reset
   handler, mousehack mode-4 fix, toggle_rtg robustness).
 - [ ] Try `gfxcard_multithread`.
