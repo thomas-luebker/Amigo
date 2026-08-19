@@ -364,6 +364,31 @@ is never raced against mid-write. All access goes through
 
 ## From English Amiga Board (2026-08-19)
 
+> Original post, kept verbatim because paraphrasing has already cost us
+> once: *"Haven't found any particular bugs except 1:1 touch doesn't seem
+> to work on iPhone (but I need more testing to be sure) and the fact that
+> it's not saving to .last-good unless I overwrite the config myself. The
+> LEDs also look weird in portrait mode - they look better in landscape
+> mode but they seem stretched and blurry. IIRC the same happened on my
+> iPad. Any plans of introducing an automatic Warp mode similar to
+> vAmigaWeb? That's very handy on a smartphone."*
+
+- [x] **"Not saving to .last-good unless I overwrite the config myself" —
+  ALREADY FIXED, shipped in 0.7.2 (in review 2026-08-19).** This is the
+  config-revert bug seen from outside. `markBootStable()` ran once per app
+  *launch*, 30s after the overlay installed; a machine change restarts the
+  emulator, not the app, so any change made later in a session stayed
+  armed and a force-quit made the next launch restore `.last-good.uae`.
+  From the user's seat: settings silently do not stick, and overwriting
+  the config by hand is the only thing that survives.
+  `snapshotBeforeRiskyChange` now arms its own 30s timer.
+
+  **Tell him it is fixed and in the release currently in review** — he
+  reported a real bug precisely and deserves to know it landed before he
+  wrote in.
+
+
+
 - [x] **LED bar blur — FIXED 2026-08-19, needs a look on device.** The bar
   was drawn once at 1x (`TD_TOTAL_HEIGHT` = 11 px tall) and magnified to
   `statusbar_display_height() * pixel_scale_y` with linear filtering — 4x
