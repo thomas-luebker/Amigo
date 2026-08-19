@@ -577,8 +577,12 @@ cannot do himself.
   playing pinball impossible". **FIXED and hardware-verified 2026-08-18**,
   merged; see the 0.7.2 section above. This was the last open item from
   the thread — every reported issue now has an answer.
-- [ ] **Pro Controller not working in Project X** (DotMatrixHead) —
-  uninvestigated; see the 0.7.2 section above.
+- [x] **Pro Controller not working in Project X** — CLOSED 2026-08-19 as
+  stale; the report predates Bluetooth controller support (0.7.0), see
+  the Project X entry above. Attributed to DotMatrixHead here but it was
+  u/Working_Ladder_51 who reported it.
+
+
 - [ ] **Vision Pro "Designed for iPad"** — ASC availability checkbox, no
   build change. Verify on visionOS sim first: overlay UIWindow composites,
   right-click reachable (recommend Bluetooth mouse in help). Native
