@@ -202,6 +202,19 @@ is never raced against mid-write. All access goes through
   the copy. Scope it separately if media sync is to be more than
   "CDs, ROMs and unmounted disks".
 
+## Decided against
+
+- **Automatic rating prompt.** Built and removed 2026-08-19 at the user's
+  call. The numbers argued for it — 445 installs, 5 ratings, a 5.00
+  average nobody browsing can see — but Amigo is free, no ads, no IAP and
+  GPL, and an r/amiga audience is precisely the crowd that resents being
+  nagged. A prompt that costs goodwill to buy ranking is a bad trade for
+  this app. Don't re-add it without a decision, not just a metric.
+
+  If the rating count ever needs addressing, the acceptable shape is
+  *passive*: a "Rate Amigo" row in About & Licenses that the user taps
+  because they want to, never something that appears on its own.
+
 ## 0.7.3 — on main, unreleased
 
 - [x] **Clipboard: copy & paste between iOS and the Amiga (2026-08-19).**
