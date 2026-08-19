@@ -11,9 +11,14 @@ echo "==> Building WinUAE core (arm64 device, -O3)"
 echo "==> Regenerating Xcode project"
 xcodegen -s app/project.yml
 
-# Auto build number = git commit count (monotonic), so re-uploads never
-# collide. Overrideable: ./build-release.sh <build-number>
-BUILD_NUMBER="${1:-$(git rev-list --count HEAD)}"
+# Auto build number = today's date (YYYYMMDD). Every build uploaded to App
+# Store Connect so far has used this scheme (20260814.2 ... 20260816), and
+# App Store Connect requires each build number to be HIGHER than the last.
+# The previous default here was `git rev-list --count HEAD`, which is
+# currently 159 — far below 20260816 — so an unattended release would have
+# been rejected on upload. Override for a second build on the same day:
+#   ./build-release.sh 20260819.2
+BUILD_NUMBER="${1:-$(date +%Y%m%d)}"
 echo "==> Build number: ${BUILD_NUMBER}"
 
 echo "==> Archiving (Release, automatic signing)"
