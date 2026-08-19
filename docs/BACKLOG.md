@@ -153,7 +153,10 @@ whose job was to *read* the machine config wrote an inferred value back.
 ### Candidates — undecided
 
 - [ ] **Pro Controller in Project X.** DotMatrixHead reported the pad not
-  working in that game specifically.
+  working in that game specifically. **Increasingly isolated:** a PS4 pad
+  works perfectly in Pang (u/NeilDeWheel, r/amiga, 2026-08-19), and a BT
+  pad in CD32 layout works in the Turrican 2 AGA Remake. Three independent
+  confirmations that the pad path is sound, against one game.
 
   **Narrowed 2026-08-18:** a Bluetooth controller in **CD32 layout** was
   tested against the *Turrican 2 AGA Remake* on the iPad and works. So
