@@ -50,8 +50,9 @@ That is the only thing left.
 - [x] **Menu restructure.** The main menu had reached 36 rows (four added
   by this release) and only worked because `ViewThatFits` drops it into a
   ScrollView. Display and Input & Overlays are now submenus; the main
-  menu is 20 rows, 24 with DF2/DF3 enabled. Warp deliberately stayed at
-  the top level — it is a mid-load control and burying it defeats it.
+  menu is 20 rows, 24 with DF2/DF3 enabled. (Warp was placed at the top
+  level as a mid-load control, then removed entirely later the same day
+  once measured — see "Quick wins" below.)
 
 - [x] **Subtitle decided: "Classic Amiga Emulator."** ASC already held it;
   APPSTORE.md's "Classic Amiga computing" was the outlier and is gone.
@@ -201,6 +202,82 @@ is never raced against mid-write. All access goes through
   the copy. Scope it separately if media sync is to be more than
   "CDs, ROMs and unmounted disks".
 
+## 0.7.3 — on main, unreleased
+
+- [x] **Clipboard: copy & paste between iOS and the Amiga (2026-08-19).**
+  Both directions verified on the iPad Pro M4.
+
+  Most of it already existed: WinUAE's clipboard machinery is complete and
+  was already compiled in (Amiga side via the filesys uae-boot handler,
+  `od-unix/clipboard.cpp` for IFF FTXT/ILBM, `clipboard_vsync` per frame,
+  `WINUAE_UNIX_WITH_IMAGEIO` on). It was gated behind
+  `currprefs.clipboard_sharing`, default false.
+
+  **iOS-shaped design.** Reading `UIPasteboard` without user intent raises
+  the system "Amigo pasted from <app>" banner, so on iOS the 2-second host
+  poll is compiled out, as is the pasteboard read `amiga_clipboard_init`
+  did on every Amiga boot. **No C++ reads the pasteboard at all.** iOS →
+  Amiga comes in through a SwiftUI `PasteButton` (iOS 16+, we target 17)
+  where the tap *is* the consent. Amiga → iOS is automatic, because
+  *writing* raises no banner.
+
+  Two paste routes, because `clipboard.device` alone disappoints: the
+  Amiga clipboard (Workbench programs that read it), and **type as
+  keystrokes**, which works in the Shell, editors and games — all the
+  software that never implemented `clipboard.device`, which is most of it.
+
+  ### Three upstream bugs found in `od-unix/clipboard.cpp`
+
+  All three are worth reporting to Toni; none are ours.
+
+  1. **`clipboard_vsync` gated on `initialized`** — `od-win32` does not.
+     The Amiga process blocks on `SIGBREAK_CTRL_D` at `cfloop2` *before*
+     it can call mode 15, and mode 15 is the only thing that sets
+     `initialized`. The host waited for an init that could only happen
+     after a signal it refused to send. Symptom: "clipboard task init" in
+     the log, never "clipboard initialized". Amiga → host dead forever.
+  2. **The `CBD_CHANGEHOOK` never fires on this port.** Established on
+     hardware via the amimcp session reading the guest: clip provably in
+     `clipboard.device` unit 0 (read back through ConClip, twice,
+     different nonces), `UAE clipboard sharing` alive at pri -10
+     throughout, two distinct clip IDs behaving identically (so not
+     `cliphook`'s `.same` branch). `filesys.asm` never tests the result of
+     the `CBD_CHANGEHOOK` `DoIO`, so a failed install is silent and looks
+     exactly like this. **Fix: leave `signaling` set in
+     `amiga_clipboard_init`**, so `clipboard_vsync_cb` pokes the task once
+     a second and drives `clipread` without the hook.
+  3. **`clipboard_put_text` had no dedupe** — latent on desktop because
+     nothing there polls. With the poll, `got_data` arrives every second
+     and every poll rewrote the host clipboard: on iOS that stomps
+     anything the user copies in another app, within a second, forever.
+     It would have passed a quick test and ruined the clipboard in daily
+     use. Now compares against `last_host_clipboard` first.
+
+  Also fixed on the way: `write_host_clipboard_text` fell back to
+  `/usr/bin/pbcopy` via `popen`, which cannot exist on iOS, so the
+  direction had nowhere to go even once the handshake worked. Now writes
+  `UIPasteboard` directly from `UAEBridge.mm`.
+
+- [ ] **Why does the `CBD_CHANGEHOOK` not install?** The proper fix.
+  Polling re-reads the entire clip every second — negligible for text,
+  wasteful for a large one. Needs the boot ROM instrumented, which means
+  rebuilding `filesys.asm`.
+
+- [ ] **The in-app clipboard toggle has never been tested.** Sharing was
+  only ever enabled by pushing `default.uae` to the device with
+  `devicectl`. "Gear → Clipboard → Amiga Clipboard Sharing" is the path a
+  real user takes and it is unverified — and it is exactly what silently
+  reverted before the rollback fix below.
+
+- [x] **Config changes silently reverted after a force-quit.**
+  `markBootStable()` ran once per app *launch*, 30s after the overlay
+  installed. A machine change restarts the emulator, not the app, so the
+  risky-change marker stayed armed for the rest of the session; force-quit
+  (swipe up — no chance to run `ipaduae_fast_exit`) and the next launch
+  restored `.last-good.uae`. **Affected every machine setting**, not just
+  clipboard, and cost most of one investigation.
+  `snapshotBeforeRiskyChange` now arms its own 30s timer.
+
 ## Quick wins — done 2026-08-18 (warp built, measured, dropped)
 
 - [~] **Warp button — BUILT, MEASURED, REMOVED 2026-08-18.** Wired to the
@@ -245,6 +322,61 @@ is never raced against mid-write. All access goes through
   overlay window. Needed a `modalActive` escape hatch in
   `PassthroughWindow.hitTest`, or the picker would have been visible and
   completely untouchable.
+
+## From English Amiga Board (2026-08-19)
+
+- [x] **LED bar blur — FIXED 2026-08-19, needs a look on device.** The bar
+  was drawn once at 1x (`TD_TOTAL_HEIGHT` = 11 px tall) and magnified to
+  `statusbar_display_height() * pixel_scale_y` with linear filtering — 4x
+  on a 2x screen, 6x on a 3x phone. It is now supersampled: a per-frame
+  `s_status_scale` (1..4) sizes the source buffer to
+  `frame->width * scale` by `TD_TOTAL_HEIGHT * scale`, chosen in
+  `make_video_layout()` from the height the bar is actually presented at.
+  Magnification drops from 4-6x to about 1.0-1.5x vertically and to a
+  *downscale* horizontally.
+
+  Two things worth knowing about the implementation:
+  - `statusline_set_multiplier()` **ignores its width/height arguments**
+    and reads `currprefs.leds_on_screen_multiplier` instead. That pref is
+    persisted as `show_leds_size`, so it is saved and restored around the
+    call — a device-derived value must never reach a config file. Same
+    read-path-must-not-write rule as the DF1 and RTG regressions.
+  - Sizing the buffer to the *presented* width (the obvious first move,
+    and what this was written as before the arithmetic was checked)
+    **overflows**: `draw_status_line_single()` places the row at
+    `totalwidth - (padx + VISIBLE_LEDS * td_width) * scale`, and with
+    `VISIBLE_LEDS` = 13 at `td_width` = 30 that is -397 in portrait at
+    scale 4. Scaling both axes by the same factor keeps `x_start`
+    positive by construction.
+
+- [ ] **LED bar stretch — NOT fixed, and it is a design decision, not a
+  bug.** Supersampling scales both axes equally, so the on-screen *shape*
+  is unchanged: the LEDs are as non-square as they were, just sharp now.
+  The anisotropy is structural — vertical magnification comes from
+  `pixel_scale_y`, horizontal from `safe_w / frame->width`, so they only
+  agree by accident. Measured ratio: ~1.7:1 landscape, ~3.7:1 portrait.
+
+  Square LEDs in portrait need `status_height = 11 * safe_w / 720`, i.e.
+  about 18 px where the bar is currently 66 — a bar 3.7x shorter. Going
+  the other way and widening the row does not fit either: 13 LEDs need
+  `394 * scale` px and portrait only has room for about half that. So on
+  a narrow screen there is genuinely no room for 13 square LEDs at this
+  bar height, which is presumably why upstream stretches. Real options,
+  all of them product calls: a shorter bar in portrait, fewer LEDs
+  (hide disabled drives), or leave it.
+
+- [ ] **"1:1 Mouse: On" lies on Kickstart 1.3.** mousehack needs KS 2.0+;
+  below that `video_sdl.cpp` falls back to relative drag-hold, silently,
+  while the menu row still claims 1:1. `mh_alive` is already known to the
+  core. Reported from EAB as "1:1 touch doesn't seem to work on iPhone" —
+  note that iPhone has neither trackpad nor Pencil, so finger-only 1:1 is
+  a poor fit there regardless.
+
+- [ ] **Settle warp before answering anyone on automatic warp.** EAB asked
+  for vAmigaWeb-style automatic warp. Warp was built, measured and removed
+  (see below) — automatic warp hits the identical path. Instrument
+  emulated FPS on device, toggle warp, and test with `sound_output` set to
+  something other than `exact`.
 
 ## From the r/amiga launch thread (2026-08-15, prioritized)
 
