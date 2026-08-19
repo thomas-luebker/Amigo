@@ -38,10 +38,48 @@ index bfc350a6..eec8ebc7 100644
  		p->m68k_speed *= CYCLE_UNIT;
  		return 1;
 diff --git a/custom.cpp b/custom.cpp
-index fee66a3a..f0102034 100644
+index fee66a3a..d040c876 100644
 --- a/custom.cpp
 +++ b/custom.cpp
-@@ -11677,23 +11677,37 @@ static void handle_rga_out(void)
+@@ -9248,6 +9248,19 @@ static void generate_copper(void)
+ // Because BPL and SPR DMA is decided 1 CCK earlier than others
+ // PT and MOD need to be loaded in following cycle, cycle
+ // when request goes to DMA addressing logic.
++/* Placeholder targets for RGA slots whose real pointer is installed later
++ * by bitplane_rga_ptmod(). Passing NULL there meant a slot could reach
++ * handle_rga_out() still unresolved — if RTG switched on in between,
++ * bitplane_rga_ptmod() is skipped (it sits under !custom_disabled while
++ * handle_rga_out() does not) and the refresh branch dereferenced NULL.
++ *
++ * Toni Wilen's suggested fix (2026-08-19): give them somewhere harmless
++ * to point instead of adding a test to the hot path. Separate variables
++ * per source, at his suggestion, so a stray write is attributable.
++ * "fast mode" can ignore most of the accurate parts anyway. */
++static uaecptr dummy_bpl_pt;
++static uaecptr dummy_spr_pt;
++
+ static void bitplane_rga_ptmod(void)
+ {
+ 	struct rgabuf *r = read_rga_in();
+@@ -9362,7 +9375,7 @@ static void generate_bpl(bool clock)
+ 			int plane = bpl_sequence[cycle_pos];
+ 			if (plane >= 1 && plane <= bplcon0_planes_limit) {
+ 				int bpl = plane - 1;
+-				struct rgabuf *rga = write_rga(RGA_SLOT_BPL, CYCLE_BITPLANE, 0x110 + bpl * 2, NULL);
++				struct rgabuf *rga = write_rga(RGA_SLOT_BPL, CYCLE_BITPLANE, 0x110 + bpl * 2, &dummy_bpl_pt);
+ 				rga->bpldat = bpl | (domod ? 8 : 0);
+ 			}
+ 		}
+@@ -9688,7 +9701,7 @@ static void generate_sprites(int num, int slot)
+ 				if (dodma) {
+ 					uae_u32 dat = CYCLE_PIPE_SPRITE | (s->dmastate ? 0x10 : 0x00) | (s->dmacycle == 1 ? 0 : 8) | num;
+ 					int reg = 0x140 + slot + num * 8 + (s->dmastate ? 4 : 0);
+-					struct rgabuf *rga = write_rga(RGA_SLOT_BPL, CYCLE_SPRITE, reg, NULL);
++					struct rgabuf *rga = write_rga(RGA_SLOT_BPL, CYCLE_SPRITE, reg, &dummy_spr_pt);
+ 					evt_t c = get_cycles();
+ 					if (c == sprite_dma_change_cycle_on) {
+ 						// If sprite DMA is switched on just when sprite DMA is decided, channel is still decided but it is not allocated!
+@@ -11677,23 +11690,37 @@ static void handle_rga_out(void)
  		last_rga_cycle = get_cycles();
  
  		if (r->type & (CYCLE_REFRESH | CYCLE_STROBE)) {
