@@ -344,10 +344,26 @@ extern "C" void ipaduae_open_debug_log(const char *path)
     if (debugfile || !path) {
         return;
     }
+    /* Rotate rather than truncate. Opening "w" destroyed the previous
+     * session's log on every launch — which is precisely the log you want
+     * after a crash or hang, and the restart that follows wipes it. The
+     * previous run is kept alongside as amigo-log.prev.txt, so exactly one
+     * generation survives without unbounded growth. */
+    char prev[1024];
+    snprintf(prev, sizeof prev, "%s", path);
+    char *dot = strrchr(prev, '.');
+    if (dot) {
+        snprintf(dot, sizeof prev - (dot - prev), ".prev.txt");
+    } else {
+        strncat(prev, ".prev.txt", sizeof prev - strlen(prev) - 1);
+    }
+    rename(path, prev);
+
     debugfile = fopen(path, "w");
     if (debugfile) {
         always_flush_log = 1;
         fprintf(debugfile, "iPadUAE: file log opened at %s\n", path);
+        fprintf(debugfile, "iPadUAE: previous session kept at %s\n", prev);
         fflush(debugfile);
     }
 }
