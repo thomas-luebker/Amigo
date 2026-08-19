@@ -152,23 +152,21 @@ whose job was to *read* the machine config wrote an inferred value back.
 
 ### Candidates — undecided
 
-- [ ] **Pro Controller in Project X.** DotMatrixHead reported the pad not
-  working in that game specifically. **Increasingly isolated:** a PS4 pad
-  works perfectly in Pang (u/NeilDeWheel, r/amiga, 2026-08-19), and a BT
-  pad in CD32 layout works in the Turrican 2 AGA Remake. Three independent
-  confirmations that the pad path is sound, against one game.
+- [x] **Pro Controller in Project X — CLOSED 2026-08-19, the report was
+  stale.** u/Working_Ladder_51 reported it while **0.6.5** was the only
+  downloadable build, and Bluetooth controller support did not arrive
+  until 0.7.0. Thomas's own correction in that thread says so explicitly:
+  "Bluetooth controller support is new in 0.7.0, which is still in App
+  Store review, so it's not in the version you can download today
+  (0.6.5)." So the pad was not working in *anything* at that point —
+  Project X is simply what he happened to test it in.
 
-  **Narrowed 2026-08-18:** a Bluetooth controller in **CD32 layout** was
-  tested against the *Turrican 2 AGA Remake* on the iPad and works. So
-  the pad path — pairing, CD32 mapping, port routing — is sound in a real
-  AGA game. That matches the code: `joystick_apply_controller_prefs` in
-  `od-unix/input.cpp` is generic with no game-specific path, so any
-  Project X fault is in how that game reads the port, not in what we
-  assign to it.
+  Nothing was ever game-specific, and three later confirmations back that
+  up: a PS4 pad in Pang (u/NeilDeWheel), a BT pad in CD32 layout in the
+  Turrican 2 AGA Remake, and the routing code having no game-specific
+  path at all. Reopen only if someone reports it on 0.7.1 or later.
 
-  Remaining triage, when someone has the game: port 0 vs 1, CD32 mode
-  **off** (Project X is a 1991 floppy game, it predates the CD32 pad
-  protocol and may be confused by it), and autofire off.
+
 
 ### Explicitly not in 0.7.2 unless decided otherwise
 
