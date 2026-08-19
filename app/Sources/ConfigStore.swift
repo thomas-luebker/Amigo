@@ -117,9 +117,11 @@ enum ConfigStore {
     /// the emulator, not the app, so any change made later in a session
     /// stayed armed for the rest of it, and a force-quit (swipe up: no
     /// chance to run ipaduae_fast_exit) made the next launch roll it back.
-    /// Settings silently reverted; this is how the clipboard toggle was
-    /// lost. The crash-loop protection is unaffected — if the change
-    /// really does break the boot, the app is gone before this fires.
+    /// Settings silently reverted, and every machine change was affected
+    /// — not just the obvious ones. It is how the clipboard toggle kept
+    /// being lost, which is what led to finding it. The crash-loop
+    /// protection is unaffected: if the change really does break the
+    /// boot, the app is gone before this fires.
     private static func armStabilityTimer() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
             markBootStable()
