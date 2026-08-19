@@ -249,10 +249,16 @@ is never raced against mid-write. All access goes through
   ### Three upstream bugs found in `od-unix/clipboard.cpp`
 
   None of these are ours — they are upstream, in the vendored unix port.
-  We are **not** filing them with Toni: he is not closely involved these
-  days, he knows about this repo, and he can take anything he wants from
-  it. The fixes live in `patches/0001-ios-port-fixes.patch`, which is
-  where anyone looking would find them.
+  We are **not proactively filing them** with Toni; the fixes live in
+  `patches/0001-ios-port-fixes.patch` and that series is the record.
+
+  **This is not disengagement, and an earlier version of this note said
+  so wrongly.** Toni is actively engaged: he replied personally on
+  2026-08-18 about the `handle_rga_out` NULL check and mousehack mode 4,
+  gave his current address (twilen@winuae.net — the ar.cpp one is
+  ancient), and asked a direct question we owe an answer to. The
+  distinction is: don't send him every small port-side finding; do finish
+  the exchange already under way.
 
   1. **`clipboard_vsync` gated on `initialized`** — `od-win32` does not.
      The Amiga process blocks on `SIGBREAK_CTRL_D` at `cfloop2` *before*
@@ -361,6 +367,42 @@ is never raced against mid-write. All access goes through
   overlay window. Needed a `modalActive` escape hatch in
   `PassthroughWindow.hitTest`, or the picker would have been visible and
   completely untouchable.
+
+## Upstream: the RGA thread with Toni Wilen — WE OWE HIM DATA
+
+Toni replied 2026-08-18 on two patches; Thomas answered the same day and
+**committed to something specific**: ship a build that logs the RGA
+reg/type when the NULL slot fires, and send him the actual type bits. He
+cannot reproduce it; we can. That is the one thing we can offer that he
+cannot do himself.
+
+- [ ] **Capture the RGA NULL-slot type bits and send them.** The logging
+  already exists — `custom.cpp` `handle_rga_out()`, guarded by a
+  `null_ref_logged` static so it fires **once per session**:
+
+      RGA refresh/strobe slot with NULL pointer skipped (reg=%04x type=%08x)
+
+  **It has not fired in any session on 2026-08-19**, across many
+  68040+RTG boots and a native-AGA (Turrican 2) round trip. So it is
+  intermittent, which is itself worth telling him. To capture it, keep a
+  console attached and exercise RTG display switches — cycling screens
+  with left-Amiga+M, opening and closing RTG screens, launching and
+  quitting native-mode programs.
+
+  Thomas's hypothesis, from reading the code rather than a breakpoint:
+  BPL and sprite writers pass `p == NULL` deliberately and rely on
+  `bitplane_rga_ptmod()` to install the pointer later — but that call sits
+  under `if (!custom_disabled)` in `do_cck()` while `handle_rga_out()`
+  below it does not, and `custom_disabled` follows `ad->picasso_on`. A
+  slot already in the pipe when RTG switches on therefore never gets its
+  pointer. Possible second contributor: `bitplane_rga_ptmod()` tests
+  `r->type == CYCLE_BITPLANE` / `== CYCLE_SPRITE` with exact equality, so
+  an OR-ed type is skipped there too.
+
+  Also offered to Toni: testing whichever `clear_rga()` / `check_rga_out()`
+  variant he prefers on the device where it reproduces, and redoing the
+  mousehack patch as an opt-in prefs flag (off by default, so Windows
+  behaviour is untouched) if he would rather have it that way.
 
 ## From English Amiga Board (2026-08-19)
 
@@ -538,9 +580,10 @@ fallback (all 0.7.1 candidates). iPhone: shipped with 0.7.0.
 - [ ] Emulation on its own thread (structural lever if benchmarks demand).
 - [ ] Root-cause the >8-bit RTG accelerated-blit bug (bisect the 8 ops),
   fix properly, offer upstream.
-- [~] ~~Offer the patch set upstream to Toni Wilen~~ — **decided against
-  2026-08-19.** He is not closely involved any more and already knows
-  about the repo; if he wants any of it he can take it. The patch series
-  stays the record. Original note: (iOS guards, RTG reset
+- [~] **Offer the whole patch set upstream — not pursuing proactively.**
+  Not because Toni is uninvolved (he is not: see the RGA thread below),
+  but because he does not need a firehose of port-side findings. The
+  patch series is the record and he knows the repo. Original note: (iOS
+  guards, RTG reset
   handler, mousehack mode-4 fix, toggle_rtg robustness).
 - [ ] Try `gfxcard_multithread`.
