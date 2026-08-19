@@ -411,11 +411,22 @@ is never raced against mid-write. All access goes through
   note that iPhone has neither trackpad nor Pencil, so finger-only 1:1 is
   a poor fit there regardless.
 
-- [ ] **Settle warp before answering anyone on automatic warp.** EAB asked
-  for vAmigaWeb-style automatic warp. Warp was built, measured and removed
-  (see below) — automatic warp hits the identical path. Instrument
-  emulated FPS on device, toggle warp, and test with `sound_output` set to
-  something other than `exact`.
+- [x] **Warp / automatic warp — DECLINED 2026-08-19.** EAB asked for
+  vAmigaWeb-style automatic warp. Warp was built, measured and removed,
+  and the decision is not to revisit it.
+
+  Note for whoever answers EAB: the "it appeared slower" reading was
+  almost certainly wrong — `warpmode()` sets `gfx_framerate = 10`, so the
+  display draws one frame in ten while emulation runs uncapped. That is
+  a fixable presentation problem, not a broken feature. So this is a
+  product decision, not a technical dead end, and it declines a request
+  someone made explicitly. Worth saying plainly to them rather than
+  implying it does not work.
+
+  Also worth knowing when replying: warp's real value *is* the ADF case
+  they are asking about — floppy loading is wall-clock bound no matter
+  how fast the CPU is, which is exactly why an HDF-booting setup sees no
+  benefit from it.
 
 ## From the r/amiga launch thread (2026-08-15, prioritized)
 
