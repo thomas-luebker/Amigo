@@ -112,7 +112,7 @@ index edf23232..9d7b7d95 100644
  		mousehack_address = (trap_get_dreg(ctx, 0) & 0xffff) + rtarea_bank.baseaddr;
  		mousehack_enable ();
 diff --git a/od-unix/clipboard.cpp b/od-unix/clipboard.cpp
-index 502930d7..05b4d92d 100644
+index 502930d7..1eeb41ba 100644
 --- a/od-unix/clipboard.cpp
 +++ b/od-unix/clipboard.cpp
 @@ -1,6 +1,10 @@
@@ -126,7 +126,16 @@ index 502930d7..05b4d92d 100644
  #include <limits.h>
  #include <stdio.h>
  #include <stdint.h>
-@@ -286,8 +290,27 @@ static bool read_host_clipboard_text(std::string *text, size_t max_bytes)
+@@ -28,6 +32,8 @@
+ #endif
+ #endif
+ 
++#include "options.h"
++#include "memory.h"
+ #include "traps.h"
+ #include "clipboard.h"
+ #include "keybuf.h"
+@@ -286,8 +292,27 @@ static bool read_host_clipboard_text(std::string *text, size_t max_bytes)
  	return false;
  }
  
@@ -154,16 +163,15 @@ index 502930d7..05b4d92d 100644
  #ifdef UAE_UNIX_WITH_SDL3
  	if (SDL_SetClipboardText(text.c_str())) {
  		last_host_clipboard = text;
-@@ -977,6 +1000,18 @@ static std::string amiga_text_to_host_text(const std::string &text)
+@@ -977,6 +1002,17 @@ static std::string amiga_text_to_host_text(const std::string &text)
  
  static void clipboard_put_text(const std::string &text)
  {
-+	/* The Amiga is polled once a second (see amiga_clipboard_init), so
-+	 * this is reached once a second whether or not the Amiga clipboard
-+	 * actually changed. Without this check every poll would rewrite the
-+	 * host clipboard — on iOS that means anything the user copies in
-+	 * another app is stomped within a second. Compare first; only a real
-+	 * change is worth propagating.
++	/* Only propagate a real change. Delivery is driven by the Amiga-side
++	 * CBD_CHANGEHOOK, which fires on a clip-ID change, so repeats should
++	 * be rare — but on iOS the cost of a spurious write is high: it
++	 * replaces whatever the user last copied in another app. Cheap guard,
++	 * expensive failure.
 +	 *
 +	 * write_host_clipboard_text updates last_host_clipboard on success,
 +	 * so a genuine Amiga-side change still gets through. */
@@ -173,7 +181,7 @@ index 502930d7..05b4d92d 100644
  	if (!write_host_clipboard_text(text)) {
  		write_log(_T("clipboard: failed to write host clipboard text\n"));
  	}
-@@ -1319,7 +1354,17 @@ static uae_u32 clipboard_vsync_cb(TrapContext *ctx, void *)
+@@ -1319,7 +1355,17 @@ static uae_u32 clipboard_vsync_cb(TrapContext *ctx, void *)
  
  void clipboard_vsync(void)
  {
@@ -192,7 +200,7 @@ index 502930d7..05b4d92d 100644
  		return;
  	}
  
-@@ -1339,12 +1384,78 @@ void clipboard_vsync(void)
+@@ -1339,12 +1385,78 @@ void clipboard_vsync(void)
  		trap_callback(to_amiga_start_cb, NULL);
  	}
  
@@ -271,33 +279,11 @@ index 502930d7..05b4d92d 100644
  }
  
  void clipboard_host_changed(void)
-@@ -1424,11 +1535,37 @@ void amiga_clipboard_die(TrapContext *)
- 
- void amiga_clipboard_init(TrapContext *ctx)
- {
--	signaling = 0;
-+	/* Deliberately left SET, where od-win32 and stock od-unix both clear
-+	 * it. On Windows the Amiga-side CBD_CHANGEHOOK drives Amiga -> host:
-+	 * cliphook signals the task itself and clipread pushes up via mode
-+	 * 11. On this port that hook never fires — verified on hardware, with
-+	 * the clip provably in clipboard.device unit 0, the "UAE clipboard
-+	 * sharing" process alive, and a fresh clip ID each time (so it is not
-+	 * cliphook's .same branch). filesys.asm does not test the result of
-+	 * the CBD_CHANGEHOOK DoIO, so a failed install is silent and looks
-+	 * exactly like this.
-+	 *
-+	 * Leaving `signaling` set makes clipboard_vsync_cb poke the task once
-+	 * a second, which drives clipread without the hook. Confirmed working
-+	 * on device. clipboard_put_text dedupes, so the repeated delivery
-+	 * this causes does not rewrite the host clipboard.
-+	 *
-+	 * The hook itself is still worth diagnosing — polling re-reads the
-+	 * whole clip every second, which is cheap for text and wasteful for
-+	 * a large one. */
-+	signaling = 1;
+@@ -1428,7 +1540,16 @@ void amiga_clipboard_init(TrapContext *ctx)
  	initialized = 1;
  	host_poll_delay = 50;
  	write_log(_T("clipboard initialized\n"));
++
 +#if !(defined(__APPLE__) && TARGET_OS_IPHONE)
 +	/* Seed the Amiga with whatever is already on the host clipboard. */
  	clipboard_read_host(ctx, false, true);
