@@ -112,7 +112,7 @@ index edf23232..9d7b7d95 100644
  		mousehack_address = (trap_get_dreg(ctx, 0) & 0xffff) + rtarea_bank.baseaddr;
  		mousehack_enable ();
 diff --git a/od-unix/clipboard.cpp b/od-unix/clipboard.cpp
-index 502930d7..aa21b803 100644
+index 502930d7..0a5a8ec3 100644
 --- a/od-unix/clipboard.cpp
 +++ b/od-unix/clipboard.cpp
 @@ -1,6 +1,10 @@
@@ -154,7 +154,26 @@ index 502930d7..aa21b803 100644
  #ifdef UAE_UNIX_WITH_SDL3
  	if (SDL_SetClipboardText(text.c_str())) {
  		last_host_clipboard = text;
-@@ -1339,12 +1362,78 @@ void clipboard_vsync(void)
+@@ -1319,7 +1342,17 @@ static uae_u32 clipboard_vsync_cb(TrapContext *ctx, void *)
+ 
+ void clipboard_vsync(void)
+ {
+-	if (!filesys_heartbeat() || !clipboard_data || !initialized) {
++	/* Deliberately does NOT test `initialized`, and must not — od-win32
++	 * does not either. The Amiga-side clipboard process (filesys.asm,
++	 * clipboard_proc) blocks on SIGBREAK_CTRL_D at cfloop2 BEFORE it can
++	 * open clipboard.device and call back in with mode 15, which is the
++	 * only thing that sets `initialized`. That signal is sent from
++	 * clipboard_vsync_cb below. Gating this on `initialized` therefore
++	 * deadlocked the handshake: the host waited for an init that could
++	 * only happen after a signal the host refused to send. The symptom
++	 * was "clipboard task init" in the log, never "clipboard
++	 * initialized", and a permanently dead Amiga -> host direction. */
++	if (!filesys_heartbeat() || !clipboard_data) {
+ 		return;
+ 	}
+ 
+@@ -1339,12 +1372,78 @@ void clipboard_vsync(void)
  		trap_callback(to_amiga_start_cb, NULL);
  	}
  
@@ -233,7 +252,7 @@ index 502930d7..aa21b803 100644
  }
  
  void clipboard_host_changed(void)
-@@ -1428,7 +1517,15 @@ void amiga_clipboard_init(TrapContext *ctx)
+@@ -1428,7 +1527,15 @@ void amiga_clipboard_init(TrapContext *ctx)
  	initialized = 1;
  	host_poll_delay = 50;
  	write_log(_T("clipboard initialized\n"));
