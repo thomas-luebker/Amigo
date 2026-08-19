@@ -322,3 +322,32 @@ extern "C" int ipaduae_mousehack_alive(void)
 {
     return mousehack_alive() ? 1 : 0;
 }
+
+/* File-backed log, because `devicectl --console` cannot be trusted.
+ *
+ * Three times on 2026-08-19 a console session went silent while the
+ * process stayed alive and the app kept running — capture died, the log
+ * simply stopped growing, and an empty log is indistinguishable from a
+ * quiet system. That cost one wrong conclusion (the clipboard change hook
+ * declared dead) and two void test rounds.
+ *
+ * write_log() already mirrors to `debugfile` when it is set, so pointing
+ * that at a file under Documents gives a record that survives console
+ * drops, app termination and reinstalls, and can be pulled off the device
+ * with `devicectl device copy from`. always_flush_log makes it durable
+ * across a kill, which matters precisely when investigating a crash. */
+extern FILE *debugfile;
+extern int always_flush_log;
+
+extern "C" void ipaduae_open_debug_log(const char *path)
+{
+    if (debugfile || !path) {
+        return;
+    }
+    debugfile = fopen(path, "w");
+    if (debugfile) {
+        always_flush_log = 1;
+        fprintf(debugfile, "iPadUAE: file log opened at %s\n", path);
+        fflush(debugfile);
+    }
+}

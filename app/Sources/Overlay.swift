@@ -79,6 +79,12 @@ final class OverlayInstaller {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.installWhenReady() }
             return
         }
+        // Mirror write_log to a file under Documents. devicectl --console
+        // has gone silent mid-session repeatedly while the app kept
+        // running, and a stalled log reads exactly like a quiet system.
+        // This one can be pulled off the device afterwards.
+        ipaduae_open_debug_log(
+            ConfigStore.winuaeDir.appendingPathComponent("amigo-log.txt").path)
         FileHandle.standardError.write("iPadUAE: overlay installing on scene\n".data(using: .utf8)!)
         NSLog("iPadUAE overlay: installing overlay window on scene")
         // Apply persisted display preferences to the core.
