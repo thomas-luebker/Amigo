@@ -112,7 +112,7 @@ index edf23232..9d7b7d95 100644
  		mousehack_address = (trap_get_dreg(ctx, 0) & 0xffff) + rtarea_bank.baseaddr;
  		mousehack_enable ();
 diff --git a/od-unix/clipboard.cpp b/od-unix/clipboard.cpp
-index 502930d7..1eeb41ba 100644
+index 502930d7..4198f47c 100644
 --- a/od-unix/clipboard.cpp
 +++ b/od-unix/clipboard.cpp
 @@ -1,6 +1,10 @@
@@ -135,7 +135,55 @@ index 502930d7..1eeb41ba 100644
  #include "traps.h"
  #include "clipboard.h"
  #include "keybuf.h"
-@@ -286,8 +292,27 @@ static bool read_host_clipboard_text(std::string *text, size_t max_bytes)
+@@ -200,9 +206,47 @@ static bool read_host_clipboard_bmp(std::vector<uae_u8> *bmp, size_t max_bytes)
+ 	return read_host_clipboard_data(mime_types, bmp, max_bytes);
+ }
+ 
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++/* Implemented in the app layer (UAEBridge.mm) — see the note on the text
++ * writer below for why neither SDL nor pbcopy can serve here. */
++extern "C" int ipaduae_host_set_pasteboard_image(const void *bytes, int len);
++#endif
++
+ static bool write_host_clipboard_image(const std::vector<uae_u8> &bmp, const std::vector<uae_u8> *png,
+ 	const std::vector<uae_u8> *tiff)
+ {
++#if defined(__APPLE__) && TARGET_OS_IPHONE
++	/* iOS: hand the encoded bitmap straight to UIPasteboard. Without this
++	 * an image copy fell through to SDL_SetClipboardData and then to
++	 * /usr/bin/pbcopy, neither of which works here — so copying in
++	 * Deluxe Paint did nothing at all, silently. Same dead end the text
++	 * path had.
++	 *
++	 * Prefer PNG, then TIFF, then the always-present BMP; UIImage decodes
++	 * all three through ImageIO, so it does not matter which encoders
++	 * this build ended up with. */
++	{
++		const std::vector<uae_u8> *src =
++			(png && !png->empty()) ? png :
++			((tiff && !tiff->empty()) ? tiff : &bmp);
++		/* Delivery is change-hook driven, but a repeat would replace
++		 * whatever the user last copied in another app — same reasoning
++		 * as the text dedupe. */
++		if (last_host_clipboard_bitmap_valid && *src == last_host_clipboard_bitmap) {
++			return true;
++		}
++		if (ipaduae_host_set_pasteboard_image(src->data(), (int)src->size())) {
++			last_host_clipboard.clear();
++			last_host_clipboard_valid = false;
++			last_host_clipboard_bitmap = *src;
++			last_host_clipboard_bitmap_valid = true;
++			return true;
++		}
++		write_log(_T("clipboard: failed to put a %d byte image on the pasteboard\n"),
++			(int)src->size());
++		return false;
++	}
++#endif
+ 	UnixClipboardData *data = new UnixClipboardData;
+ 	data->bmp = bmp;
+ 	if (png) {
+@@ -286,8 +330,27 @@ static bool read_host_clipboard_text(std::string *text, size_t max_bytes)
  	return false;
  }
  
@@ -163,7 +211,7 @@ index 502930d7..1eeb41ba 100644
  #ifdef UAE_UNIX_WITH_SDL3
  	if (SDL_SetClipboardText(text.c_str())) {
  		last_host_clipboard = text;
-@@ -977,6 +1002,17 @@ static std::string amiga_text_to_host_text(const std::string &text)
+@@ -977,6 +1040,17 @@ static std::string amiga_text_to_host_text(const std::string &text)
  
  static void clipboard_put_text(const std::string &text)
  {
@@ -181,7 +229,7 @@ index 502930d7..1eeb41ba 100644
  	if (!write_host_clipboard_text(text)) {
  		write_log(_T("clipboard: failed to write host clipboard text\n"));
  	}
-@@ -1319,7 +1355,17 @@ static uae_u32 clipboard_vsync_cb(TrapContext *ctx, void *)
+@@ -1319,7 +1393,17 @@ static uae_u32 clipboard_vsync_cb(TrapContext *ctx, void *)
  
  void clipboard_vsync(void)
  {
@@ -200,7 +248,7 @@ index 502930d7..1eeb41ba 100644
  		return;
  	}
  
-@@ -1339,12 +1385,78 @@ void clipboard_vsync(void)
+@@ -1339,12 +1423,78 @@ void clipboard_vsync(void)
  		trap_callback(to_amiga_start_cb, NULL);
  	}
  
@@ -279,7 +327,7 @@ index 502930d7..1eeb41ba 100644
  }
  
  void clipboard_host_changed(void)
-@@ -1428,7 +1540,16 @@ void amiga_clipboard_init(TrapContext *ctx)
+@@ -1428,7 +1578,16 @@ void amiga_clipboard_init(TrapContext *ctx)
  	initialized = 1;
  	host_poll_delay = 50;
  	write_log(_T("clipboard initialized\n"));

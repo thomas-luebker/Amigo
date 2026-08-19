@@ -8,6 +8,34 @@
 #import <GameController/GameController.h>
 #import <UIKit/UIKit.h>
 
+/* Amiga -> iOS clipboard, images. Called from od-unix/clipboard.cpp when
+ * a Workbench program puts a bitmap on the Amiga clipboard — the IFF
+ * ILBM has already been converted to PNG, TIFF or BMP by the core, so
+ * whatever arrives here is something UIImage can decode via ImageIO.
+ *
+ * Copy in Deluxe Paint, paste into Messages. Writing raises no privacy
+ * banner, so like the text path this direction is automatic. */
+extern "C" int ipaduae_host_set_pasteboard_image(const void *bytes, int len)
+{
+    if (!bytes || len <= 0) {
+        return 0;
+    }
+    NSData *data = [NSData dataWithBytes:bytes length:(NSUInteger)len];
+    UIImage *image = [UIImage imageWithData:data];
+    if (!image) {
+        NSLog(@"iPadUAE clipboard: %d bytes of image data did not decode", len);
+        return 0;
+    }
+    if ([NSThread isMainThread]) {
+        UIPasteboard.generalPasteboard.image = image;
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            UIPasteboard.generalPasteboard.image = image;
+        });
+    }
+    return 1;
+}
+
 /* Amiga -> iOS clipboard. Called from od-unix/clipboard.cpp when a
  * Workbench program puts text on the Amiga clipboard.
  *
