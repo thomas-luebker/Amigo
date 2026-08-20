@@ -427,3 +427,34 @@ extern "C" void ipaduae_start_hang_watchdog(void)
         pthread_detach(t);
     }
 }
+
+/* Floppy drive speed — the targeted answer to "ADF loading is slow",
+ * and a far better fit than warp was.
+ *
+ * Warp uncapped the whole machine: it paused sound and set
+ * gfx_framerate=10, so the display drew one frame in ten and everything
+ * FELT slower even though emulation ran faster. This touches only the
+ * emulated drive timing. Sound keeps playing, the display keeps drawing,
+ * and the disk simply loads faster.
+ *
+ * Scale (disk.cpp get_floppy_speed): 100 = real hardware timing, higher
+ * = proportionally faster, and 0 = turbo, where the DMA completes
+ * instantly. Values 1..10 are treated as 100 by the core.
+ *
+ * Turbo is ignored for non-standard ADFs — disk.cpp declines it if a
+ * selected drive holds an image with custom track timing, which is most
+ * copy-protected originals. Those fall back to normal speed on their own.
+ *
+ * Applied through changed_prefs: DISK_check_change() copies it every
+ * vsync, so this takes effect live with no restart. */
+extern "C" void ipaduae_set_floppy_speed(int speed)
+{
+    if (speed < 0) speed = 0;
+    if (speed > 800) speed = 800;
+    changed_prefs.floppy_speed = speed;
+}
+
+extern "C" int ipaduae_floppy_speed(void)
+{
+    return currprefs.floppy_speed;
+}

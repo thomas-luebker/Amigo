@@ -45,6 +45,25 @@ enum ConfigStore {
         restart()
     }
 
+    /// Emulated floppy speed. 100 = real hardware timing, 200/400/800 =
+    /// proportionally faster, 0 = turbo (instant DMA, and the core
+    /// declines it for non-standard ADFs). Live — DISK_check_change()
+    /// picks it up every vsync — but persisted so it survives a restart.
+    ///
+    /// Only ever called from an explicit user action, never from a read
+    /// path. Reading the machine must not mutate it; that mistake
+    /// silently disabled DF1 once already.
+    static func setFloppySpeed(_ speed: Int) {
+        set("floppy_speed", String(speed))
+        ipaduae_set_floppy_speed(Int32(speed))
+    }
+
+    /// Speed as the *core* currently has it — the post-default,
+    /// post-load truth, not a guess parsed out of the config text.
+    static var currentFloppySpeed: Int {
+        Int(ipaduae_floppy_speed())
+    }
+
     /// Number of emulated floppy drives (1…4). Persisted into the config
     /// so the count survives a restart, and pushed to the running core so
     /// it takes effect without one.

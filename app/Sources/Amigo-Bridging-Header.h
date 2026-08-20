@@ -32,3 +32,5 @@ int ipaduae_clipboard_ready(void);
 void ipaduae_clipboard_type_text(const char *text);
 int ipaduae_mousehack_alive(void);
 void ipaduae_open_debug_log(const char *path);
+void ipaduae_set_floppy_speed(int speed);
+int ipaduae_floppy_speed(void);

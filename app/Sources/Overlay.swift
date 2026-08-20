@@ -303,6 +303,15 @@ final class OverlayState: ObservableObject {
         ConfigStore.setClipboardSharing(on)
     }
 
+    /// Emulated floppy speed, mirrored from the core. No didSet: only
+    /// applyFloppySpeed() may change the machine.
+    @Published var floppySpeed = ConfigStore.currentFloppySpeed
+
+    func applyFloppySpeed(_ speed: Int) {
+        ConfigStore.setFloppySpeed(speed)
+        floppySpeed = speed
+    }
+
     /// Measured height of the on-screen keyboard, so the quick-controls
     /// button can sit clear of it instead of over the top row of keys.
     /// Written from the keyboard's own geometry each layout pass.
