@@ -320,6 +320,9 @@ final class OverlayState: ObservableObject {
     /// Quick-controls cluster expanded (the extra overlay toggles).
     @Published var quickExpanded = false
 
+    /// Disk panel (bottom-right) expanded.
+    @Published var diskExpanded = false
+
     /// Transient confirmation after a drag & drop or in-app import.
     @Published var importNotice: String?
     private var importNoticeWork: DispatchWorkItem?
@@ -496,6 +499,8 @@ struct OverlayRoot: View {
             // menu — a keyboard covering its own toggle would be absurd.
             QuickControls(faded: faded, wake: wake)
                 .zIndex(9)
+            QuickDisk(faded: faded, wake: wake)
+                .zIndex(9)
 
             if state.showJoystick {
                 VStack {
@@ -580,6 +585,25 @@ struct OverlayRoot: View {
     }
 }
 
+/// How far up from the bottom a corner control must sit to clear whatever
+/// overlay is showing. Shared by both bottom clusters.
+///
+/// Takes the maximum rather than the first match: the keyboard and the
+/// joystick can be up together, and when they are the keyboard sits above
+/// the D-pad and is the taller obstacle.
+func overlayBottomClearance(_ state: OverlayState) -> CGFloat {
+    var pad: CGFloat = 16
+    if state.showJoystick {
+        pad = max(pad, inputCompact ? 150 : 190)
+    }
+    if state.showKeyboard && state.keyboardHeight > 0 {
+        let keyboardBottomInset: CGFloat = state.showJoystick
+            ? (inputCompact ? 140 : 200) : 12
+        pad = max(pad, state.keyboardHeight + keyboardBottomInset + 12)
+    }
+    return pad
+}
+
 /// Quick controls, bottom-left — the mirror of the gear.
 ///
 /// The gear is for setup; this is for the things you flip mid-session.
@@ -596,24 +620,7 @@ struct QuickControls: View {
     let faded: Bool
     let wake: () -> Void
 
-    /// Clear of whatever occupies this corner. Takes the maximum rather
-    /// than the first match, because the keyboard and the joystick can be
-    /// up together — and when they are, the keyboard sits above the
-    /// D-pad, so it is the taller obstacle.
-    private var bottomPadding: CGFloat {
-        var pad: CGFloat = 16
-        if state.showJoystick {
-            pad = max(pad, inputCompact ? 150 : 190)
-        }
-        if state.showKeyboard && state.keyboardHeight > 0 {
-            // The keyboard's own bottom padding, mirrored from its call
-            // site, plus a gap so the button clears the top row.
-            let keyboardBottomInset: CGFloat = state.showJoystick
-                ? (inputCompact ? 140 : 200) : 12
-            pad = max(pad, state.keyboardHeight + keyboardBottomInset + 12)
-        }
-        return pad
-    }
+    private var bottomPadding: CGFloat { overlayBottomClearance(state) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -683,6 +690,142 @@ struct QuickControls: View {
     }
 }
 
+/// Disk access, bottom-right — swap media without opening the menu.
+///
+/// Inserting a disk is the single most common thing anyone does with an
+/// emulator, and it was buried behind gear → Insert DF0… → pick. Eight
+/// menu rows existed purely for insert/eject across four drives; this
+/// replaces all of them.
+///
+/// Sits opposite the quick controls and clears the same obstacles — note
+/// the joystick's FIRE button lives in this corner, not just the D-pad.
+struct QuickDisk: View {
+    @ObservedObject private var state = OverlayState.shared
+    let faded: Bool
+    let wake: () -> Void
+
+    @State private var drive = 0
+    @State private var showingCDs = false
+    @State private var refresh = 0
+
+    private var floppyDir: URL { ConfigStore.floppiesDir }
+
+    private var images: [URL] {
+        showingCDs
+            ? ConfigStore.mediaFiles(in: ConfigStore.cdsDir,
+                                     extensions: ["cue", "ccd", "mds", "nrg", "iso", "chd"])
+            : ConfigStore.mediaFiles(in: floppyDir,
+                                     extensions: ["adf", "adz", "dms", "ipf", "zip", "gz",
+                                                  "lha", "lzh", "lzx", "7z"])
+    }
+
+    /// What the selected drive currently holds, for the eject row.
+    private var mounted: String? {
+        if showingCDs { return ConfigStore.currentCD }
+        let v = ConfigStore.currentValue("floppy\(drive)")
+        return (v?.isEmpty == false) ? v : nil
+    }
+
+    var body: some View {
+        VStack(alignment: .trailing, spacing: 8) {
+            Spacer(minLength: 0)
+
+            if state.diskExpanded {
+                panel
+                    .frame(width: 300)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+                    .shadow(radius: 8)
+                    .interactiveArea("disk-panel")
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
+
+            Button {
+                withAnimation(.easeOut(duration: 0.15)) { state.diskExpanded.toggle() }
+                refresh += 1
+                wake()
+            } label: {
+                Image(systemName: state.diskExpanded ? "xmark" : "opticaldiscdrive")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .frame(width: 40, height: 40)
+                    .background((state.diskExpanded ? Color.red.opacity(0.7)
+                                                    : Color.black.opacity(0.35)), in: Circle())
+                    .overlay(Circle().strokeBorder(.white.opacity(0.15), lineWidth: 0.5))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .opacity(state.diskExpanded ? 1.0 : (faded ? 0.18 : 0.85))
+            .interactiveArea("disk-button")
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+        .padding(.trailing, 18)
+        .padding(.bottom, overlayBottomClearance(state))
+        .animation(.easeOut(duration: 0.2), value: state.showKeyboard)
+        .animation(.easeOut(duration: 0.2), value: state.showJoystick)
+    }
+
+    private var panel: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Picker("", selection: $showingCDs) {
+                Text("Floppies").tag(false)
+                Text("CDs").tag(true)
+            }
+            .pickerStyle(.segmented)
+
+            // Drive selector only when there is a choice to make.
+            if !showingCDs && state.floppyDrives > 1 {
+                Picker("", selection: $drive) {
+                    ForEach(0..<state.floppyDrives, id: \.self) { d in
+                        Text("DF\(d)").tag(d)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+
+            if let mounted {
+                MenuRow(icon: "eject", title: "Eject — \(URL(fileURLWithPath: mounted).lastPathComponent)") {
+                    if showingCDs { ConfigStore.ejectCD() } else { ipaduae_eject_floppy(Int32(drive)) }
+                    refresh += 1
+                }
+            }
+
+            if images.isEmpty {
+                Text(showingCDs
+                     ? "No CD images. Drop .cue/.iso/.chd into Files › Amigo › CDs, or drag one onto the screen."
+                     : "No disk images. Drop .adf files into Files › Amigo › Floppies, or drag one onto the screen.")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .padding(.vertical, 6)
+            }
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(images, id: \.self) { url in
+                        MenuRow(icon: showingCDs ? "opticaldisc" : "opticaldiscdrive",
+                                title: ConfigStore.relativeName(
+                                    url, in: showingCDs ? ConfigStore.cdsDir : floppyDir)) {
+                            if showingCDs {
+                                ConfigStore.mountCD(url: url)
+                            } else {
+                                NSLog("iPadUAE quickdisk: insert DF%d %@", drive, url.path)
+                                ipaduae_insert_floppy(Int32(drive), url.path)
+                            }
+                            withAnimation { state.diskExpanded = false }
+                        }
+                    }
+                }
+            }
+            .frame(maxHeight: 260)
+
+            if showingCDs {
+                Text("Inserting a CD restarts the Amiga.")
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+        .padding(10)
+        .id(refresh)
+    }
+}
+
 struct ControlPanel: View {
     enum Submenu { case none, df0, df1, df2, df3, kickstart, harddrive, cdrom, machine, controller, configs, states, cloud, clipboard, display, inputs, help, about }
     @State private var submenu: Submenu = .none
@@ -724,22 +867,9 @@ struct ControlPanel: View {
     private var mainMenu: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("Amigo").font(.headline).padding(.bottom, 6)
-            MenuRow(icon: "opticaldiscdrive", title: "Insert DF0…") { submenu = .df0 }
-            MenuRow(icon: "opticaldiscdrive", title: "Insert DF1…") { submenu = .df1 }
-            if state.floppyDrives > 2 {
-                MenuRow(icon: "opticaldiscdrive", title: "Insert DF2…") { submenu = .df2 }
-            }
-            if state.floppyDrives > 3 {
-                MenuRow(icon: "opticaldiscdrive", title: "Insert DF3…") { submenu = .df3 }
-            }
-            MenuRow(icon: "eject", title: "Eject DF0") { ipaduae_eject_floppy(0) }
-            MenuRow(icon: "eject", title: "Eject DF1") { ipaduae_eject_floppy(1) }
-            if state.floppyDrives > 2 {
-                MenuRow(icon: "eject", title: "Eject DF2") { ipaduae_eject_floppy(2) }
-            }
-            if state.floppyDrives > 3 {
-                MenuRow(icon: "eject", title: "Eject DF3") { ipaduae_eject_floppy(3) }
-            }
+            // Inserting and ejecting moved to the disk button, bottom-right
+            // — eight rows for four drives, replaced by the thing people
+            // actually reach for mid-game.
             // Drive count is a property of the machine, so it is set in
             // the Machine panel; multi-disk games are the reason anyone
             // wants more than two.
