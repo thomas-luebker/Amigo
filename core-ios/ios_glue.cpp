@@ -458,3 +458,29 @@ extern "C" int ipaduae_floppy_speed(void)
 {
     return currprefs.floppy_speed;
 }
+
+/* Stress-driver marker, so the cycle lands in the FILE log. Swift NSLog
+ * does not reach debugfile — only the core's write_log does, which made
+ * an earlier run look like the driver had never fired. */
+extern "C" void ipaduae_log_stress(int cycle, const char *what)
+{
+    write_log(_T("autostress: cycle %d — %s\n"), cycle, what ? what : "?");
+}
+
+/* What is actually in a drive, read from the core.
+ *
+ * The disk panel used to read `floppyN` out of the config file to decide
+ * whether to offer an Eject row — but ipaduae_insert_floppy() calls
+ * disk_insert() straight into the core and never touches the config. So
+ * after inserting from the panel the config still said "empty" and the
+ * Eject row never appeared. currprefs.floppyslots[] is the truth.
+ *
+ * Returns NULL for an empty drive. */
+extern "C" const char *ipaduae_floppy_name(int drive)
+{
+    if (drive < 0 || drive > 3) {
+        return NULL;
+    }
+    const char *df = currprefs.floppyslots[drive].df;
+    return (df && df[0]) ? df : NULL;
+}

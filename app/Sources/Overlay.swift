@@ -742,11 +742,14 @@ struct QuickDisk: View {
                                                   "lha", "lzh", "lzx", "7z"])
     }
 
-    /// What the selected drive currently holds, for the eject row.
+    /// What the selected drive currently holds — read from the CORE, not
+    /// the config. Inserting goes through disk_insert() and never writes
+    /// the config, so the config says "empty" no matter what is in the
+    /// drive.
     private var mounted: String? {
         if showingCDs { return ConfigStore.currentCD }
-        let v = ConfigStore.currentValue("floppy\(drive)")
-        return (v?.isEmpty == false) ? v : nil
+        guard let c = ipaduae_floppy_name(Int32(drive)) else { return nil }
+        return String(cString: c)
     }
 
     var body: some View {
@@ -829,8 +832,14 @@ struct QuickDisk: View {
 
             if let mounted {
                 MenuRow(icon: "eject", title: "Eject — \(URL(fileURLWithPath: mounted).lastPathComponent)") {
-                    if showingCDs { ConfigStore.ejectCD() } else { ipaduae_eject_floppy(Int32(drive)) }
-                    refresh += 1
+                    if showingCDs {
+                        ConfigStore.ejectCD()
+                    } else {
+                        ipaduae_eject_floppy(Int32(drive))
+                    }
+                    // disk_eject is queued into the emulator; re-read a
+                    // moment later so the row reflects reality.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { refresh += 1 }
                 }
             }
 
@@ -845,14 +854,18 @@ struct QuickDisk: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(images, id: \.self) { url in
-                        MenuRow(icon: showingCDs ? "opticaldisc" : "opticaldiscdrive",
+                        let isIn = mounted.map { $0 == url.path } ?? false
+                        MenuRow(icon: isIn ? "checkmark.circle.fill"
+                                           : (showingCDs ? "opticaldisc" : "opticaldiscdrive"),
                                 title: ConfigStore.relativeName(
-                                    url, in: showingCDs ? ConfigStore.cdsDir : floppyDir)) {
+                                    url, in: showingCDs ? ConfigStore.cdsDir : floppyDir),
+                                active: isIn ? true : nil) {
                             if showingCDs {
                                 ConfigStore.mountCD(url: url)
                             } else {
                                 NSLog("iPadUAE quickdisk: insert DF%d %@", drive, url.path)
                                 ipaduae_insert_floppy(Int32(drive), url.path)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { refresh += 1 }
                             }
                             withAnimation { state.diskExpanded = false }
                         }
