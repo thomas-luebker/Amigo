@@ -38,30 +38,10 @@ index bfc350a6..eec8ebc7 100644
  		p->m68k_speed *= CYCLE_UNIT;
  		return 1;
 diff --git a/custom.cpp b/custom.cpp
-index fee66a3a..a9e5e598 100644
+index fee66a3a..e32d8ead 100644
 --- a/custom.cpp
 +++ b/custom.cpp
-@@ -9248,6 +9248,19 @@ static void generate_copper(void)
- // Because BPL and SPR DMA is decided 1 CCK earlier than others
- // PT and MOD need to be loaded in following cycle, cycle
- // when request goes to DMA addressing logic.
-+/* Placeholder targets for RGA slots whose real pointer is installed later
-+ * by bitplane_rga_ptmod(). Passing NULL there meant a slot could reach
-+ * handle_rga_out() still unresolved — if RTG switched on in between,
-+ * bitplane_rga_ptmod() is skipped (it sits under !custom_disabled while
-+ * handle_rga_out() does not) and the refresh branch dereferenced NULL.
-+ *
-+ * Toni Wilen's suggested fix (2026-08-19): give them somewhere harmless
-+ * to point instead of adding a test to the hot path. Separate variables
-+ * per source, at his suggestion, so a stray write is attributable.
-+ * "fast mode" can ignore most of the accurate parts anyway. */
-+static uaecptr dummy_bpl_pt;
-+static uaecptr dummy_spr_pt;
-+
- static void bitplane_rga_ptmod(void)
- {
- 	struct rgabuf *r = read_rga_in();
-@@ -11661,6 +11674,28 @@ static void addmodfm(uae_u32 *addr, int add, int mod, int fm)
+@@ -11661,6 +11661,28 @@ static void addmodfm(uae_u32 *addr, int add, int mod, int fm)
  	*addr = pt;
  }
  
@@ -90,7 +70,7 @@ index fee66a3a..a9e5e598 100644
  static void handle_rga_out(void)
  {
  	if (dmal_next) {
-@@ -11677,23 +11712,44 @@ static void handle_rga_out(void)
+@@ -11677,23 +11699,44 @@ static void handle_rga_out(void)
  		last_rga_cycle = get_cycles();
  
  		if (r->type & (CYCLE_REFRESH | CYCLE_STROBE)) {
