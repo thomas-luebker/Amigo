@@ -128,6 +128,40 @@ index fee66a3a..e32d8ead 100644
  			done = true;
  		}
  
+diff --git a/hardfile.cpp b/hardfile.cpp
+index 172038af..415be591 100644
+--- a/hardfile.cpp
++++ b/hardfile.cpp
+@@ -2516,9 +2516,28 @@ static void start_thread (TrapContext *ctx, int unit)
+ 	memset (hfpd, 0, sizeof (struct hardfileprivdata));
+ 	hfpd->base = trap_get_areg(ctx, 6);
+ 	init_comm_pipe (&hfpd->requests, 300, 3);
+-	uae_start_thread (_T("hardfile"), hardfile_thread, hfpd, NULL);
++	if (!uae_start_thread (_T("hardfile"), hardfile_thread, hfpd, NULL)) {
++		/* The return value used to be ignored, and the spin below then
++		 * waited forever for a thread that was never created — freezing
++		 * the emulation thread completely, with the guest PC parked in
++		 * the rtarea and no cycles executing. Observed on iOS after
++		 * repeated resets. Better a hard drive that fails to open than a
++		 * machine that stops. */
++		write_log(_T("hardfile: thread failed to start, unit %d — device will not open\n"), unit);
++		destroy_comm_pipe(&hfpd->requests);
++		return;
++	}
++	/* Bounded, for the same reason: hardfile_thread sets thread_running
++	 * within microseconds of entry (uae_set_thread_priority is a no-op on
++	 * this port), so anything approaching a second means it is never
++	 * coming and spinning cannot help. */
++	int spins = 0;
+ 	while (hfpd->thread_running == 0) {
+ 		sleep_millis(1);
++		if (++spins > 3000) {
++			write_log(_T("hardfile: thread did not start within 3s, unit %d — giving up\n"), unit);
++			return;
++		}
+ 	}
+ }
+ static void end_thread(TrapContext *ctx, int unit)
 diff --git a/inputdevice.cpp b/inputdevice.cpp
 index edf23232..9d7b7d95 100644
 --- a/inputdevice.cpp
@@ -894,6 +928,27 @@ index 07e6a3c1..6d88b57c 100644
  void target_quit(void) {}
  void target_restart(void) {}
  void target_reset(void) {}
+diff --git a/od-unix/threading.cpp b/od-unix/threading.cpp
+index 73a3ff4a..47b18b1c 100644
+--- a/od-unix/threading.cpp
++++ b/od-unix/threading.cpp
+@@ -154,7 +154,15 @@ int uae_start_thread(const TCHAR *, uae_thread_function f, void *arg, uae_thread
+     tsd->fn = f;
+     tsd->arg = arg;
+     pthread_t tid;
+-    if (pthread_create(&tid, NULL, thread_entry, tsd) != 0) {
++    const int err = pthread_create(&tid, NULL, thread_entry, tsd);
++    if (err != 0) {
++        /* Callers have historically ignored this return value, and at
++         * least one (hardfile.cpp start_thread) then spins forever
++         * waiting for a thread that was never created — freezing the
++         * whole emulation. Say so loudly; a silent failure here is
++         * indistinguishable from a hang. */
++        write_log(_T("uae_start_thread: pthread_create failed, errno %d (%s)\n"),
++                  err, strerror(err));
+         free(tsd);
+         return 0;
+     }
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
 index 13e88b9d..0b022cda 100644
 --- a/od-unix/video_sdl.cpp
