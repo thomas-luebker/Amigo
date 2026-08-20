@@ -218,6 +218,22 @@ is never raced against mid-write. All access goes through
 
 ## 0.7.5 — in progress
 
+- [x] **CDs work beyond the CD32 (2026-08-20).** The menu said "CD-ROM
+  (CD32)…" and the behaviour matched: `cdimage0` fills a CD slot, but the
+  guest only sees it with a CD controller (`cdconmodes`: uae, ide, scsi,
+  cdtv, cd32). CD32 and CDTV have one built in; an A1200 or A4000 has
+  none, so mounting a CD there did nothing. `mountCD` now sets
+  `scsi=true` on non-CD32 machines. Row renamed to "CD-ROM & CD32
+  Console…".
+
+  **Boundary:** mounting the CD as a *volume* needs a CD filesystem on
+  the Amiga side — `CDFileSystem` plus a `DEVS:DOSDrivers/CD0` mountlist.
+  That belongs to the disk image, not to Amigo. **See [[Amiga Imager]]**:
+  shipping CD0 in the built images would make CDs work out of the box on
+  non-CD32 machines. Not an Amigo bug; do not "fix" it here.
+
+
+
 - [x] **Quick controls, bottom-left (2026-08-20).** One tap toggles the
   Amiga keyboard; a long press expands to numpad, function keys and
   virtual joystick. Mirrors the gear: the gear is for setup, this is for
