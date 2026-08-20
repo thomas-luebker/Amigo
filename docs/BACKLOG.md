@@ -1,5 +1,11 @@
 # Amigo — Feature Backlog
 
+> Evidence and reasoning behind the 2026-08-19/20 investigations —
+> upstream bugs, the hang diagnosis, the diagnostic tooling, and the
+> mistakes worth not repeating — are in
+> [`FINDINGS-2026-08-19.md`](FINDINGS-2026-08-19.md). This file stays the
+> working list.
+
 Planning home: the Obsidian vault (see ../CLAUDE.md) —
 `20 - Private/Retro Computing/Projects/Amigo.md` for Status + Next Actions, and
 `Amigo/Roadmap & Open Questions.md` for the long form. Kept in sync manually;
@@ -369,7 +375,22 @@ is never raced against mid-write. All access goes through
   `PassthroughWindow.hitTest`, or the picker would have been visible and
   completely untouchable.
 
-## Boot hang after screen switch + reset (2026-08-19) — REPRODUCED
+## Boot hang — DIAGNOSED, PARKED 2026-08-20
+
+**Paused deliberately.** Severity is low: only ever reached by a
+deliberate stress sequence, no user reports, nothing from testers,
+nothing on the live release. It does not bother anyone.
+
+Diagnosed as a **host-side deadlock** between the emulation thread and
+the hardfile thread, reached through an rtarea trap — not a chipset
+problem. Full evidence, the ruled-out hypotheses and the reproduction
+recipe are in **`docs/FINDINGS-2026-08-19.md` §2**.
+
+Everything needed to resume is in place: file logging, the hang watchdog,
+and `test/autostress` which reproduces it in about five minutes without a
+human. Pick it up if it ever affects a real user.
+
+## (superseded) Boot hang after screen switch + reset (2026-08-19)
 
 Distinct from the RGA NULL crash, and **the RGA guard did not fire**, so
 Toni's dummy-pointer variant held at those two sites. This is something
