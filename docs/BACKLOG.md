@@ -421,9 +421,35 @@ hang reproduces without them.
 Also: the RGA guard did not fire once in any run today, so the original
 crash was never reproduced and we still owe Toni no `reg`/`type` bits.
 
-- [ ] **Determine whether the emulation thread is blocked or spinning.**
-  Alive-but-silent does not distinguish them. Worth checking host CPU use
-  while hung, and whether SDL is still presenting frames.
+- [x] **Blocked or spinning — ANSWERED 2026-08-20: fully blocked.**
+  A watchdog on its own thread (the main thread wedges with the emulation,
+  so nothing scheduled there can report) dumps state when the beam stops:
+
+      hangdiag[stall]:    pc=00f04004 stopped=0 intena=602c intreq=1040
+                          bplcon0=0200 ERSY=0 genlock=0 beamcon0=0020 vpos=19 hpos=1
+      hangdiag[stall+1s]: (byte-identical)
+
+  `pc`, `vpos` and `hpos` are unchanged across a full second, so **the
+  emulation thread is not executing at all** — not a guest-side poll,
+  which would still advance the beam.
+
+  This rules out three of Toni's four candidates: not STOP-with-interrupts
+  -masked (`stopped=0`, and `intena` matches a healthy machine — note a
+  healthy idle boot reads `stopped=1`, so that one would have misled us
+  without the baseline), not ERSY (`ERSY=0`), not a CPU poll. BEAMCON0 had
+  been written (`0020` vs `0000` healthy) but is not implicated.
+
+  **PC is in the rtarea and the host thread is stopped, always right after
+  `hardfile thread starting, unit 0`.** That reads as a host-side deadlock
+  between the emulation thread and the hardfile thread, reached through a
+  trap — not a chipset-timing bug, and so probably not upstream's.
+
+- [x] **Reproduces automatically now** (`test/autostress`, DO NOT MERGE):
+  injects left-Amiga+M screen switches and a reset on a timer, so the
+  sequence runs without a human. Caught the hang within ~5 minutes.
+  *Gotcha:* Swift `NSLog` does NOT reach the file log — only the core's
+  `write_log` does — so the stress driver's own lines are invisible there.
+  The second boot sequence in the log is the proof it ran.
 - [ ] Try it with the HDF unmounted, to confirm the hardfile thread is
   involved at all.
 - [ ] Try with RTG off — the hang follows uaegfx init, and every

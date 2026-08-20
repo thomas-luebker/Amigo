@@ -388,6 +388,12 @@ static void *ipaduae_hang_watchdog(void *)
 {
     int last = -1, stalls = 0;
     bool reported = false;
+    /* Prove the instrument works on every boot. A watchdog that silently
+     * fails is worse than none: it turns "we captured nothing" into what
+     * looks like "nothing happened". One line at startup shows the thread
+     * runs and the symbols read sane values. */
+    sleep(20);
+    ipaduae_log_hang_state("boot");
     for (;;) {
         sleep(3);
         const int now = ipaduae_get_vpos();
