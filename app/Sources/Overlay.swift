@@ -523,7 +523,11 @@ struct OverlayRoot: View {
                                 let frac = state.keyboardOverlayStyle ? 0
                                     : (geo.size.height - kb.frame(in: .global).minY)
                                       / max(geo.size.height, 1)
-                                let h = geo.size.height - kb.frame(in: .global).minY
+                                // Its OWN height, not a screen-minus-origin
+                                // subtraction: geo is safe-area-inset while
+                                // .global is full-screen, and mixing them put
+                                // the quick button on top of Esc on iPhone.
+                                let h = kb.size.height
                                 DispatchQueue.main.async {
                                     ipaduae_set_bottom_inset(Float(max(0, min(0.7, frac))))
                                     state.keyboardHeight = max(0, h)
@@ -592,15 +596,23 @@ struct QuickControls: View {
     let faded: Bool
     let wake: () -> Void
 
+    /// Clear of whatever occupies this corner. Takes the maximum rather
+    /// than the first match, because the keyboard and the joystick can be
+    /// up together — and when they are, the keyboard sits above the
+    /// D-pad, so it is the taller obstacle.
     private var bottomPadding: CGFloat {
+        var pad: CGFloat = 16
         if state.showJoystick {
-            // Clear the D-pad, which occupies this corner.
-            return inputCompact ? 150 : 190
+            pad = max(pad, inputCompact ? 150 : 190)
         }
         if state.showKeyboard && state.keyboardHeight > 0 {
-            return state.keyboardHeight + 12
+            // The keyboard's own bottom padding, mirrored from its call
+            // site, plus a gap so the button clears the top row.
+            let keyboardBottomInset: CGFloat = state.showJoystick
+                ? (inputCompact ? 140 : 200) : 12
+            pad = max(pad, state.keyboardHeight + keyboardBottomInset + 12)
         }
-        return 16
+        return pad
     }
 
     var body: some View {
