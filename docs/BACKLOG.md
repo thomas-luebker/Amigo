@@ -216,6 +216,20 @@ is never raced against mid-write. All access goes through
   the copy. Scope it separately if media sync is to be more than
   "CDs, ROMs and unmounted disks".
 
+## 0.7.5 — in progress
+
+- [x] **Quick controls, bottom-left (2026-08-20).** One tap toggles the
+  Amiga keyboard; a long press expands to numpad, function keys and
+  virtual joystick. Mirrors the gear: the gear is for setup, this is for
+  what you flip mid-session. Showing the keyboard previously took three
+  taps through the menu.
+
+  Placement dodges the two things that share that corner — the keyboard's
+  bottom strip and the joystick D-pad — by lifting clear of whichever is
+  showing, using the keyboard's measured height (already computed for the
+  core's bottom-inset report, now also kept in OverlayState). Draws above
+  the input overlays; a keyboard covering its own toggle would be absurd.
+
 ## Decided against
 
 - **Automatic rating prompt.** Built and removed 2026-08-19 at the user's
