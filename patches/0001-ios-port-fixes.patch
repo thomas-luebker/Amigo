@@ -38,7 +38,7 @@ index bfc350a6..eec8ebc7 100644
  		p->m68k_speed *= CYCLE_UNIT;
  		return 1;
 diff --git a/custom.cpp b/custom.cpp
-index fee66a3a..d040c876 100644
+index fee66a3a..a9e5e598 100644
 --- a/custom.cpp
 +++ b/custom.cpp
 @@ -9248,6 +9248,19 @@ static void generate_copper(void)
@@ -61,25 +61,36 @@ index fee66a3a..d040c876 100644
  static void bitplane_rga_ptmod(void)
  {
  	struct rgabuf *r = read_rga_in();
-@@ -9362,7 +9375,7 @@ static void generate_bpl(bool clock)
- 			int plane = bpl_sequence[cycle_pos];
- 			if (plane >= 1 && plane <= bplcon0_planes_limit) {
- 				int bpl = plane - 1;
--				struct rgabuf *rga = write_rga(RGA_SLOT_BPL, CYCLE_BITPLANE, 0x110 + bpl * 2, NULL);
-+				struct rgabuf *rga = write_rga(RGA_SLOT_BPL, CYCLE_BITPLANE, 0x110 + bpl * 2, &dummy_bpl_pt);
- 				rga->bpldat = bpl | (domod ? 8 : 0);
- 			}
- 		}
-@@ -9688,7 +9701,7 @@ static void generate_sprites(int num, int slot)
- 				if (dodma) {
- 					uae_u32 dat = CYCLE_PIPE_SPRITE | (s->dmastate ? 0x10 : 0x00) | (s->dmacycle == 1 ? 0 : 8) | num;
- 					int reg = 0x140 + slot + num * 8 + (s->dmastate ? 4 : 0);
--					struct rgabuf *rga = write_rga(RGA_SLOT_BPL, CYCLE_SPRITE, reg, NULL);
-+					struct rgabuf *rga = write_rga(RGA_SLOT_BPL, CYCLE_SPRITE, reg, &dummy_spr_pt);
- 					evt_t c = get_cycles();
- 					if (c == sprite_dma_change_cycle_on) {
- 						// If sprite DMA is switched on just when sprite DMA is decided, channel is still decided but it is not allocated!
-@@ -11677,23 +11690,37 @@ static void handle_rga_out(void)
+@@ -11661,6 +11674,28 @@ static void addmodfm(uae_u32 *addr, int add, int mod, int fm)
+ 	*addr = pt;
+ }
+ 
++/* Hang diagnostic (2026-08-20). Lives here because bplcon0 is static to
++ * this file. Answers Toni's candidate list in one line:
++ *   stopped + intena  -> STOP waiting on an interrupt that cannot arrive
++ *   bplcon0 & 2       -> ERSY set (without genlock = syncs stopped)
++ *   beamcon0          -> the register P96 writes from the CPU
++ *   vpos              -> sampled twice, tells blocked from spinning
++ * Called from a watchdog thread, because when the emulation wedges the
++ * main thread is wedged with it and no timer there will ever fire. */
++extern "C" int ipaduae_get_vpos(void)
++{
++	return vpos;
++}
++
++extern "C" void ipaduae_log_hang_state(const char *tag)
++{
++	write_log(_T("hangdiag[%s]: pc=%08x stopped=%d intena=%04x intreq=%04x ")
++		_T("bplcon0=%04x ERSY=%d genlock=%d beamcon0=%04x new_beamcon0=%04x vpos=%d hpos=%d\n"),
++		tag ? tag : "?", m68k_getpc(), regs.stopped, intena, intreq,
++		bplcon0, (bplcon0 & 2) ? 1 : 0, currprefs.genlock ? 1 : 0,
++		beamcon0, new_beamcon0, vpos, agnus_hpos);
++}
++
+ static void handle_rga_out(void)
+ {
+ 	if (dmal_next) {
+@@ -11677,23 +11712,44 @@ static void handle_rga_out(void)
  		last_rga_cycle = get_cycles();
  
  		if (r->type & (CYCLE_REFRESH | CYCLE_STROBE)) {
@@ -87,7 +98,13 @@ index fee66a3a..d040c876 100644
 -			*r->p &= refmask;
 -			refptr = *r->p;
 -			disinc = true;
-+			if (r->p) {
++			/* EXPERIMENT (test/rga-no-guard, 2026-08-19): the NULL check is
++			 * REMOVED on purpose, so that if the dummy pointers are not
++			 * sufficient this crashes outright instead of being silently
++			 * absorbed. A clean stress run here is real evidence for Toni;
++			 * a clean run WITH the guard was only an absence of evidence.
++			 * DO NOT MERGE — main keeps the guard. */
++			{
 +				*r->p += ref_ras_add;
 +				*r->p &= refmask;
 +				refptr = *r->p;
@@ -112,7 +129,8 @@ index fee66a3a..d040c876 100644
 -				if (num == 1 && lol) {
 -					record_dma_event(DMA_EVENT_LOL);
 +#endif
-+			} else {
++			}
++			if (false) {
 +				/* Refresh/strobe slot without an address pointer: seen as a
 +				 * transition artifact when the CCK path is entered right as
 +				 * native syncs stop/restart (e.g. RTG display switch while

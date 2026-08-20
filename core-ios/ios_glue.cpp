@@ -367,3 +367,57 @@ extern "C" void ipaduae_open_debug_log(const char *path)
         fflush(debugfile);
     }
 }
+
+/* Hang watchdog.
+ *
+ * When the emulation wedges, the SDL main thread wedges with it — so a
+ * timer on the main thread can never report the hang. This runs on its
+ * own thread, watches vpos for movement, and when the beam stops moving
+ * dumps the state Toni asked about (STOP + interrupt mask, ERSY without
+ * genlock, BEAMCON0, and whether anything is advancing at all).
+ *
+ * Sampled twice a second apart: if vpos differs between the two dumps the
+ * machine is spinning, if it is identical it is genuinely blocked. That
+ * distinction is the one thing the logs so far could not settle. */
+#include <pthread.h>
+
+extern "C" int ipaduae_get_vpos(void);
+extern "C" void ipaduae_log_hang_state(const char *tag);
+
+static void *ipaduae_hang_watchdog(void *)
+{
+    int last = -1, stalls = 0;
+    bool reported = false;
+    for (;;) {
+        sleep(3);
+        const int now = ipaduae_get_vpos();
+        if (now == last) {
+            stalls++;
+            /* ~6s of a motionless beam is a hang, not a slow frame. */
+            if (stalls >= 2 && !reported) {
+                reported = true;
+                ipaduae_log_hang_state("stall");
+                sleep(1);
+                ipaduae_log_hang_state("stall+1s");
+            }
+        } else {
+            stalls = 0;
+            reported = false;
+        }
+        last = now;
+    }
+    return NULL;
+}
+
+extern "C" void ipaduae_start_hang_watchdog(void)
+{
+    static bool started;
+    if (started) {
+        return;
+    }
+    started = true;
+    pthread_t t;
+    if (pthread_create(&t, NULL, ipaduae_hang_watchdog, NULL) == 0) {
+        pthread_detach(t);
+    }
+}

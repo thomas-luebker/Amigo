@@ -55,6 +55,7 @@ static void prepare_data_directories(void)
 
 extern "C" void ipaduae_install_overlay(void);
 extern "C" void ipaduae_open_debug_log(const char *path);
+extern "C" void ipaduae_start_hang_watchdog(void);
 extern "C" void ipaduae_heal_config_paths(void);
 extern "C" void ipaduae_fast_exit(const char *why);
 
@@ -110,6 +111,7 @@ int main(int argc, char *argv[])
     const int early_exit = target_main_handle_early(argc, argv);
     if (early_exit >= 0)
         return early_exit;
+    ipaduae_start_hang_watchdog();
     fprintf(stderr, "iPadUAE: entering real_main\n");
     real_main(argc, argv);
     return 0;
