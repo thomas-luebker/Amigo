@@ -303,6 +303,14 @@ final class OverlayState: ObservableObject {
         ConfigStore.setClipboardSharing(on)
     }
 
+    /// Measured height of the on-screen keyboard, so the quick-controls
+    /// button can sit clear of it instead of over the top row of keys.
+    /// Written from the keyboard's own geometry each layout pass.
+    @Published var keyboardHeight: CGFloat = 0
+
+    /// Quick-controls cluster expanded (the extra overlay toggles).
+    @Published var quickExpanded = false
+
     /// Transient confirmation after a drag & drop or in-app import.
     @Published var importNotice: String?
     private var importNoticeWork: DispatchWorkItem?
@@ -475,6 +483,11 @@ struct OverlayRoot: View {
             // overlays — a keyboard covering the open menu makes it unusable.
             .zIndex(10)
 
+            // Must draw and hit-test above the input overlays, same as the
+            // menu — a keyboard covering its own toggle would be absurd.
+            QuickControls(faded: faded, wake: wake)
+                .zIndex(9)
+
             if state.showJoystick {
                 VStack {
                     Spacer()
@@ -501,8 +514,10 @@ struct OverlayRoot: View {
                                 let frac = state.keyboardOverlayStyle ? 0
                                     : (geo.size.height - kb.frame(in: .global).minY)
                                       / max(geo.size.height, 1)
+                                let h = geo.size.height - kb.frame(in: .global).minY
                                 DispatchQueue.main.async {
                                     ipaduae_set_bottom_inset(Float(max(0, min(0.7, frac))))
+                                    state.keyboardHeight = max(0, h)
                                 }
                                 return Color.clear
                             })
@@ -512,7 +527,10 @@ struct OverlayRoot: View {
                     }
                 }
                 .opacity(state.overlayOpacity)
-                .onDisappear { ipaduae_set_bottom_inset(0) }
+                .onDisappear {
+                    ipaduae_set_bottom_inset(0)
+                    state.keyboardHeight = 0
+                }
             }
 
             if state.showNumpad {
@@ -546,6 +564,101 @@ struct OverlayRoot: View {
             }
         }
         .tint(.red)
+    }
+}
+
+/// Quick controls, bottom-left — the mirror of the gear.
+///
+/// The gear is for setup; this is for the things you flip mid-session.
+/// One tap shows or hides the Amiga keyboard, which is by far the most
+/// common thing to want and previously took three taps through the menu
+/// (gear → Input & Overlays → Amiga Keyboard). A long press opens the
+/// rest of the overlays.
+///
+/// Placement has to dodge two things it would otherwise sit under: the
+/// keyboard covers the bottom strip, and the virtual joystick's D-pad
+/// lives in this exact corner. It lifts clear of whichever is showing.
+struct QuickControls: View {
+    @ObservedObject private var state = OverlayState.shared
+    let faded: Bool
+    let wake: () -> Void
+
+    private var bottomPadding: CGFloat {
+        if state.showJoystick {
+            // Clear the D-pad, which occupies this corner.
+            return inputCompact ? 150 : 190
+        }
+        if state.showKeyboard && state.keyboardHeight > 0 {
+            return state.keyboardHeight + 12
+        }
+        return 16
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Spacer(minLength: 0)
+
+            if state.quickExpanded {
+                quickButton("number.square", on: state.showNumpad, id: "quick-numpad") {
+                    state.showNumpad.toggle()
+                }
+                quickButton("f.cursive", on: state.showFKeys, id: "quick-fkeys") {
+                    state.showFKeys.toggle()
+                }
+                quickButton("gamecontroller", on: state.showJoystick, id: "quick-joy") {
+                    state.showJoystick.toggle()
+                }
+            }
+
+            // Primary: one tap toggles the keyboard. Long press reveals
+            // the rest rather than adding a second permanent button.
+            Button {
+                state.showKeyboard.toggle()
+                wake()
+            } label: {
+                Image(systemName: state.showKeyboard ? "keyboard.chevron.compact.down" : "keyboard")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .frame(width: 40, height: 40)
+                    .background((state.showKeyboard ? Color.red.opacity(0.7)
+                                                    : Color.black.opacity(0.35)), in: Circle())
+                    .overlay(Circle().strokeBorder(.white.opacity(0.15), lineWidth: 0.5))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .simultaneousGesture(
+                LongPressGesture(minimumDuration: 0.45).onEnded { _ in
+                    withAnimation(.easeOut(duration: 0.15)) { state.quickExpanded.toggle() }
+                    wake()
+                }
+            )
+            .opacity(state.showKeyboard || state.quickExpanded ? 1.0 : (faded ? 0.18 : 0.85))
+            .interactiveArea("quick-keyboard")
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+        .padding(.leading, 18)
+        .padding(.bottom, bottomPadding)
+        .animation(.easeOut(duration: 0.2), value: state.showKeyboard)
+        .animation(.easeOut(duration: 0.2), value: state.showJoystick)
+    }
+
+    private func quickButton(_ icon: String, on: Bool, id: String,
+                             action: @escaping () -> Void) -> some View {
+        Button {
+            action()
+            wake()
+        } label: {
+            Image(systemName: icon)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.9))
+                .frame(width: 34, height: 34)
+                .background((on ? Color.red.opacity(0.7) : Color.black.opacity(0.35)), in: Circle())
+                .overlay(Circle().strokeBorder(.white.opacity(0.15), lineWidth: 0.5))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .interactiveArea(id)
+        .transition(.opacity.combined(with: .move(edge: .bottom)))
     }
 }
 
