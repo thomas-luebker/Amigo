@@ -128,27 +128,6 @@ struct MachinePanel: View {
                     Text("Extra drives save disk swapping in multi-disk games. Applies straight away — no restart.")
                         .font(.footnote).foregroundStyle(.secondary)
 
-                    // The targeted answer to slow ADF loading. Unlike warp
-                    // this touches only drive timing — sound keeps playing
-                    // and the display keeps drawing.
-                    Text("Floppy Speed").font(.caption).foregroundStyle(.secondary)
-                    Picker("Floppy Speed", selection: Binding(
-                        get: { state.floppySpeed },
-                        set: { state.applyFloppySpeed($0) })) {
-                        Text("Real").tag(100)
-                        Text("2×").tag(200)
-                        Text("4×").tag(400)
-                        Text("8×").tag(800)
-                        Text("Turbo").tag(0)
-                    }
-                    .pickerStyle(.segmented)
-                    Text(state.floppySpeed == 100
-                         ? "Real drive timing, like the hardware. Disk loads take as long as they did in 1990."
-                         : (state.floppySpeed == 0
-                            ? "Turbo: disk reads complete instantly. Copy-protected disks with custom track timing fall back to real speed on their own."
-                            : "Faster disk loading, everything else unchanged. Sound keeps playing and the picture keeps moving — unlike a warp mode."))
-                        .font(.footnote).foregroundStyle(.secondary)
-
                     if m.z3MB > 0 || m.rtgMB > 0, m.cpu < 68020 {
                         Text("Z3 RAM and RTG need a 32-bit CPU (68020+).")
                             .font(.footnote).foregroundStyle(.red)

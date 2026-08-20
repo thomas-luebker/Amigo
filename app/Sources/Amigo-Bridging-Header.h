@@ -34,3 +34,4 @@ int ipaduae_mousehack_alive(void);
 void ipaduae_open_debug_log(const char *path);
 void ipaduae_set_floppy_speed(int speed);
 int ipaduae_floppy_speed(void);
+void ipaduae_log_stress(int cycle, const char *what);

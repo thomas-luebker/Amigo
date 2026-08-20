@@ -115,12 +115,35 @@ final class OverlayInstaller {
             object: nil, queue: .main) { _ in
             CloudSync.sync()
         }
+        // TEMPORARY (test/rga-repro) — DO NOT MERGE. Drives the sequence
+        // that reproduces the fault: screen switches, then reset.
+        startAutoStress()
+
         // The overlay only installs once SDL's window (and thus video) is
         // up; 30s beyond that counts as a stable boot, so a crash later on
         // won't roll back the last machine/media change.
         DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
             ConfigStore.markBootStable()
         }
+    }
+
+    /// TEMPORARY stress driver. Three left-Amiga+M screen switches, then a
+    /// reset, on a loop.
+    private func startAutoStress() {
+        var cycle = 0
+        let timer = Timer(timeInterval: 25, repeats: true) { _ in
+            cycle += 1
+            ipaduae_log_stress(Int32(cycle), "screen switches")
+            for i in 0..<3 {
+                sendKeyTap(SC.m, delay: Double(i) * 1.2, modifier: SC.lamiga)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
+                ipaduae_log_stress(Int32(cycle), "reset")
+                ipaduae_reset(0)
+            }
+        }
+        timer.fireDate = Date().addingTimeInterval(45)
+        RunLoop.main.add(timer, forMode: .common)
     }
 
     // Autosave (quick-state slot 0): every 5 minutes while running, and a
@@ -780,6 +803,28 @@ struct QuickDisk: View {
                     }
                 }
                 .pickerStyle(.segmented)
+            }
+
+            // Floppy speed lives here, not in the Machine panel. Among CPU
+            // and RAM settings "speed" reads as machine speed; next to the
+            // disks it can only mean one thing.
+            if !showingCDs {
+                Picker("", selection: Binding(
+                    get: { state.floppySpeed },
+                    set: { state.applyFloppySpeed($0) })) {
+                    Text("1×").tag(100)
+                    Text("2×").tag(200)
+                    Text("4×").tag(400)
+                    Text("8×").tag(800)
+                    Text("Turbo").tag(0)
+                }
+                .pickerStyle(.segmented)
+                Text(state.floppySpeed == 100
+                     ? "Drive speed: real hardware timing."
+                     : (state.floppySpeed == 0
+                        ? "Drive speed: turbo — loads complete instantly. Copy-protected disks fall back to real speed on their own."
+                        : "Drive speed: faster loading. Sound and picture are unaffected."))
+                    .font(.caption2).foregroundStyle(.secondary)
             }
 
             if let mounted {
