@@ -405,7 +405,18 @@ is never raced against mid-write. All access goes through
   `PassthroughWindow.hitTest`, or the picker would have been visible and
   completely untouchable.
 
-## Boot hang — DIAGNOSED, PARKED 2026-08-20
+## Boot hang — FIXED 2026-08-20
+
+`hardfile.cpp` `start_thread()` ignored `uae_start_thread`'s failure
+return and then spun forever on the emulation thread waiting for a thread
+that was never created. Return is checked now, the wait is bounded, and
+`pthread_create`'s errno is logged. Detail in
+`docs/FINDINGS-2026-08-19.md` §2.
+
+Still open: **why** `pthread_create` fails. Thread exhaustion across
+repeated resets is the suspect. The next occurrence logs the errno.
+
+## (superseded) Boot hang — diagnosed, parked
 
 **Paused deliberately.** Severity is low: only ever reached by a
 deliberate stress sequence, no user reports, nothing from testers,
