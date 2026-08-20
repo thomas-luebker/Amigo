@@ -200,6 +200,17 @@ enum ConfigStore {
     static func mountCD(url: URL) {
         snapshotBeforeRiskyChange()
         set("cdimage0", url.path)
+        // CDs are not a CD32 feature. CD32 and CDTV have a drive built in,
+        // but any other machine needs a controller before the guest can
+        // see the slot at all — so give it uaescsi.device. Harmless where
+        // a built-in drive already exists, and the difference between "the
+        // CD does nothing" and "the CD is there" everywhere else.
+        //
+        // The Amiga still needs a CD filesystem to mount it as a volume;
+        // AmigaOS 3.1+ installs generally have one (CDFileSystem).
+        if !cd32Active {
+            set("scsi", "true")
+        }
         restart()
     }
 

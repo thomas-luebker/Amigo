@@ -879,7 +879,7 @@ struct ControlPanel: View {
             Divider().padding(.vertical, 4)
             MenuRow(icon: "memorychip", title: "Kickstart ROM…") { submenu = .kickstart }
             MenuRow(icon: "internaldrive", title: "Hard Drive…") { submenu = .harddrive }
-            MenuRow(icon: "opticaldisc", title: "CD-ROM (CD32)…") { submenu = .cdrom }
+            MenuRow(icon: "opticaldisc", title: "CD-ROM & CD32 Console…") { submenu = .cdrom }
             MenuRow(icon: "cpu", title: "Machine (CPU / RAM / RTG / Net)…") { submenu = .machine }
             // "Controller (CD32 pad)…" read as CD32-only: users asking for
             // gamepad support scanned right past it. CD32 mode lives inside
@@ -1286,7 +1286,7 @@ struct CDPicker: View {
                 Text("CD-ROM").font(.headline)
             }
             .padding(.bottom, 6)
-            Text("Inserting a CD restarts the Amiga. For CD32 games, switch on the CD32 preset below.")
+            Text("CDs are not just for the CD32 — CDTV and any Amiga with a CD drive can read them. Inserting one restarts the Amiga, and on a non-CD32 machine Amigo adds a SCSI CD drive so the Amiga can see it (you still need a CD filesystem in Workbench). For CD32 titles, switch on the console preset below.")
                 .font(.footnote).foregroundStyle(.secondary).padding(.bottom, 4)
 
             if !ConfigStore.cd32Active {
