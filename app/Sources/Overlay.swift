@@ -115,9 +115,7 @@ final class OverlayInstaller {
             object: nil, queue: .main) { _ in
             CloudSync.sync()
         }
-        // TEMPORARY (test/rga-repro) — DO NOT MERGE. Drives the sequence
-        // that reproduces the fault: screen switches, then reset.
-        startAutoStress()
+
 
         // The overlay only installs once SDL's window (and thus video) is
         // up; 30s beyond that counts as a stable boot, so a crash later on
@@ -127,24 +125,7 @@ final class OverlayInstaller {
         }
     }
 
-    /// TEMPORARY stress driver. Three left-Amiga+M screen switches, then a
-    /// reset, on a loop.
-    private func startAutoStress() {
-        var cycle = 0
-        let timer = Timer(timeInterval: 25, repeats: true) { _ in
-            cycle += 1
-            ipaduae_log_stress(Int32(cycle), "screen switches")
-            for i in 0..<3 {
-                sendKeyTap(SC.m, delay: Double(i) * 1.2, modifier: SC.lamiga)
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
-                ipaduae_log_stress(Int32(cycle), "reset")
-                ipaduae_reset(0)
-            }
-        }
-        timer.fireDate = Date().addingTimeInterval(45)
-        RunLoop.main.add(timer, forMode: .common)
-    }
+
 
     // Autosave (quick-state slot 0): every 5 minutes while running, and a
     // best-effort save when the app is backgrounded (the queued save runs

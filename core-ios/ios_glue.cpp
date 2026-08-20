@@ -459,14 +459,6 @@ extern "C" int ipaduae_floppy_speed(void)
     return currprefs.floppy_speed;
 }
 
-/* Stress-driver marker, so the cycle lands in the FILE log. Swift NSLog
- * does not reach debugfile — only the core's write_log does, which made
- * an earlier run look like the driver had never fired. */
-extern "C" void ipaduae_log_stress(int cycle, const char *what)
-{
-    write_log(_T("autostress: cycle %d — %s\n"), cycle, what ? what : "?");
-}
-
 /* What is actually in a drive, read from the core.
  *
  * The disk panel used to read `floppyN` out of the config file to decide
