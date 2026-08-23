@@ -99,6 +99,43 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     trademarks in keywords are a rejection trigger; "amiga" is needed
     for search and is standard across shipping emulators.)
 
+## What's New — 0.7.5 (DRAFT, not yet pushed to ASC)
+
+*Drafted 2026-08-23 from the actual commits in `9da5d82`. Every line maps
+to a fix that was verified on the M4 iPad — nothing aspirational.*
+
+    • Multiple hard disks at last — mount several HDF images side by side
+      and each appears as its own volume. Eject one and the rest keep
+      running
+    • Fixed a crash when opening some LHA archives as a floppy — the way
+      most WHDLoad titles ship. If Amigo quit on you inserting a .lha,
+      that is this
+    • Fixed: choosing 32 MB of RTG graphics memory silently disabled the
+      graphics card. The option is gone, and a machine already stuck on
+      it repairs itself on next launch
+    • Fixed: the same hard disk image could be mounted twice
+
+German (de-DE) — kept parallel, same order:
+
+    • Endlich mehrere Festplatten: mehrere HDF-Images gleichzeitig
+      einbinden, jedes erscheint als eigenes Laufwerk. Wird eines
+      ausgeworfen, laufen die anderen weiter
+    • Absturz beim Öffnen mancher LHA-Archive als Diskette behoben — so
+      werden die meisten WHDLoad-Titel ausgeliefert
+    • Behoben: 32 MB RTG-Grafikspeicher deaktivierten die Grafikkarte
+      stillschweigend. Die Option entfällt, und eine bereits betroffene
+      Konfiguration repariert sich beim nächsten Start
+    • Behoben: dasselbe Festplatten-Image ließ sich doppelt einbinden
+
+> **The LHA line is the one that matters.** It was the entire 0.7.1 field
+> crash — five reports, one user, retrying. Say it plainly rather than
+> burying it under the feature.
+
+> **Keywords ride with this submission.** en-US is 78/100 chars with 22
+> free and omits `cd32`, `gamepad` and `joystick` — all shipped features
+> and real search terms. Adding `,cd32,gamepad` is 13 chars and fits;
+> all three do not. de-DE is 91/100, so something must give there first.
+
 ## What's New — 0.7.1
 
     • CD32 console! One tap in the new CD-ROM menu turns Amigo into a
