@@ -92,12 +92,22 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
 
 ## Keywords (100 chars max, comma-separated, no spaces)
 
-    amiga,emulator,retro,workbench,uae,winuae,68000,adf,hdf,whdload,a500,a1200,rtg
+    amiga,emulator,retro,workbench,uae,winuae,68000,adf,hdf,whdload,a500,a1200,rtg,cd32,gamepad
 
-    (78 chars — a stray leading space was live through 0.7.1 and is
-    trimmed on 0.7.2. "Commodore" deliberately omitted — third-party
-    trademarks in keywords are a rejection trigger; "amiga" is needed
-    for search and is standard across shipping emulators.)
+    (91 chars, 9 spare. `cd32` and `gamepad` added 2026-08-23 for the
+    0.7.5 submission — both shipped features and real search terms that
+    the list omitted. Keywords are VERSION-SCOPED: this only takes effect
+    when pushed to the 0.7.5 App Store version record, which must exist
+    and be editable (Prepare for Submission) first.
+
+    `joystick` also fits — all three together are exactly 100, the limit.
+    Left off deliberately: `gamepad` already covers the pad, and sitting
+    exactly on the cap leaves no room if a term ever needs adjusting.
+
+    Previous value was 78 chars — a stray leading space was live through
+    0.7.1 and trimmed on 0.7.2. "Commodore" deliberately omitted —
+    third-party trademarks in keywords are a rejection trigger; "amiga"
+    is needed for search and is standard across shipping emulators.)
 
 ## What's New — 0.7.5 (DRAFT, not yet pushed to ASC)
 
@@ -131,10 +141,12 @@ German (de-DE) — kept parallel, same order:
 > crash — five reports, one user, retrying. Say it plainly rather than
 > burying it under the feature.
 
-> **Keywords ride with this submission.** en-US is 78/100 chars with 22
-> free and omits `cd32`, `gamepad` and `joystick` — all shipped features
-> and real search terms. Adding `,cd32,gamepad` is 13 chars and fits;
-> all three do not. de-DE is 91/100, so something must give there first.
+> **Keywords ride with this submission.** `cd32` and `gamepad` are now in
+> the en-US list above (91/100). `joystick` would fit too — all three are
+> exactly 100 — but is left off to keep headroom. de-DE is 91/100, so
+> something must give there before anything is added. **Not yet pushed to
+> ASC**: keywords are version-scoped and need an editable 0.7.5 version
+> record.
 
 ## What's New — 0.7.1
 
