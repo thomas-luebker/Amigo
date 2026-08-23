@@ -1,8 +1,8 @@
 # Amigo — Feature Backlog
 
-> Evidence and reasoning behind the 2026-08-19/20 investigations —
-> upstream bugs, the hang diagnosis, the diagnostic tooling, and the
-> mistakes worth not repeating — are in
+> Evidence and reasoning behind the 2026-08-19/21 investigations —
+> upstream bugs, the hang diagnosis, the diagnostic tooling, the layout
+> diagnostics, and the mistakes worth not repeating — are in
 > [`FINDINGS-2026-08-19.md`](FINDINGS-2026-08-19.md). This file stays the
 > working list.
 
@@ -11,24 +11,18 @@ Planning home: the Obsidian vault (see ../CLAUDE.md) —
 `Amigo/Roadmap & Open Questions.md` for the long form. Kept in sync manually;
 this file is the repo-visible mirror.
 
-## 0.7.2 — in progress (opened 2026-08-18)
+## 0.7.2 — SHIPPED (live 2026-08-19; confirmed READY_FOR_SALE 2026-08-21)
 
-Release container exists on both sides: `app/project.yml` is bumped to
-MARKETING_VERSION 0.7.2 / CURRENT_PROJECT_VERSION 20260818, and App Store
-Connect version 0.7.2 is created in PREPARE_FOR_SUBMISSION
-(id 69da2f0e-ad82-4e28-b9d8-cd297a3edb20) with de-DE fully populated.
-See APPSTORE.md for what went into de-DE and why it could not be done on
-0.7.1.
+Released with de-DE fully populated — see APPSTORE.md for what went into
+de-DE and why it could not be done on 0.7.1. Everything below under
+"Done in 0.7.2" is live to users.
 
-### Blocking — before submission
+### Blocking — before submission (all cleared)
 
-- [ ] **Push the 0.7.2 What's New to ASC.** Drafted for both locales and
-  dry-run clean (en-US 824 → 1982 chars, de-DE → ~2800, both under the
-  4000 limit). The script prepends rather than replaces and is
-  idempotent. Not yet written — an outward-facing store edit awaiting an
-  explicit go-ahead. Script: `whatsnew.py --write`.
-
-That is the only thing left.
+- [x] **Push the 0.7.2 What's New to ASC.** Done 2026-08-19, both
+  locales. Promotional text now reads "New in 0.7.2" / "Neu in 0.7.2" —
+  verified against ASC 2026-08-21, so the old "still says 0.7.1" note is
+  no longer true.
 
 ### Done in 0.7.2
 
@@ -216,7 +210,174 @@ is never raced against mid-write. All access goes through
   the copy. Scope it separately if media sync is to be more than
   "CDs, ROMs and unmounted disks".
 
-## 0.7.5 — in progress
+## 0.7.5 — on TestFlight (build 20260824, 2026-08-21)
+
+- [x] **RTG silently dies at 32 MB — option removed and existing configs
+  repaired (2026-08-21).** Setting *Machine → RTG Graphics Card* to
+  **32 MB** kills RTG completely. The emulator builds the board fine —
+  `Card 5: Z3 0x48000000 32M IO RTG RAM` — but Picasso96 then refuses it
+  and the guest reports:
+
+      P96: Could not create graphics board context for 'Uaegfx'
+
+  At 16 MB it returns immediately: `uaegfx.card 3.4 init`, `RTG host mode
+  list: 12 modes`, `RTG=1/1`. Single-variable result — `gfxcard_size` was
+  the **only** line differing from `.last-good.uae`.
+
+  **Why it was a nasty trap:** the machine still boots, so
+  `recoverFromCrashedChange()` never fires. The user just loses their
+  screen with no message and no obvious way back, and this has been
+  shipping since the picker existed.
+
+  Fix: 32 MB removed from the picker, and `rtgMB` clamped to
+  `maxRTGMegabytes = 16` **on read as well as write**, so a config
+  already sitting at 32 is repaired on next launch instead of obeyed.
+
+  Root cause inside P96 not chased — the size flows through
+  `PSSO_BoardInfo_MemorySize` and this port's own uaegfx.card in
+  `od-unix/rtg.cpp`. Only worth revisiting if someone needs >16 MB.
+
+  > **Diagnosed with amiagent against the iPad's *emulated* Amiga** —
+  > `ipad-4.local:7846`, token `a4000`. The host log showed only an
+  > *absence* of uaegfx lines; the guest gave the exact error string in
+  > two minutes. Reach for it first for anything guest-side.
+
+- [x] **Multiple HDFs as separate volumes — the 4★ review (2026-08-21).**
+  WlkAme's US review is the whole of that rating and its entire body was
+  *"Still missing multi-hdd support, to mount several HDF images as diff
+  volumes."*
+
+  `ConfigStore` had a hard single-drive assumption: `set("hardfile2", …)`
+  **deletes every line with that key**, so a second mount could only ever
+  replace the first. Now `append` / `allValues` / `removeWhere` let the
+  key repeat, `mountedHardfiles` **parses the config** rather than
+  remembering state (so it is right for hand-edited and imported
+  configs), each drive gets its own `uae<n>` controller unit, and mounting
+  takes the **lowest free** DH number so ejecting DH1 of three refills
+  the hole instead of leaving a permanent gap.
+
+  **Verified on the M4 iPad:** two drives mount as DH0/uae0 + DH1/uae1
+  with independent hardfile threads; ejecting one leaves the other
+  running; after an eject the next mount refills the freed unit rather
+  than incrementing. Guest-side, AmigaOS `info` shows the second HDF as
+  its own device:
+
+      AmigoTest   98M   Read/Write  AmigoTest     <- second HDF file
+      DH0       2047M   Read/Write  Workbench     ] both partitions of
+      DH1       5579M   Read/Write  Work          ] the first 8 GB image
+
+  > **Trap that nearly produced a false pass:** the 8 GB system image is
+  > an RDB with **two** partitions, `Workbench` and `Work`, so a guest
+  > volume list reading `RAM Disk, Work, Workbench` looks like multi-drive
+  > success while proving nothing — it is identical with one HDF mounted.
+  > The first purpose-built test image was also named `Work`, collided
+  > with that partition, and was silently dropped by AmigaOS despite
+  > mounting correctly at the emulator level (`Mounting uaehf.device 1`,
+  > `Partition 'Work'`). **Give test images a name that cannot collide**
+  > — `AmigoTest` is what finally gave an unambiguous result.
+
+  > **Bug found on device, not in review:** `/var` is a symlink to
+  > `/private/var`, and the two spellings arrive from different places —
+  > config lines (and `healPaths` output) are `/var/…`, while `URL.path`
+  > from the file enumerator is `/private/var/…`. The duplicate check
+  > compared raw strings, so the *same* image mounted twice. WinUAE's own
+  > `directory/hardfile '…' already added` caught it. Both compare and
+  > write now go through `canonicalPath()`.
+
+  **Test tooling:** `AmigaDiskCLI` (from `~/Development/AmigaDiskKit`)
+  builds what was missing — `disk rdb-build <img> <bytes> --part
+  Name:DOS3:::0` then `disk rdb-format <img> <part> <vol>` gives a real
+  empty FFS volume, so two drives are visibly different instead of two
+  copies of one 8 GB image. Note the size is in **bytes** and partitions
+  are addressed by **name**, not index.
+
+- [x] **Fixed the 0.7.1 field crash: stack overflow in the LHA decoder
+  (2026-08-21).** All five App Store crash reports on 0.7.1 were one
+  signature — `__stack_chk_fail` in `lha_make_table`, reached by
+  inserting a `.lha` as a floppy (i.e. any WHDLoad archive). Upstream's
+  own validity check was inert because `lha.h` has `#define error
+  write_log`, so it logged and fell through into the overflow.
+
+  Three archive-reachable overflows bounded: `count[bitlen[i]]` with a
+  17-entry stack array and bit lengths up to 19; `n = getbits(9)` up to
+  511 into `c_len[510]`; and run lengths of `getbits(9) + 20` = 531 with
+  no bound at all. Plus the Huffman tree walk and a cycle guard.
+
+  **Verified on device 2026-08-21**, not only host-side: inserting
+  `diskarc-bad.lha` (a real ADF packed -lh5-, corrupted so it SIGBUSes the
+  unpatched decoder) as a floppy made the guard fire **136 times**,
+  AmigaOS reported "Not a DOS disk", and the app stayed alive — confirmed
+  by amiagent still answering, which requires the emulator running.
+
+  Note the earlier test archives could never have shown this: WinUAE only
+  decompresses an archive member it decides to use as a disk image, so an
+  `.lha` with no ADF inside (e.g. `Picasso96.lha`) is rejected at the
+  header stage and never reaches the Huffman decoder. Build test archives
+  with `AmigaDiskCLI lha create <out.lha> <dir>` (packs -lh5-).
+
+  **Also verified against the real decoder**: 150
+  fuzzed variants of a real Aminet archive crash upstream **139 times**
+  (SIGSEGV/SIGBUS/SIGABRT) and the fixed decoder **zero** times, while
+  decoded output for the valid archive is byte-identical
+  (`fnv=8392c356fac831b1`, 118 members). Detail in `FINDINGS-2026-08-19.md` §4b.
+
+  **Decided: we fix it ourselves — not filed upstream.**
+
+> **Build numbers have outrun the calendar.** ASC already held `20260823`
+> on 2026-08-20, so `scripts/build-release.sh`'s default (`date +%Y%m%d`)
+> now produces a number *lower* than the last upload and ASC rejects it.
+> Pass an explicit number — `./scripts/build-release.sh 20260824` — until
+> the calendar catches up. The script's own comment predicted this.
+>
+> **Uploading is a manual Organizer step on this Mac.** There is no iOS
+> Distribution certificate in the keychain (only *Developer ID
+> Application*, which is Mac-outside-the-App-Store), so `xcodebuild
+> -exportArchive` fails with `No signing certificate "iOS Distribution"
+> found`. Organizer works because it cloud-signs via Xcode's Apple ID
+> session, which the CLI cannot see (`error: No Accounts`). The ASC API
+> key `4AA2Q26Z9Q` fails differently — `Cloud signing permission error`,
+> because it is App Manager and cloud signing needs **Admin**. Flow:
+> `build-release.sh <number>` here, then Distribute from Organizer.
+
+- [x] **Keyboard bottom-inset race fixed (2026-08-21).** `Overlay.swift`
+  reports the on-screen keyboard's height to the core by scheduling
+  `ipaduae_set_bottom_inset(frac)` from a `GeometryReader` via
+  `DispatchQueue.main.async`. On hide, `onDisappear` set the inset to 0 —
+  and then the *already-queued* block ran and restored the stale value,
+  so the picture stayed laid out above a keyboard that was no longer
+  there until the next lucky toggle. The queued block now bails unless
+  the keyboard is still shown.
+
+  **This was found while chasing a different bug and is not its cause** —
+  see below. It only bites with `keyboardOverlayStyle = false`; with the
+  default (overlay) style `frac` is pinned to 0 and the inset is never
+  set at all.
+
+- [x] **"Too much black on iPhone" — investigated, not a bug
+  (2026-08-21).** Reported as over-cropping. Nothing crops: **a 4:3 Amiga
+  screen cannot fill a 19.5:9 phone in portrait.** Measured on an iPhone
+  17, portrait picture area 1206 x 2333:
+
+  | source | uniform scale | drawn | height used | black |
+  |---|---|---|---|---|
+  | Amiga 756x576 | x1.595 | 1206x919 | 39% | **61%** |
+  | RTG 1280x720 | x0.942 | 1206x678 | 29% | **71%** |
+
+  Landscape is healthy: RTG scales x1.59 to 2035x1145, fills the height,
+  ~107 px bars each side. So both modes are bad in portrait — **Fit**
+  keeps proportions and leaves 61-71% black, **Stretch** removes the
+  black but draws 2.5x too tall. **Decided: leave it centred, accept the
+  black.**
+
+  A uniform-scale-and-crop **"Fill" mode was built, measured on device,
+  judged far too aggressive, and reverted. Do not re-add it** — in
+  portrait it would crop ~60% of the *width*.
+
+  The safe area is dearer than expected and was deliberately left alone:
+  **186 px off the top in portrait, 186 px off _each side_ in landscape**
+  for the Dynamic Island — 372 of 2622 gone before anything is drawn.
+  "Display: Fullscreen" reclaims it.
+
 
 - [x] **CDs work beyond the CD32 (2026-08-20).** The menu said "CD-ROM
   (CD32)…" and the behaviour matched: `cdimage0` fills a CD slot, but the
@@ -247,6 +408,26 @@ is never raced against mid-write. All access goes through
   the input overlays; a keyboard covering its own toggle would be absurd.
 
 ## Decided against
+
+- [x] **MMU off by default for 040/060 — DECIDED AGAINST 2026-08-23.**
+  `docs/PERFORMANCE-2026-08-23.md` measured MMU emulation at **2.23x**
+  interpreter throughput (corroborated independently on FS-UAE at 2.08x)
+  and recommended defaulting it off. The measurement is accepted; the
+  recommendation is not. Real 040/060 have an MMU, SysInfo reports
+  `IN USE`, and Enforcer/MuForce and MMU-programming software need it.
+  A user who loses speed can see the toggle; a user whose debugger
+  silently does nothing cannot see why. **`MachinePanel.swift:49` and the
+  `mmu: true` in the `turbo`/`rtgStation` presets all stay.**
+
+  Still to fix: the comment at `MachinePanel.swift:47` claims MMU is
+  "both faster and more authentic ... (measured)". The authenticity half
+  is right; the speed half is backwards by 2.23x, and the "(measured)"
+  is what let it survive — the same failure shape as
+  `FINDINGS-2026-08-19.md` §4.1/§4.6. Fix the comment, keep the code.
+
+  Replacement direction: **make the MMU path cheaper** rather than avoid
+  it — `docs/PERFORMANCE-2026-08-23.md` §7.
+
 
 - **Automatic rating prompt.** Built and removed 2026-08-19 at the user's
   call. The numbers argued for it — 445 installs, 5 ratings, a 5.00
@@ -521,41 +702,51 @@ Only found because the log is now written to a file. Three earlier
 attempts at this produced nothing because `devicectl --console` had gone
 silent while appearing connected.
 
-## Upstream: the RGA thread with Toni Wilen — WE OWE HIM DATA
+## Upstream: the RGA thread with Toni Wilen — ANSWERED 2026-08-21
 
-Toni replied 2026-08-18 on two patches; Thomas answered the same day and
-**committed to something specific**: ship a build that logs the RGA
-reg/type when the NULL slot fires, and send him the actual type bits. He
-cannot reproduce it; we can. That is the one thing we can offer that he
-cannot do himself.
+**Closed from our side.** Toni replied 2026-08-18 on two patches; Thomas
+answered the same day and committed to shipping a build that logs the RGA
+reg/type when the NULL slot fires and sending him the type bits. **Those
+bits do not exist, and he has now been told so** — reply sent 2026-08-21
+to `twilen@winuae.net`.
 
-- [ ] **Capture the RGA NULL-slot type bits and send them.** The logging
-  already exists — `custom.cpp` `handle_rga_out()`, guarded by a
-  `null_ref_logged` static so it fires **once per session**:
+- [x] **Capture the RGA NULL-slot type bits and send them — CANNOT, and
+  said so.** The logging shipped: `custom.cpp` `handle_rga_out()`, guarded
+  by a `null_ref_logged` static so it fires once per session:
 
       RGA refresh/strobe slot with NULL pointer skipped (reg=%04x type=%08x)
 
-  **It has not fired in any session on 2026-08-19**, across many
-  68040+RTG boots and a native-AGA (Turrican 2) round trip. So it is
-  intermittent, which is itself worth telling him. To capture it, keep a
-  console attached and exercise RTG display switches — cycling screens
-  with left-Amiga+M, opening and closing RTG screens, launching and
-  quitting native-mode programs.
+  **It never fired.** Two days, many 68040+RTG boots, RTG screen switches
+  (left-Amiga+M, opening and closing RTG screens), a native-AGA round trip
+  in and out of Turrican 2 — with Toni's dummy pointers in place, with them
+  reverted, and finally with the check removed entirely so a NULL would
+  segfault outright rather than be skipped. So the crash predates the check
+  and is rarer than we implied when we promised the data.
 
-  Thomas's hypothesis, from reading the code rather than a breakpoint:
-  BPL and sprite writers pass `p == NULL` deliberately and rely on
-  `bitplane_rga_ptmod()` to install the pointer later — but that call sits
-  under `if (!custom_disabled)` in `do_cck()` while `handle_rga_out()`
-  below it does not, and `custom_disabled` follows `ad->picasso_on`. A
-  slot already in the pipe when RTG switches on therefore never gets its
-  pointer. Possible second contributor: `bitplane_rga_ptmod()` tests
-  `r->type == CYCLE_BITPLANE` / `== CYCLE_SPRITE` with exact equality, so
-  an OR-ed type is skipped there too.
+  The reply also thanked him for reversing the dummy pointers, and said
+  why that mattered more here than upstream: our test machine is a 68040
+  with `cycle_exact=false`, the one configuration where the bitplane DMA
+  pointer conflict could never show, and the build was on its way to
+  TestFlight.
 
-  Also offered to Toni: testing whichever `clear_rga()` / `check_rga_out()`
-  variant he prefers on the device where it reproduces, and redoing the
-  mousehack patch as an opt-in prefs flag (off by default, so Windows
-  behaviour is untouched) if he would rather have it that way.
+  **The two standing offers were deliberately NOT renewed** — testing
+  `clear_rga()`/`check_rga_out()` variants, and redoing the mousehack
+  patch as an opt-in prefs flag. Both were offered on 08-18 and may still
+  be live in his head; we chose to let them lapse rather than re-commit,
+  on the grounds that Amigo is spare-time and there is no capacity for a
+  back-and-forth. **Do not re-offer either without deciding the time is
+  actually there.** If he takes one up, that is a decision to make then,
+  not a promise already made.
+
+  The unsent-hypothesis material — `bitplane_rga_ptmod()` sitting under
+  `if (!custom_disabled)` in `do_cck()` while `handle_rga_out()` does not,
+  `custom_disabled` following `ad->picasso_on`, and the exact-equality
+  `r->type ==` tests — went in the long draft but was cut from what was
+  sent. It stays in `docs/FINDINGS-2026-08-19.md` §1.4 in case the log
+  ever does fire and the thread reopens.
+
+  Our own guard stays local: the difference between a skipped refresh and
+  a crashed app on someone's iPad. We are not asking upstream to carry it.
 
 ## From English Amiga Board (2026-08-19)
 
@@ -680,6 +871,100 @@ Done: controller-routing-lost-on-restart fix, LHA/LZX/7z pickers,
 Controls & Help panel, tap-then-drag + hold-to-drag + KS1.3 1:1
 fallback (all 0.7.1 candidates). iPhone: shipped with 0.7.0.
 
+## From App Store reviews (2026-08-15 → 08-19)
+
+Three written reviews so far, 11 ratings across DE/GB/US/SE. Two of the
+three carry feature requests.
+
+- [x] **PS4/PS5 joypad** (Smurfy2000, 5★ GB, 08-15) — "would really
+  appreciate PS5 joypad support". Done. The later 08-19 review reports a
+  PS4 pad working with no setup at all, so the original report was most
+  likely a pairing problem rather than missing support.
+- [ ] **Multiple HDFs mounted as separate volumes** (WlkAme, 4★ US,
+  08-19) — "still missing multi-hdd support, to mount several HDF images
+  as diff volumes". The whole review; it is the only 4★ to date and the
+  reason the US average sits at 4.00. Being added.
+- [ ] **Virtual joystick polish + auto-fire** (Smurfy2000, 5★ GB, 08-15)
+  — "some enhancement to the virtual joystick would perhaps improve use
+  ability (UI enhancements and auto fire support)". Nothing else in this
+  file covers auto-fire.
+
+Not a request, but worth keeping: NeilDeWheel's 5★ (GB, 08-19) is a
+working recipe someone found without help — rename the AGS 3 AGA `.img`
+to `.hdf` into `amigo/HardDrive`, Kickstart 3.1 into `amigo/Kickstart`,
+select both, boot. "It took me longer to copy the files than it did to
+get AGS running." That path is worth protecting in any Hard Drive UI
+change, and it reads like the quick-start the help panel wants.
+
+## Apple Vision Pro — "Designed for iPad" only (assessed 2026-08-22)
+
+Decided: **compatibility mode, not a native visionOS port.**
+
+> **TESTED AND WORKING — visionOS 26.5 simulator, 2026-08-22.** The app
+> launches, the emulator runs and animates (AROS boots to "Waiting for
+> bootable media", LED counters ticking), and **the whole SwiftUI overlay
+> renders correctly over the SDL window** — gear, QuickDisplay, quick
+> controls, disk button, first-run hint and LED bar all present and
+> correctly placed. That was the main risk: the overlay lives in a
+> separate `PassthroughWindow` at `.alert` level, exactly the arrangement
+> compatibility mode can get wrong. It does not.
+>
+> Presented geometry is an iPad Pro 11" window with essentially no safe-area
+> loss: `out=2388x1668 safe=0,0 2388x1628 status=44 frame_area=1584`.
+> No errors in the log.
+>
+> Reproduce: `xcodebuild -downloadPlatform visionOS` (7.31 GB), then
+> `xcrun simctl create "Vision Pro Test" …SimDeviceType.Apple-Vision-Pro-4K
+> …SimRuntime.xrOS-26-5` — note the **4K** device type; the plain
+> `Apple-Vision-Pro` type reports "Incompatible device". Build with
+> `-destination 'platform=visionOS Simulator,name=Vision Pro Test'`; it
+> produces a `Debug-iphonesimulator` binary, which is correct — compatibility
+> mode runs the iOS build.
+>
+> **Still unverified: input.** The simulator drives look-and-pinch from a
+> mouse, which is not eye tracking, and no Vision Pro hardware is paired.
+
+**The app is already eligible, with zero code changes.** The four things
+that normally disqualify an iPad app all check out:
+
+| check | result |
+|---|---|
+| `UIRequiredDeviceCapabilities` | none declared |
+| `UIRequiresFullScreen` | `false` |
+| CoreHaptics | guarded by `capabilitiesForHardware().supportsHaptics`, no-ops cleanly |
+| Device family / orientations | `1,2`, all four |
+
+**Already enabled** (confirmed in App Store Connect 2026-08-22) — Apple
+makes compatible iPad apps available on Vision Pro by default, opt-*out*
+rather than opt-in. So Vision Pro support has effectively been shipping
+since launch; what was missing was any evidence it worked, which the
+simulator test now supplies.
+
+**No installs yet:** the sales data buckets are iPad 467 / iPhone 176 /
+Desktop 45 (688 total through 2026-08-21) with no Vision entry — and Mac
+appears separately as "Desktop", so Vision Pro would too if anyone had
+installed it.
+
+> **Do not use `supportedDevices` from the iTunes lookup to check platform
+> availability.** It reports **0 Mac** devices for an app that is
+> demonstrably on Mac with 45 installs, so it does not enumerate
+> compatibility platforms at all. The App Store Connect UI is the only
+> reliable source; `appAvailabilityV2` in the API covers territories only.
+
+> **Test before announcing.** visionOS synthesises touch from
+> look-and-pinch, and Amigo deliberately bypasses SDL's touch-to-mouse
+> synthesis (`SDL_TOUCH_MOUSE_EVENTS=0`) for a custom trackpad-style
+> finger path in `video_sdl.cpp`. That is the most likely thing to feel
+> wrong. The virtual joystick and Pencil paths do not translate either.
+> Hardware keyboard + game controller on a large virtual screen use
+> native paths and should be the recommended way to play.
+
+**A native visionOS target is explicitly not planned.** SDL3 supports
+visionOS, but `vendor/SDL3/SDL3.xcframework` currently ships only
+`ios-arm64` and `ios-arm64_x86_64-simulator` slices, so it would need
+rebuilding — and the whole input model (eye + pinch, no hover pointer,
+no Pencil) would have to be reworked.
+
 ## Killer features (medium)
 
 - [x] **Save-state UI** — shipped: 3 slots + 5-min autosave (quick-state
@@ -719,6 +1004,21 @@ fallback (all 0.7.1 candidates). iPhone: shipped with 0.7.0.
   perception — keep Performance one tap away. 8414a8e added the
   `cpu_idle` config key, but left the default at 0: the measured
   effect oscillates (sleepmode arms and resets) and needs tuning.
+
+  > **Why it oscillates — the arithmetic, measured 2026-08-22.**
+  > `custom.cpp` `vsync_handler_render()` computes
+  > `mv = 12 - cpu_idle / 15` and only arms the sleep when
+  > `mv >= 1 && mv <= 11`. At the shipped `cpu_idle = 0`, `mv` is 12 —
+  > outside the band — so `reset_cpu_idle()` runs on **every frame** and
+  > the host never sleeps at all. Inside the band the scale is inverted
+  > and narrow: `cpu_idle=15` gives a 0% stopped-lines threshold (sleeps
+  > almost always), `cpu_idle=150` gives 90% (sleeps almost never).
+  > Tuning this means picking a point on a 10-step scale where the two
+  > ends are "always" and "never" — hence the oscillation. Confirmed on
+  > device: both the iPad config and the Mac "Designed for iPad"
+  > container run `cpu_speed=max` with no `cpu_idle` line, so neither
+  > ever idles the host while the guest sits in STOP.
+  > `docs/FINDINGS-2026-08-19.md` §7.
 - [x] Idle throttle — landed in 8414a8e (vsync_isdone returns -2 when
   vsynced so the host actually idles).
 - [x] Skip present when the emulated framebuffer is unchanged — landed
@@ -734,6 +1034,15 @@ fallback (all 0.7.1 candidates). iPhone: shipped with 0.7.0.
 
 ## Performance (carried from roadmap)
 
+- [x] **Baseline measured against real hardware (2026-08-22).** One
+  `-m68000` binary, cross-compiled with amiga-gcc and self-timed with
+  `DateStamp`, run on the iPad guest and on the A4000/060 over amiagent.
+  Amigo is **4.9x** a real 68060 on integer code, **13.2x** on Fast RAM
+  memcpy, and **103x** on Chip RAM — Chip and Fast are *identical* under
+  emulation (no chipset contention), so chip-bound software gains far
+  more than the CPU figure suggests. Storage is not a bottleneck: the
+  hardfile matches the RAM disk at ~34 MB/s. Full method, source and the
+  two false findings it produced first: `docs/FINDINGS-2026-08-19.md` §7.
 - [ ] Emulation on its own thread (structural lever if benchmarks demand).
 - [ ] Root-cause the >8-bit RTG accelerated-blit bug (bisect the 8 ops),
   fix properly, offer upstream.
@@ -744,3 +1053,26 @@ fallback (all 0.7.1 candidates). iPhone: shipped with 0.7.0.
   guards, RTG reset
   handler, mousehack mode-4 fix, toggle_rtg robustness).
 - [ ] Try `gfxcard_multithread`.
+- [ ] **Cheapen the MMU path (opened 2026-08-23).** MMU stays on by
+  default, so the 2.23x is now a cost to attack rather than avoid. Code
+  reading (`docs/PERFORMANCE-2026-08-23.md` §7) says most of it is not
+  translation at all: `newcpu.cpp:1936` sets `m68k_pc_indirect = 1`
+  whenever `mmu_model` is set, which drops the core off the "generic+
+  direct" fast path (mode 0) that Amigo's other settings would otherwise
+  qualify for — so every opcode fetch becomes a bank dispatch. Two
+  levers, in order:
+  1. [x] **Measured 2026-08-23.** Counters enabled in a throwaway build,
+     then reverted.
+  2. [x] **Widening the instruction page cache — DROPPED.** Measured miss
+     rate is **0.04–0.29%**; it does not thrash. The reasoning was wrong:
+     the cache holds a *page* and instruction fetch is sequential within
+     one. Would have been a no-op change.
+  3. [~] **Host base pointer — PROTOTYPED, +7% to +20.5%.** Branch
+     `perf/mmu-hostptr` (`8779c39`), carried as
+     `patches/0002-mmu-host-pointer-cache.patch`. Recovers ~a fifth of the
+     MMU penalty on instruction-dense work (1.84x → ~1.53x). Reads only.
+     **Not shippable yet:** a bank remap moving `baseaddr` without an ATC
+     flush leaves a stale pointer — resolve before merging. Writes are the
+     obvious next gain (`set` gained least, +7.1%).
+
+  Full numbers and method: `docs/PERFORMANCE-2026-08-23.md` §8.
