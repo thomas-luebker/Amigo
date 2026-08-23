@@ -44,8 +44,14 @@ struct MachinePanel: View {
                     }
                     .pickerStyle(.segmented)
                     .onChange(of: m.cpu) { _, newCPU in
-                        // MMU on is both faster and more authentic for 040/060
-                        // (measured); default it on when moving up to them.
+                        // MMU on is more authentic for 040/060 — real ones
+                        // have one and SysInfo reports IN USE — and it is
+                        // what Enforcer/MuForce need. It is NOT faster: it
+                        // costs 1.84x on integer and 2.45-2.83x on memory
+                        // work (measured on the M4 iPad 2026-08-23, single
+                        // variable, docs/PERFORMANCE-2026-08-23.md). Keeping
+                        // it on is a deliberate decision — see that file's
+                        // section 1 before "optimising" this line away.
                         if newCPU >= 68040 { m.mmu = true }
                         if newCPU < 68030 { m.mmu = false }
                     }
@@ -96,11 +102,19 @@ struct MachinePanel: View {
                     .pickerStyle(.segmented)
 
                     Text("RTG Graphics Card (uaegfx, Zorro III)").font(.caption).foregroundStyle(.secondary)
+                    // 32 MB is deliberately absent. The emulator builds the
+                    // board fine at that size ("Card 5: Z3 0x48000000 32M IO
+                    // RTG RAM"), but Picasso96 then refuses it — the guest
+                    // logs "P96: Could not create graphics board context for
+                    // 'Uaegfx'" and RTG never comes up. Verified on device
+                    // 2026-08-21: 16 MB works, 32 MB does not, nothing else
+                    // in the config differing. It is a silent trap because
+                    // the machine still BOOTS, so the risky-change recovery
+                    // never fires and the user just loses their screen.
                     Picker("RTG", selection: $m.rtgMB) {
                         Text("Off").tag(0)
                         Text("8 MB").tag(8)
                         Text("16 MB").tag(16)
-                        Text("32 MB").tag(32)
                     }
                     .pickerStyle(.segmented)
 

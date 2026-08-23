@@ -153,6 +153,7 @@ extern bool unix_video_aspect_fit;
 
 extern "C" void ipaduae_set_aspect_fit(int on)
 {
+    write_log(_T("iPadUAE aspect_fit: setter called with %d\n"), on);
     unix_video_aspect_fit = on != 0;
 }
 

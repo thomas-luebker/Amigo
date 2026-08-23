@@ -20,6 +20,204 @@ index 4756e337..9b77808e 100644
          if(APPLE AND WINUAE_UNIX_MACOS_DEPS_PREFIX)
              unset(__pkg_config_checked_FLAC CACHE)
              unset(pkgcfg_lib_FLAC_FLAC CACHE)
+diff --git a/archivers/lha/huf.cpp b/archivers/lha/huf.cpp
+index cb996f4e..0ac7bdbc 100644
+--- a/archivers/lha/huf.cpp
++++ b/archivers/lha/huf.cpp
+@@ -326,6 +326,9 @@ static void read_pt_len(short nn, short nbit, short i_special)
+ 			pt_table[i] = c;
+ 	}
+ 	else {
++		/* n comes from the archive; clamp it to the array. */
++		if (n > nn)
++			n = nn;
+ 		i = 0;
+ 		while (i < n) {
+ 			c = lhabitbuf >> (16 - 3);
+@@ -340,7 +343,7 @@ static void read_pt_len(short nn, short nbit, short i_special)
+ 			pt_len[i++] = c;
+ 			if (i == i_special) {
+ 				c = getbits(2);
+-				while (--c >= 0)
++				while (--c >= 0 && i < nn)
+ 					pt_len[i++] = 0;
+ 			}
+ 		}
+@@ -363,19 +366,33 @@ static void read_c_len(void)
+ 		for (i = 0; i < 4096; i++)
+ 			c_table[i] = c;
+ 	} else {
++		/* n is read from the archive with CBIT=9 bits, so it can be up
++		 * to 511 while c_len[] holds NC (510) entries. And the run
++		 * lengths below reach getbits(CBIT) + 20 = 531, which without a
++		 * bound writes hundreds of bytes past the array into adjacent
++		 * globals. Both are reachable from a corrupt .lha. */
++		if (n > NC)
++			n = NC;
+ 		i = 0;
+ 		while (i < n) {
+ 			c = pt_table[lhabitbuf >> (16 - 8)];
+ 			if (c >= NT) {
+ 				unsigned short  mask = 1 << (16 - 9);
++				int guard = 0;
+ 				do {
++					if (c >= 2 * NC - 1)
++						return;			/* corrupt tree */
+ 					if (lhabitbuf & mask)
+ 						c = h_right[c];
+ 					else
+ 						c = h_left[c];
+ 					mask >>= 1;
++					if (++guard > 2 * NC)
++						return;			/* cycle in tree */
+ 				} while (c >= NT);
+ 			}
++			if (c >= NPT)
++				return;					/* pt_len[] index */
+ 			fillbuf(pt_len[c]);
+ 			if (c <= 2) {
+ 				if (c == 0)
+@@ -384,7 +401,7 @@ static void read_c_len(void)
+ 					c = getbits(4) + 3;
+ 				else
+ 					c = getbits(CBIT) + 20;
+-				while (--c >= 0)
++				while (--c >= 0 && i < NC)
+ 					c_len[i++] = 0;
+ 			}
+ 			else
+diff --git a/archivers/lha/lhamaketbl.cpp b/archivers/lha/lhamaketbl.cpp
+index ac4d2b70..8c0152a1 100644
+--- a/archivers/lha/lhamaketbl.cpp
++++ b/archivers/lha/lhamaketbl.cpp
+@@ -8,6 +8,27 @@
+ /* ------------------------------------------------------------------------ */
+ #include "lha.h"
+ 
++/* Abandon the table rather than corrupt the stack.
++ *
++ * Every bounds failure below is reachable from archive data, so a corrupt
++ * or hostile .lha must not be able to walk off count[]/start[]/weight[]
++ * (17-entry stack arrays) or past the end of the Huffman tree. Zeroing
++ * gives the decoder a defined, empty table: this archive member decodes
++ * to garbage, which is the correct outcome for a broken archive, instead
++ * of smashing the stack canary and aborting the process.
++ *
++ * NOTE: `error` is #defined to write_log in lha.h, so the upstream
++ * "Bad table (5)" check only ever LOGGED and then fell through into the
++ * overflow. That is the bug behind the field crash — the guard existed
++ * but had no teeth. */
++static void lha_bad_table(const TCHAR *why, short tablebits, unsigned short table[])
++{
++	write_log(_T("lha_make_table: %s - refusing to build table\n"), why);
++	const int entries = 1 << tablebits;
++	for (int i = 0; i < entries; i++)
++		table[i] = 0;
++}
++
+ void lha_make_table(short nchar, unsigned char bitlen[], short tablebits, unsigned short table[])
+ {
+ 	unsigned short  count[17];	/* count of bitlen */
+@@ -18,6 +39,11 @@ void lha_make_table(short nchar, unsigned char bitlen[], short tablebits, unsign
+ 	int             j, k, m, n, avail;
+ 	unsigned short *p;
+ 
++	if (nchar < 0 || tablebits < 0 || tablebits > 16) {
++		lha_bad_table(_T("nonsense nchar/tablebits"), tablebits > 0 && tablebits <= 16 ? tablebits : 0, table);
++		return;
++	}
++
+ 	avail = nchar;
+ 
+ 	/* initialize */
+@@ -26,9 +52,16 @@ void lha_make_table(short nchar, unsigned char bitlen[], short tablebits, unsign
+ 		weight[i] = 1 << (16 - i);
+ 	}
+ 
+-	/* count */
+-	for (i = 0; i < nchar; i++)
++	/* count -- bitlen[] comes straight from the archive and is an
++	 * unsigned char, so it can be up to 255. count[] holds 17 entries.
++	 * This is the write that smashed the stack. */
++	for (i = 0; i < (unsigned int)nchar; i++) {
++		if (bitlen[i] > 16) {
++			lha_bad_table(_T("bit length > 16"), tablebits, table);
++			return;
++		}
+ 		count[bitlen[i]]++;
++	}
+ 
+ 	/* calculate first code */
+ 	total = 0;
+@@ -36,12 +69,14 @@ void lha_make_table(short nchar, unsigned char bitlen[], short tablebits, unsign
+ 		start[i] = total;
+ 		total += weight[i] * count[i];
+ 	}
+-	if ((total & 0xffff) != 0)
+-		error(_T("make_table()"), _T("Bad table (5)\n"));
++	if ((total & 0xffff) != 0) {
++		lha_bad_table(_T("bad table (5): lengths do not form a Huffman code"), tablebits, table);
++		return;
++	}
+ 
+ 	/* shift data for make table. */
+ 	m = 16 - tablebits;
+-	for (i = 1; i <= tablebits; i++) {
++	for (i = 1; i <= (unsigned int)tablebits; i++) {
+ 		start[i] >>= m;
+ 		weight[i] >>= m;
+ 	}
+@@ -50,31 +85,48 @@ void lha_make_table(short nchar, unsigned char bitlen[], short tablebits, unsign
+ 	j = start[tablebits + 1] >> m;
+ 	k = 1 << tablebits;
+ 	if (j != 0)
+-		for (i = j; i < k; i++)
++		for (i = j; i < (unsigned int)k; i++)
+ 			table[i] = 0;
+ 
+ 	/* create table and tree */
+ 	for (j = 0; j < nchar; j++) {
+-		k = bitlen[j];
++		k = bitlen[j];		/* <= 16, checked above */
+ 		if (k == 0)
+ 			continue;
+ 		l = start[k] + weight[k];
+ 		if (k <= tablebits) {
+ 			/* code in table */
++			if (l > (unsigned int)(1 << tablebits)) {
++				lha_bad_table(_T("table index out of range"), tablebits, table);
++				return;
++			}
+ 			for (i = start[k]; i < l; i++)
+ 				table[i] = j;
+ 		}
+ 		else {
+ 			/* code not in table */
++			if ((start[k] >> m) >= (unsigned int)(1 << tablebits)) {
++				lha_bad_table(_T("tree root out of range"), tablebits, table);
++				return;
++			}
+ 			p = &table[(i = start[k]) >> m];
+ 			i <<= tablebits;
+ 			n = k - tablebits;
+ 			/* make tree (n length) */
+ 			while (--n >= 0) {
+ 				if (*p == 0) {
++					/* h_left/h_right are 2 * NC - 1 entries. */
++					if (avail >= 2 * NC - 1) {
++						lha_bad_table(_T("Huffman tree overflow"), tablebits, table);
++						return;
++					}
+ 					h_right[avail] = h_left[avail] = 0;
+ 					*p = avail++;
+ 				}
++				if (*p >= 2 * NC - 1) {
++					lha_bad_table(_T("tree node out of range"), tablebits, table);
++					return;
++				}
+ 				if (i & 0x8000)
+ 					p = &h_right[*p];
+ 				else
 diff --git a/cfgfile.cpp b/cfgfile.cpp
 index bfc350a6..eec8ebc7 100644
 --- a/cfgfile.cpp
@@ -950,7 +1148,7 @@ index 73a3ff4a..47b18b1c 100644
          return 0;
      }
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..0b022cda 100644
+index 13e88b9d..ea763410 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -1176,7 +1374,7 @@ index 13e88b9d..0b022cda 100644
  static bool make_video_layout(const struct unix_video_frame *frame, const struct gfx_filterdata *filter,
      int output_width, int output_height, struct unix_video_layout *layout)
  {
-@@ -684,10 +853,58 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -684,10 +853,89 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      get_window_pixel_scale(output_width, output_height, &layout->pixel_scale_x, &layout->pixel_scale_y);
  
      int status_height = std::max(1, (int)(statusbar_display_height() * layout->pixel_scale_y + 0.5f));
@@ -1201,8 +1399,7 @@ index 13e88b9d..0b022cda 100644
 +            safe_w = (int)(sa.w * px);
 +            safe_h = (int)(sa.h * py);
 +        }
-     }
--    const int frame_area_height = std::max(1, output_height - status_height);
++    }
 +#endif
 +
 +    /* Reserve the keyboard strip at the window bottom. The reservation
@@ -1235,10 +1432,42 @@ index 13e88b9d..0b022cda 100644
 +        }
 +    }
 +    const int frame_area_height = std::max(1, safe_h - status_height);
++
++    /* One line whenever the geometry actually changes — the black-band
++     * reports are impossible to diagnose from a screenshot, and this says
++     * exactly which term is eating the height. */
++    {
++        static int last_ow, last_oh, last_sw, last_sh, last_fa, last_st;
++        static int last_fit = -1, last_sfw = -1, last_sfh = -1;
++        static float last_inset = -1.0f;
++        /* fit and the source size are printed, so they must also be able
++         * to TRIGGER a print — otherwise the line advertises values it
++         * can never report a change to, which is exactly what happened
++         * when the Picture toggle was verified on device. */
++        if (output_width != last_ow || output_height != last_oh ||
++            safe_w != last_sw || safe_h != last_sh ||
++            frame_area_height != last_fa || status_height != last_st ||
++            (unix_video_aspect_fit ? 1 : 0) != last_fit ||
++            frame->width != last_sfw || frame->height != last_sfh ||
++            unix_video_bottom_inset != last_inset) {
++            last_ow = output_width; last_oh = output_height;
++            last_sw = safe_w; last_sh = safe_h;
++            last_fa = frame_area_height; last_st = status_height;
++            last_inset = unix_video_bottom_inset;
++            last_fit = unix_video_aspect_fit ? 1 : 0;
++            last_sfw = frame->width; last_sfh = frame->height;
++            write_log(_T("iPadUAE layout: out=%dx%d safe=%d,%d %dx%d ")
++                      _T("inset=%.3f status=%d frame_area=%d src=%dx%d fit=%d\n"),
++                      output_width, output_height, safe_x, safe_y, safe_w, safe_h,
++                      unix_video_bottom_inset, status_height, frame_area_height,
++                      frame->width, frame->height, unix_video_aspect_fit ? 1 : 0);
++        }
+     }
+-    const int frame_area_height = std::max(1, output_height - status_height);
  
      SDL_FRect source_rect = filtered_frame_rect(frame, filter);
      SDL_FRect dst = {};
-@@ -696,37 +913,44 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
+@@ -696,37 +944,44 @@ static bool make_video_layout(const struct unix_video_frame *frame, const struct
      if (frame->filter_index == GF_RTG && mode == 2) { /* center */
          dst.w = source_rect.w * layout->pixel_scale_x;
          dst.h = source_rect.h * layout->pixel_scale_y;
@@ -1293,7 +1522,7 @@ index 13e88b9d..0b022cda 100644
          (float)status_height
      };
      return true;
-@@ -938,7 +1162,19 @@ static bool update_status_pixels(int width)
+@@ -938,7 +1193,19 @@ static bool update_status_pixels(int width)
  
      init_status_colors();
      std::fill(s_status_pixels.begin(), s_status_pixels.end(), 0xffd4d0c8u);
@@ -1313,7 +1542,7 @@ index 13e88b9d..0b022cda 100644
      for (int y = 0; y < statusbar_source_height(); y++) {
          draw_status_line_single(
              0,
-@@ -1183,7 +1419,7 @@ static bool unix_gl_ensure_context(int width, int height)
+@@ -1183,7 +1450,7 @@ static bool unix_gl_ensure_context(int width, int height)
          return false;
      }
      SDL_GL_MakeCurrent(s_window, s_gl_context);
@@ -1322,7 +1551,7 @@ index 13e88b9d..0b022cda 100644
      if (!unix_gl_build_program()) {
          SDL_GL_DestroyContext(s_gl_context);
          s_gl_context = NULL;
-@@ -1334,6 +1570,17 @@ static bool unix_gl_upload_frame(const struct unix_video_frame *frame)
+@@ -1334,6 +1601,17 @@ static bool unix_gl_upload_frame(const struct unix_video_frame *frame)
      if (!unix_gl_ensure_textures(frame->width, frame->height, frame->pixbytes, frame->backbuffers)) {
          return false;
      }
@@ -1340,7 +1569,7 @@ index 13e88b9d..0b022cda 100644
      if (!s_gl_textures.empty()) {
          s_texture_index = (s_texture_index + 1) % (int)s_gl_textures.size();
          s_gl_texture = s_gl_textures[s_texture_index];
-@@ -1412,9 +1659,9 @@ static void unix_gl_present(const struct unix_video_frame *frame, const struct g
+@@ -1412,9 +1690,9 @@ static void unix_gl_present(const struct unix_video_frame *frame, const struct g
      unix_gl_draw_texture(s_gl_texture, layout.frame_dst, true, filter, frame->width, frame->height, scaler);
      glDisable(GL_SCISSOR_TEST);
  
@@ -1352,7 +1581,7 @@ index 13e88b9d..0b022cda 100644
      }
  
      SDL_GL_SwapWindow(s_window);
-@@ -1480,7 +1727,11 @@ static bool statusbar_logical_position(int window_x, int window_y, int *logical_
+@@ -1480,7 +1758,11 @@ static bool statusbar_logical_position(int window_x, int window_y, int *logical_
          return false;
      }
  
@@ -1365,7 +1594,7 @@ index 13e88b9d..0b022cda 100644
      const int logical_height = s_texture_height + statusbar_display_height();
      const int lx = window_x * logical_width / window_width;
      const int ly = window_y * logical_height / window_height;
-@@ -1728,7 +1979,7 @@ bool unix_video_init(int width, int height, int pixbytes)
+@@ -1728,7 +2010,7 @@ bool unix_video_init(int width, int height, int pixbytes)
              s_available = false;
              return false;
          }
@@ -1374,7 +1603,7 @@ index 13e88b9d..0b022cda 100644
          SDL_SetRenderDrawColor(s_renderer, 0, 0, 0, 255);
          SDL_RenderClear(s_renderer);
          SDL_RenderPresent(s_renderer);
-@@ -1736,7 +1987,15 @@ bool unix_video_init(int width, int height, int pixbytes)
+@@ -1736,7 +2018,15 @@ bool unix_video_init(int width, int height, int pixbytes)
  
      apply_window_mode();
  
@@ -1391,7 +1620,7 @@ index 13e88b9d..0b022cda 100644
  }
  
  void unix_video_shutdown(void)
-@@ -1744,6 +2003,7 @@ void unix_video_shutdown(void)
+@@ -1744,6 +2034,7 @@ void unix_video_shutdown(void)
      unix_input_release_keys();
      unix_video_set_mouse_grab(false);
  
@@ -1399,7 +1628,7 @@ index 13e88b9d..0b022cda 100644
      destroy_frame_textures();
      if (s_status_texture) {
          SDL_DestroyTexture(s_status_texture);
-@@ -1790,6 +2050,142 @@ void unix_video_shutdown(void)
+@@ -1790,6 +2081,142 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -1542,7 +1771,7 @@ index 13e88b9d..0b022cda 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +2219,11 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +2250,11 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -1554,7 +1783,7 @@ index 13e88b9d..0b022cda 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2271,52 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2302,52 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
@@ -1607,7 +1836,7 @@ index 13e88b9d..0b022cda 100644
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2328,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2359,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -1622,7 +1851,7 @@ index 13e88b9d..0b022cda 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1888,6 +2343,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1888,6 +2374,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          case SDL_EVENT_MOUSE_BUTTON_DOWN:
          case SDL_EVENT_MOUSE_BUTTON_UP:
          {
@@ -1638,7 +1867,7 @@ index 13e88b9d..0b022cda 100644
              if (!input_events) {
                  break;
              }
-@@ -1915,7 +2379,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2410,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -1648,7 +1877,7 @@ index 13e88b9d..0b022cda 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2391,293 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2422,293 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -1944,7 +2173,7 @@ index 13e88b9d..0b022cda 100644
          case SDL_EVENT_JOYSTICK_ADDED:
          case SDL_EVENT_JOYSTICK_REMOVED:
          case SDL_EVENT_GAMEPAD_ADDED:
-@@ -1962,6 +2706,166 @@ int unix_video_poll_window_events(bool *quit_requested)
+@@ -1962,6 +2737,166 @@ int unix_video_poll_window_events(bool *quit_requested)
      return unix_video_poll_internal(quit_requested, false);
  }
  
@@ -2111,7 +2340,7 @@ index 13e88b9d..0b022cda 100644
  static void unix_video_present_on_event_thread(const struct unix_video_frame *frame)
  {
      if (!frame || !frame->pixels || frame->width <= 0 || frame->height <= 0 || frame->rowbytes <= 0) {
-@@ -1981,15 +2885,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -1981,15 +2916,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
      if (!ensure_texture(frame->width, frame->height, frame->pixbytes, frame->backbuffers)) {
          return;
      }
@@ -2142,7 +2371,7 @@ index 13e88b9d..0b022cda 100644
      SDL_SetRenderLogicalPresentation(s_renderer, 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
      int output_width = 0;
      int output_height = 0;
-@@ -2006,10 +2921,19 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -2006,10 +2952,19 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
      render_scanline_overlay(filter, &layout.frame_dst);
      SDL_SetRenderClipRect(s_renderer, NULL);
  

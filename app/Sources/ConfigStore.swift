@@ -102,6 +102,30 @@ enum ConfigStore {
             .map { String($0.dropFirst(key.count + 1)) }
     }
 
+    /// Every value for a key that may legitimately repeat. `hardfile2=`
+    /// is the case that matters: WinUAE takes one line per drive, and
+    /// `set()` would delete the others.
+    static func allValues(_ key: String) -> [String] {
+        readLines().filter { $0.hasPrefix(key + "=") }
+            .map { String($0.dropFirst(key.count + 1)) }
+    }
+
+    /// Add a line without disturbing existing ones with the same key.
+    static func append(_ key: String, _ value: String) {
+        var lines = readLines()
+        while lines.last?.isEmpty == true { lines.removeLast() }
+        lines.append("\(key)=\(value)")
+        writeLines(lines)
+    }
+
+    /// Drop only the lines for `key` whose value satisfies `where`.
+    static func removeWhere(_ key: String, matching: (String) -> Bool) {
+        writeLines(readLines().filter { line in
+            guard line.hasPrefix(key + "=") else { return true }
+            return !matching(String(line.dropFirst(key.count + 1)))
+        })
+    }
+
     // MARK: Crash-safe machine changes
 
     /// A machine/media change can leave default.uae unbootable — worst case
@@ -177,17 +201,109 @@ enum ConfigStore {
         restart()
     }
 
+    /// One mounted hard drive, as parsed back out of a `hardfile2=` line.
+    ///
+    /// The line looks like
+    /// `rw,DH0:/path/to.hdf,32,1,2,512,0,,uae0` — flags, then
+    /// `DEVICE:path`, geometry, bootpri, filesys, controller.
+    struct MountedDrive: Identifiable, Hashable {
+        let unit: Int          // 0 for DH0/uae0, 1 for DH1/uae1, …
+        let path: String
+        var id: Int { unit }
+        var volume: String { "DH\(unit):" }
+        var name: String { (path as NSString).lastPathComponent }
+    }
+
+    /// Drives currently in the config, in unit order.
+    ///
+    /// Parsed rather than remembered, so it stays correct for configs the
+    /// user imported or edited by hand.
+    static var mountedHardfiles: [MountedDrive] {
+        allValues("hardfile2").compactMap { value -> MountedDrive? in
+            // rw,DH0:/path/to.hdf,sectors,surfaces,reserved,blocksize,bootpri,filesys,controller
+            //  0        1            2       3        4         5        6       7        8
+            // Nine fields, and only the path can contain commas — so the
+            // path is everything from field 1 to (count - 8), rejoined.
+            // Splitting naively on "," loses any HDF whose filename has a
+            // comma in it, which is the kind of bug that only shows up in
+            // somebody else's file names.
+            let f = value.components(separatedBy: ",")
+            guard f.count >= 9 else { return nil }
+            let pathFields = f[1...(f.count - 8)]
+            let devAndPath = pathFields.joined(separator: ",")
+            guard let colon = devAndPath.firstIndex(of: ":") else { return nil }
+            let device = String(devAndPath[devAndPath.startIndex..<colon])
+            guard device.uppercased().hasPrefix("DH"),
+                  let unit = Int(device.dropFirst(2)) else { return nil }
+            let path = String(devAndPath[devAndPath.index(after: colon)...])
+            guard !path.isEmpty else { return nil }
+            return MountedDrive(unit: unit, path: path)
+        }
+        .sorted { $0.unit < $1.unit }
+    }
+
+    /// Lowest DH number not already taken. Reuses gaps, so ejecting DH1
+    /// of three drives puts the next one back in the hole rather than
+    /// leaving DH1 permanently missing.
+    static func nextFreeHardfileUnit() -> Int {
+        let used = Set(mountedHardfiles.map { $0.unit })
+        var n = 0
+        while used.contains(n) { n += 1 }
+        return n
+    }
+
+    static var isHardfileMounted: Bool { !mountedHardfiles.isEmpty }
+
+    /// True if this image is already mounted — mounting it twice would
+    /// give the Amiga two volumes with the same name and identical
+    /// contents, which confuses AmigaDOS rather than helping.
+    /// `/var` is a symlink to `/private/var` on iOS, and the two spellings
+    /// arrive from different places: paths already in the config (or healed
+    /// by `healPaths`) tend to be `/var/…`, while `URL.path` from the file
+    /// enumerator gives `/private/var/…`. Comparing raw strings therefore
+    /// says "different file" about one and the same image — which mounted a
+    /// duplicate on device until WinUAE itself refused it with
+    /// "directory/hardfile '…' already added".
+    static func canonicalPath(_ path: String) -> String {
+        let prefix = "/private/"
+        return path.hasPrefix(prefix) ? "/" + path.dropFirst(prefix.count) : path
+    }
+
+    static func isMounted(url: URL) -> Bool {
+        let want = canonicalPath(url.path)
+        return mountedHardfiles.contains { canonicalPath($0.path) == want }
+    }
+
+    /// Mount an HDF as the next free DH unit, keeping existing drives.
+    /// Picasso96 refuses a uaegfx board above this size — the emulator
+    /// creates it, the guest then fails with "Could not create graphics
+    /// board context for 'Uaegfx'" and RTG never appears. Clamped on both
+    /// read and write so a config that already says 32 (hand-edited, or
+    /// written before this cap existed) is repaired rather than obeyed.
+    static let maxRTGMegabytes = 16
+
     static func mountHardfile(url: URL) {
+        guard !isMounted(url: url) else { return }
         snapshotBeforeRiskyChange()
         // RDB images carry their own geometry (zeros); plain hardfiles get
         // the classic 32/1/2/512 defaults.
         let rdb = isRDB(url: url)
         let geo = rdb ? "0,0,0,512" : "32,1,2,512"
-        set("hardfile2", "rw,DH0:\(url.path),\(geo),0,,uae0")
+        let unit = nextFreeHardfileUnit()
+        // Each drive needs its own uaehf.device unit, or the second one
+        // silently replaces the first at the controller level.
+        append("hardfile2", "rw,DH\(unit):\(canonicalPath(url.path)),\(geo),0,,uae\(unit)")
         restart()
     }
 
-    static func unmountHardfile() {
+    /// Eject one drive, leaving the others mounted.
+    static func unmountHardfile(unit: Int) {
+        snapshotBeforeRiskyChange()
+        removeWhere("hardfile2") { $0.contains("DH\(unit):") }
+        restart()
+    }
+
+    static func unmountAllHardfiles() {
         snapshotBeforeRiskyChange()
         removeAll("hardfile2")
         restart()
@@ -317,7 +433,7 @@ enum ConfigStore {
             chipHalfMB: intVal("chipmem_size", 4),
             fastMB: intVal("fastmem_size", 8),
             z3MB: intVal("z3mem_size", 0),
-            rtgMB: intVal("gfxcard_size", 0),
+            rtgMB: min(intVal("gfxcard_size", 0), maxRTGMegabytes),
             network: currentValue("bsdsocket_emu") == "true",
             mmu: (currentValue("mmu_model").flatMap { Int($0) } ?? 0) > 0,
             maxSpeed: (currentValue("cpu_speed") ?? "max") == "max")
@@ -374,7 +490,7 @@ enum ConfigStore {
         set("fastmem_size", String(m.fastMB))
         set("z3mem_size", String(m.z3MB))
         if m.rtgMB > 0 {
-            set("gfxcard_size", String(m.rtgMB))
+            set("gfxcard_size", String(min(m.rtgMB, maxRTGMegabytes)))
             set("gfxcard_type", "ZorroIII")
             // Host-rendered cursor sprite: pointer moves without VRAM
             // redraws — noticeably smoother, especially with 1:1 mouse.

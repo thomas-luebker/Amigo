@@ -322,7 +322,18 @@ final class OverlayState: ObservableObject {
     @Published var keyboardHeight: CGFloat = 0
 
     /// Quick-controls cluster expanded (the extra overlay toggles).
+    /// Auto-fire rate for the virtual joystick's FIRE button, in shots
+    /// per second. 0 = off (hold means hold, the classic behaviour).
+    ///
+    /// Requested in Smurfy2000's 5★ review: "some enhancement to the
+    /// virtual joystick would perhaps improve use ability (UI
+    /// enhancements and auto fire support)".
+    @Published var autoFireRate = UserDefaults.standard.object(forKey: "autoFireRate") as? Int ?? 0 {
+        didSet { UserDefaults.standard.set(autoFireRate, forKey: "autoFireRate") }
+    }
+
     @Published var quickExpanded = false
+    @Published var quickDisplayExpanded = false
 
     /// Disk panel (bottom-right) expanded.
     @Published var diskExpanded = false
@@ -354,7 +365,7 @@ final class OverlayState: ObservableObject {
     /// time the menu is opened.
     @Published var showFirstRunHint =
         !UserDefaults.standard.bool(forKey: "hasOpenedMenuOnce")
-        && ConfigStore.currentValue("hardfile2") == nil
+        && !ConfigStore.isHardfileMounted
         && (ConfigStore.currentValue("floppy0") ?? "").isEmpty
 
     func dismissFirstRunHint() {
@@ -505,6 +516,8 @@ struct OverlayRoot: View {
                 .zIndex(9)
             QuickDisk(faded: faded, wake: wake)
                 .zIndex(9)
+            QuickDisplay(faded: faded, wake: wake)
+                .zIndex(9)
 
             if state.showJoystick {
                 VStack {
@@ -538,6 +551,14 @@ struct OverlayRoot: View {
                                 // the quick button on top of Esc on iPhone.
                                 let h = kb.size.height
                                 DispatchQueue.main.async {
+                                    // Guard: this block is queued from a
+                                    // layout pass, and onDisappear may run
+                                    // before it does. Without the check a
+                                    // stale inset is restored AFTER the
+                                    // keyboard is gone, and the picture
+                                    // stays laid out above a keyboard that
+                                    // is not there — permanent black band.
+                                    guard state.showKeyboard else { return }
                                     ipaduae_set_bottom_inset(Float(max(0, min(0.7, frac))))
                                     state.keyboardHeight = max(0, h)
                                 }
@@ -691,6 +712,106 @@ struct QuickControls: View {
         .buttonStyle(.plain)
         .interactiveArea(id)
         .transition(.opacity.combined(with: .move(edge: .bottom)))
+    }
+}
+
+/// Display settings, top-left — the fourth corner.
+///
+/// The gear (top-right) is for setup, the quick controls (bottom-left)
+/// for input, the disk (bottom-right) for media. Display was the one
+/// thing you still had to open the menu for, and it is the one people
+/// fiddle with while looking at the picture — which is precisely when a
+/// modal menu covering that picture is useless.
+///
+/// One tap flips Picture between Fit and Stretch; that is the lever for
+/// "why is there so much black", which on a phone in portrait is a
+/// question the geometry guarantees somebody asks. Long press reveals
+/// the rest, matching the quick-controls idiom rather than inventing a
+/// second one.
+///
+/// Expands downward, since it hangs from the top edge. TV Out stays in
+/// the menu deliberately — it is a connect-time decision, not something
+/// flipped mid-session.
+struct QuickDisplay: View {
+    @ObservedObject private var state = OverlayState.shared
+    let faded: Bool
+    let wake: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button {
+                state.aspectFit.toggle()
+                UserDefaults.standard.set(state.aspectFit, forKey: "aspectFit")
+                ipaduae_set_aspect_fit(state.aspectFit ? 1 : 0)
+                wake()
+            } label: {
+                Image(systemName: state.aspectFit ? "aspectratio" : "aspectratio.fill")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .frame(width: 40, height: 40)
+                    .background((state.aspectFit ? Color.red.opacity(0.7)
+                                                 : Color.black.opacity(0.35)), in: Circle())
+                    .overlay(Circle().strokeBorder(.white.opacity(0.15), lineWidth: 0.5))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .simultaneousGesture(
+                LongPressGesture(minimumDuration: 0.45).onEnded { _ in
+                    withAnimation(.easeOut(duration: 0.15)) { state.quickDisplayExpanded.toggle() }
+                    wake()
+                }
+            )
+            .opacity(state.quickDisplayExpanded ? 1.0 : (faded ? 0.18 : 0.85))
+            .interactiveArea("quick-display")
+
+            if state.quickDisplayExpanded {
+                quickButton(state.fullscreenDisplay ? "rectangle.inset.filled" : "rectangle",
+                            on: state.fullscreenDisplay, id: "quick-fullscreen") {
+                    state.fullscreenDisplay.toggle()
+                    UserDefaults.standard.set(state.fullscreenDisplay, forKey: "fullscreenDisplay")
+                    ipaduae_set_safe_area(state.fullscreenDisplay ? 0 : 1)
+                }
+                quickButton(state.crtLevel > 0 ? "tv.fill" : "tv",
+                            on: state.crtLevel > 0, id: "quick-crt") {
+                    // Same 4-step cycle as the menu row; crtLevel's didSet
+                    // persists and pushes to the core.
+                    state.crtLevel = (state.crtLevel + 1) % 4
+                }
+                quickButton(state.showLEDs ? "circle.grid.2x1.fill" : "circle.grid.2x1",
+                            on: state.showLEDs, id: "quick-leds") {
+                    state.showLEDs.toggle()
+                    UserDefaults.standard.set(state.showLEDs, forKey: "showLEDs")
+                    ipaduae_set_leds(state.showLEDs ? 1 : 0)
+                    ConfigStore.set("show_leds", state.showLEDs ? "true" : "false")
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.top, 10)
+        .padding(.leading, 18)
+        .animation(.easeOut(duration: 0.2), value: state.quickDisplayExpanded)
+        .animation(.easeOut(duration: 0.2), value: state.aspectFit)
+    }
+
+    private func quickButton(_ icon: String, on: Bool, id: String,
+                             action: @escaping () -> Void) -> some View {
+        Button {
+            action()
+            wake()
+        } label: {
+            Image(systemName: icon)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.9))
+                .frame(width: 34, height: 34)
+                .background((on ? Color.red.opacity(0.7) : Color.black.opacity(0.35)), in: Circle())
+                .overlay(Circle().strokeBorder(.white.opacity(0.15), lineWidth: 0.5))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .interactiveArea(id)
+        .transition(.opacity.combined(with: .move(edge: .top)))
     }
 }
 
@@ -917,7 +1038,7 @@ struct ControlPanel: View {
             }
             Divider().padding(.vertical, 4)
             MenuRow(icon: "memorychip", title: "Kickstart ROM…") { submenu = .kickstart }
-            MenuRow(icon: "internaldrive", title: "Hard Drive…") { submenu = .harddrive }
+            MenuRow(icon: "internaldrive", title: "Hard Drives…") { submenu = .harddrive }
             MenuRow(icon: "opticaldisc", title: "CD-ROM & CD32 Console…") { submenu = .cdrom }
             MenuRow(icon: "cpu", title: "Machine (CPU / RAM / RTG / Net)…") { submenu = .machine }
             // "Controller (CD32 pad)…" read as CD32-only: users asking for
@@ -1049,8 +1170,25 @@ struct InputPanel: View {
                             state.floppyHaptics.toggle()
                         }
                     }
+                    MenuRow(icon: state.autoFireRate > 0 ? "bolt.horizontal.fill" : "bolt.horizontal",
+                            title: state.autoFireRate == 0
+                                ? "Auto-Fire: Off (hold to fire)"
+                                : "Auto-Fire: \(state.autoFireRate)/sec",
+                            active: state.autoFireRate > 0) {
+                        // Off → 6 → 10 → 15 → off. 6 is comfortable for
+                        // shooters, 15 is about as fast as an Amiga game
+                        // will register.
+                        switch state.autoFireRate {
+                        case 0:  state.autoFireRate = 6
+                        case 6:  state.autoFireRate = 10
+                        case 10: state.autoFireRate = 15
+                        default: state.autoFireRate = 0
+                        }
+                    }
                     MenuRow(icon: state.tabletMode ? "hand.point.up.left.fill" : "hand.point.up.left",
-                            title: state.tabletMode ? "1:1 Mouse: On" : "1:1 Mouse: Off (relative/trackpad)",
+                            title: state.tabletMode
+                                ? (mousehackLive ? "1:1 Mouse: On" : "1:1 Mouse: On — not active")
+                                : "1:1 Mouse: Off (relative/trackpad)",
                             active: state.tabletMode) {
                         state.tabletMode.toggle()
                         ConfigStore.setTabletMode(state.tabletMode)
@@ -1267,7 +1405,7 @@ struct HardDrivePicker: View {
     private var images: [URL] {
         ConfigStore.mediaFiles(in: ConfigStore.hardDrivesDir, extensions: ["hdf", "hdz", "vhd"])
     }
-    private var mounted: String? { ConfigStore.currentValue("hardfile2") }
+    private var mounted: [ConfigStore.MountedDrive] { ConfigStore.mountedHardfiles }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -1275,28 +1413,63 @@ struct HardDrivePicker: View {
                 Button(action: onDone) { Label("Back", systemImage: "chevron.left") }
                     .buttonStyle(.plain)
                 Spacer()
-                Text("Hard Drive").font(.headline)
+                Text("Hard Drives").font(.headline)
             }
             .padding(.bottom, 6)
-            Text("Mounts as DH0: and restarts the Amiga.")
+            Text("Mount several HDF images at once — they appear as DH0:, DH1:, DH2:… Adding or ejecting one restarts the Amiga.")
                 .font(.footnote).foregroundStyle(.secondary).padding(.bottom, 4)
 
-            if mounted != nil {
-                MenuRow(icon: "eject", title: "Unmount Hard Drive") {
-                    ConfigStore.unmountHardfile()
-                    onDone()
+            // The fresh-install footgun: most ready-made Workbench images
+            // are built for RTG, and with no graphics card configured they
+            // boot to a PAL screen (or nothing recognisable) with no clue
+            // why. Cheaper to say so here than to have someone conclude
+            // the image is broken.
+            if !mounted.isEmpty && (Int(ConfigStore.currentValue("gfxcard_size") ?? "0") ?? 0) == 0 {
+                Text("No RTG graphics card is configured. Workbench images built for RTG (most 3.x installs) will not reach their normal screen — set Machine → RTG Graphics Card to 16 MB.")
+                    .font(.caption).foregroundStyle(.orange)
+                    .padding(.horizontal, 4).padding(.bottom, 4)
+            }
+
+            if !mounted.isEmpty {
+                Text("MOUNTED").font(.caption2.weight(.semibold))
+                    .foregroundStyle(.secondary).padding(.top, 2)
+                ForEach(mounted) { drive in
+                    MenuRow(icon: "eject",
+                            title: "\(drive.volume)  \(drive.name)",
+                            active: true) {
+                        ConfigStore.unmountHardfile(unit: drive.unit)
+                        onDone()
+                    }
+                }
+                if mounted.count > 1 {
+                    MenuRow(icon: "eject.fill", title: "Eject All (\(mounted.count))") {
+                        ConfigStore.unmountAllHardfiles()
+                        onDone()
+                    }
                 }
                 Divider().padding(.vertical, 4)
             }
+
             if images.isEmpty {
                 Text("No HDF images found.\nDrop .hdf files into Files › Amigo › HardDrives.")
                     .font(.footnote).foregroundStyle(.secondary).padding(.vertical, 8)
+            } else {
+                Text(mounted.isEmpty ? "AVAILABLE" : "ADD ANOTHER")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.secondary).padding(.top, 2)
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(images, id: \.self) { url in
-                        MenuRow(icon: mounted?.contains(url.path) == true ? "checkmark.circle.fill" : "internaldrive",
-                                title: ConfigStore.relativeName(url, in: ConfigStore.hardDrivesDir)) {
+                        let isUp = ConfigStore.isMounted(url: url)
+                        MenuRow(icon: isUp ? "checkmark.circle.fill" : "internaldrive",
+                                title: ConfigStore.relativeName(url, in: ConfigStore.hardDrivesDir)
+                                    + (isUp ? "  · mounted" : ""),
+                                active: isUp) {
+                            // Mounting an already-mounted image would give
+                            // the Amiga two identical volumes; the row is a
+                            // no-op rather than an error.
+                            guard !isUp else { return }
                             ConfigStore.mountHardfile(url: url)
                             onDone()
                         }

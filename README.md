@@ -7,7 +7,7 @@ match the App Store product "Amigo — Amiga Emulator"; the bundle ID and the
 An iOS port of [WinUAE](https://github.com/tonioni/WinUAE), built directly on the
 upstream Unix/SDL3 layer (`od-unix/`). Runs on iPad and iPhone, and on Apple
 Silicon Macs as a "Designed for iPad" app (see [`docs/MACOS.md`](docs/MACOS.md)).
-**Version 0.7.1.** Licensed **GPL-2** (see `LICENSE`), like WinUAE itself.
+**Version 0.7.2 on the App Store; 0.7.5 in TestFlight.** Licensed **GPL-2** (see `LICENSE`), like WinUAE itself.
 
 Runs full **AmigaOS 3.2 Workbench** on device with RTG graphics (reliable
 across resets), networking, hard drives, 1:1 touch pointer + two-finger

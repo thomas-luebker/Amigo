@@ -238,7 +238,10 @@ struct NumpadView: View {
 
 /// D-pad + fire button driving keyboard-layout-B joystick (joyport1=kbd2).
 struct VirtualJoystickView: View {
+    @ObservedObject private var state = OverlayState.shared
     @State private var activeCodes: Set<Int> = []
+    @State private var autoFireTimer: Timer?
+    @State private var autoFireDown = false
 
     private func setDirection(_ codes: Set<Int>) {
         for c in activeCodes.subtracting(codes) { ipaduae_send_key(Int32(c), 0) }
@@ -278,23 +281,65 @@ struct VirtualJoystickView: View {
             Circle()
                 .fill(.red.opacity(0.55))
                 .frame(width: fireSize, height: fireSize)
-                .overlay(Text("FIRE").font(.headline).foregroundStyle(.white))
+                .overlay(
+                    VStack(spacing: 1) {
+                        Text("FIRE").font(.headline).foregroundStyle(.white)
+                        if state.autoFireRate > 0 {
+                            Text("AUTO \(state.autoFireRate)")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundStyle(.white.opacity(0.85))
+                        }
+                    }
+                )
                 .interactiveArea("joy-fire")
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { _ in
-                            if !activeCodes.contains(SC.rctrl) {
-                                activeCodes.insert(SC.rctrl)
+                            guard !activeCodes.contains(SC.rctrl) else { return }
+                            activeCodes.insert(SC.rctrl)
+                            if state.autoFireRate > 0 {
+                                startAutoFire()
+                            } else {
                                 ipaduae_send_key(Int32(SC.rctrl), 1)
                             }
                         }
                         .onEnded { _ in
                             activeCodes.remove(SC.rctrl)
+                            stopAutoFire()
                             ipaduae_send_key(Int32(SC.rctrl), 0)
                         }
                 )
         }
         .padding(.horizontal, inputCompact ? 24 : 40)
         .padding(.bottom, inputCompact ? 16 : 30)
+        // Releasing the key on disappear matters: hiding the joystick
+        // mid-press would otherwise leave FIRE held down in the guest.
+        .onDisappear { stopAutoFire(); if activeCodes.contains(SC.rctrl) { ipaduae_send_key(Int32(SC.rctrl), 0) } }
+    }
+
+    /// Toggle FIRE at `autoFireRate` shots per second for as long as the
+    /// button is held. One "shot" is a down and an up, so the timer runs
+    /// at twice the rate and flips state on each tick.
+    private func startAutoFire() {
+        stopAutoFire()
+        autoFireDown = false
+        let halfPeriod = 1.0 / (Double(max(1, state.autoFireRate)) * 2.0)
+        // Fire immediately so the first shot has no perceptible lag.
+        autoFireDown = true
+        ipaduae_send_key(Int32(SC.rctrl), 1)
+        let t = Timer(timeInterval: halfPeriod, repeats: true) { _ in
+            autoFireDown.toggle()
+            ipaduae_send_key(Int32(SC.rctrl), autoFireDown ? 1 : 0)
+        }
+        // .common so it keeps ticking while the user is dragging the
+        // D-pad with the other thumb — tracking mode would starve it.
+        RunLoop.main.add(t, forMode: .common)
+        autoFireTimer = t
+    }
+
+    private func stopAutoFire() {
+        autoFireTimer?.invalidate()
+        autoFireTimer = nil
+        autoFireDown = false
     }
 }
