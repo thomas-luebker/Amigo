@@ -33,6 +33,7 @@ struct HelpPanel: View {
                     section("Apple Pencil")
                     row("pencil.tip", "Touch = left button · double-tap = right click (Pencil 2 & Pro)")
                     row("pencil.and.outline", "Hover moves the pointer without clicking (M2 or newer iPad) · squeeze = right click (Apple Pencil Pro only)")
+                    row("pencil.tip.crop.circle", "Pencil Pressure (Input menu): paint programs that read tablet pressure, such as Deluxe Paint, follow the tip force · needs a restart to take effect")
 
                     section("Keyboard & overlays")
                     row("keyboard", "Amiga Keyboard, F-keys, Numpad and Virtual Joystick live in the gear menu")

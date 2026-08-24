@@ -210,6 +210,75 @@ is never raced against mid-write. All access goes through
   the copy. Scope it separately if media sync is to be more than
   "CDs, ROMs and unmounted disks".
 
+## Apple Pencil pressure — `feature/pencil-pressure` (started 2026-08-24)
+
+From Chad Essley (artist on *Jake and Peppy*, Apollo V4), by email: the
+Pencil works in TVPaint but the pointer is offset unless 1:1 is on, and
+then clicking misbehaves — and the dream is pressure-sensitive painting
+on a tablet Amiga.
+
+**What the port was actually missing.** WinUAE has carried the guest-side
+half of this for years and the Unix port never wired it up:
+
+- `tabletlibrary.cpp` — the boot ROM offers the guest a **`tablet.library`**
+  serving position, proximity, buttons and `TABLETA_Pressure`. It was
+  Windows-only (`WITH_TABLETLIBRARY` defined solely in
+  `od-win32/sysconfig.h:108`) and not in `WINUAE_CORE_SOURCES` at all.
+- `filesys.asm:2932` — the mousehack driver can also post
+  `IESUBCLASS_NEWTABLET` input events carrying pressure, gated on
+  `input_tablet == TABLET_REAL` and on `is_tablet()`, which od-unix stubs
+  to `0` (`od-unix/input.cpp:1533`).
+- Both are fed by `inputdevice_tablet()` / `tabletlib_tablet()`, whose
+  only caller in the tree is `od-win32/dinput.cpp:694`.
+
+**Why tablet.library and not the input events:** upstream's own changelog
+says *"Deluxe Paint requires it for pressure support"* (line 13527).
+That settles which interface DPaint opens.
+
+**Done on the branch:**
+
+- [x] `WINUAE_UNIX_WITH_TABLETLIBRARY` (default ON) compiles
+  `tabletlibrary.cpp` into the iOS core.
+- [x] `ipaduae_pen_tablet()` in `core-ios/ios_glue.cpp` feeds it; hover
+  supplies proximity + position at zero pressure, the touch layer
+  supplies tip pressure (`pen_feed_from_finger` / `pen_end_stroke` in
+  `od-unix/video_sdl.cpp`).
+- [x] **Pressure scaling.** `tabletlibrary.cpp` encodes pressure as
+  `pressure << 15` into the signed 32-bit tag, so full scale is `0xFFFF`
+  — we feed 0..65535. The Windows path passes raw device units instead
+  (a Wacom reports 0..1023), which lands at **1.5% of full scale**. That
+  is the most likely reason for upstream's note at changelog line 8154:
+  *"dpaint5 does not seem to do anything with pressure data. It reads
+  pressure tag contents but nothing seems to happen."* Untested claim —
+  it is the first thing to check on device.
+- [x] `tablet_library=true` written into the config (seeded for existing
+  setups in `ipaduae_heal_config_paths`), *Pencil Pressure* toggle in
+  the gear menu. Installed by the boot ROM at reset, so unlike 1:1 Mouse
+  it needs a restart.
+
+**Open — needs the device:**
+
+- [ ] **Does SDL report Pencil pressure at all on iOS?** The feed keys
+  off `event.tfinger.pressure` being strictly between 0 and 1
+  (`touch_pressure_is_pen`). If iOS flattens finger and Pencil to the
+  same value, the fallback is a UIKit-side `UITouch.force` feed from a
+  passive recognizer in `PencilSupport.swift`. The existing `iPadUAE
+  finger:` diag lines already print pressure — one Pencil session with a
+  log answers this. New `iPadUAE pen: stroke start` line marks detection.
+- [ ] Test in DPaint (pressure-capable per upstream) and confirm whether
+  the `<< 15` scaling reads as full range on the Amiga side.
+- [ ] **TVPaint is a separate question.** It talks to serial tablets with
+  its own drivers, chosen from the right-click launch menu, and may
+  never open `tablet.library`. If so the route is wire-level Wacom IV
+  emulation on the emulated serial port — `SERIAL_PORT` is already
+  compiled in for iOS (`od-unix/sysconfig.h:79`) and
+  `od-unix/serial.cpp` has the loopback/TCP backends to slot into. Ask
+  Chad for a photo of that launch menu before spending the effort.
+- [ ] Chad's other report — Pencil clicks misbehaving in 1:1 mode — is a
+  separate bug: `FINGER_DOWN` palm-rejects the whole touch when
+  `unix_input_pen_hover_active` is set, and nothing guarantees the hover
+  recognizer reaches `.ended` before SDL delivers the tip's touch.
+
 ## 0.7.5 — on TestFlight (build 20260824, 2026-08-21)
 
 - [x] **RTG silently dies at 32 MB — option removed and existing configs

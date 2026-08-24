@@ -239,6 +239,7 @@ final class OverlayState: ObservableObject {
     @Published var rtgAccel = UserDefaults.standard.object(forKey: "rtgAccel") as? Bool ?? false
     @Published var vsync = UserDefaults.standard.object(forKey: "vsync") as? Bool ?? false
     @Published var tabletMode = ConfigStore.tabletMode
+    @Published var penPressure = ConfigStore.penPressure
     // Default OFF, matching the core's default — see unix_video_external_enabled
     // in video_sdl.cpp for why auto-detection must not run on the very first
     // boot before this preference has a chance to sync.
@@ -1211,6 +1212,24 @@ struct InputPanel: View {
                                 mousehackLive = ipaduae_mousehack_alive() != 0
                             }
                     }
+                    MenuRow(icon: state.penPressure ? "pencil.tip.crop.circle.fill" : "pencil.tip.crop.circle",
+                            title: state.penPressure
+                                ? "Pencil Pressure: On"
+                                : "Pencil Pressure: Off",
+                            active: state.penPressure) {
+                        state.penPressure.toggle()
+                        ConfigStore.setPenPressure(state.penPressure)
+                    }
+                    // The library the Amiga side opens is installed by the
+                    // boot ROM at reset, so this cannot be a live toggle
+                    // like 1:1 Mouse above it.
+                    Text(state.penPressure
+                         ? "Deluxe Paint and other paint programs that read tablet pressure follow the Pencil's tip force. Takes effect after a restart."
+                         : "Off — paint programs see a plain mouse.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 4)
+                        .padding(.bottom, 4)
                     MenuRow(icon: "keyboard", title: state.showKeyboard ? "Hide Amiga Keyboard" : "Amiga Keyboard",
                             active: state.showKeyboard) {
                         state.showKeyboard.toggle()

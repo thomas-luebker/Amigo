@@ -388,6 +388,31 @@ enum ConfigStore {
         }
     }
 
+    /// Apple Pencil pressure. The UAE boot ROM can offer the guest a
+    /// `tablet.library` — the interface Deluxe Paint opens to read stylus
+    /// pressure — and `core-ios/ios_glue.cpp` feeds it from the Pencil.
+    /// Position and clicking are unaffected either way; this only decides
+    /// whether the library exists for a paint program to open.
+    ///
+    /// The library is installed by the boot ROM at reset, so a change
+    /// takes effect on the next boot, not immediately.
+    static var penPressure: Bool {
+        currentValue("tablet_library") == "true"
+    }
+
+    static func setPenPressure(_ on: Bool) {
+        set("tablet_library", on ? "true" : "false")
+    }
+
+    /// Default the library on for setups that predate it. Absent means
+    /// "off" to the core (its own default), so the key has to be written
+    /// rather than left out — and an explicit `false` is left alone.
+    static func seedPenPressureDefault() {
+        if currentValue("tablet_library") == nil {
+            set("tablet_library", "true")
+        }
+    }
+
     private static func restart() {
         NSLog("iPadUAE: restarting with config %@", configURL.path)
         ipaduae_restart_with_config(configURL.path)
@@ -705,4 +730,5 @@ public func ipaduae_heal_config_paths() {
     // session crashed mid-change), then heal container paths in it.
     ConfigStore.recoverFromCrashedChange()
     ConfigStore.healAllConfigurations()
+    ConfigStore.seedPenPressureDefault()
 }
