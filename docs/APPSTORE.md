@@ -109,69 +109,39 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     third-party trademarks in keywords are a rejection trigger; "amiga"
     is needed for search and is standard across shipping emulators.)
 
-## Promotional text — 0.7.5 (DRAFT, not yet pushed)
+## 0.7.5 — LIVE on ASC (pushed 2026-08-24, verified by read-back)
 
-Limit 170 chars. Same "New in X" pattern as the live 0.7.2 text.
-**Promotional text is the one field editable WITHOUT review**, on the live
-version too.
+**What's New** — en-US 1,254 chars / de-DE 1,371, 11 bullets each.
+**Promotional text** — en-US 155 / de-DE 169.
+**Keywords** — en-US 91 with `cd32,gamepad`; de-DE unchanged at 91.
 
-en-US (161):
+en-US What's New, as pushed:
 
-    New in 0.7.5: several hard disks at once, each its own volume — plus fixes for an LHA crash, a 32 MB RTG setting that killed graphics, and double-mounted images.
-
-de-DE (152):
-
-    Neu in 0.7.5: mehrere Festplatten gleichzeitig, jede als eigenes Laufwerk — dazu Fixes für einen LHA-Absturz, 32 MB RTG und doppelt eingebundene Images.
-
-> [!warning] Do NOT push this to the live 0.7.2 record
-> Because it needs no review it is tempting to set it now — but it would
-> advertise 0.7.5 features to people who can still only download 0.7.2.
-> Push it to the 0.7.5 record so it goes live *with* the release, or to the
-> live record only once 0.7.5 is `READY_FOR_SALE`.
->
-> Live 0.7.2 text for reference — en-US 152 chars, de-DE 165:
-> *"New in 0.7.2: iCloud sync for your setups and save states, both Shift
-> keys fixed at last, drag & drop from Files, CRT scanlines, and four
-> floppy drives."*
-
-## What's New — 0.7.5 (DRAFT, not yet pushed to ASC)
-
-*Drafted 2026-08-23 from the actual commits in `9da5d82`. Every line maps
-to a fix that was verified on the M4 iPad — nothing aspirational.*
-
-    • Multiple hard disks at last — mount several HDF images side by side
-      and each appears as its own volume. Eject one and the rest keep
-      running
-    • Fixed a crash when opening some LHA archives as a floppy — the way
-      most WHDLoad titles ship. If Amigo quit on you inserting a .lha,
-      that is this
-    • Fixed: choosing 32 MB of RTG graphics memory silently disabled the
-      graphics card. The option is gone, and a machine already stuck on
-      it repairs itself on next launch
+    • Quick controls, bottom-left — one tap shows the Amiga keyboard; hold it for the numpad, function keys and virtual joystick. That used to take three taps through the menu
+    • New disk button, bottom-right — swap floppies, hard disks and CDs without opening the menu, and eject and swap now work properly from the disk panel
+    • Copy and paste between iOS and the Amiga — text both ways, and pictures from the Amiga to iOS
+    • Multiple hard disks at last — mount several HDF images side by side and each appears as its own volume. Eject one and the rest keep running
+    • CDs now work beyond the CD32 — mount a CD image on an A1200 or A4000 and the machine actually sees it
+    • A floppy speed setting for faster ADF loading, now in the disk panel
+    • Sharper drive LEDs — the status bar is no longer blurred when scaled up
+    • Fixed a crash when opening some LHA archives as a floppy — the way most WHDLoad titles ship. If Amigo quit on you inserting a .lha, that is this
+    • Fixed a start-up hang where the emulator could spin instead of booting
+    • Fixed: choosing 32 MB of RTG graphics memory silently disabled the graphics card. The option is gone, and a machine already stuck on it repairs itself on next launch
     • Fixed: the same hard disk image could be mounted twice
 
-German (de-DE) — kept parallel, same order:
+Promotional text, as pushed:
 
-    • Endlich mehrere Festplatten: mehrere HDF-Images gleichzeitig
-      einbinden, jedes erscheint als eigenes Laufwerk. Wird eines
-      ausgeworfen, laufen die anderen weiter
-    • Absturz beim Öffnen mancher LHA-Archive als Diskette behoben — so
-      werden die meisten WHDLoad-Titel ausgeliefert
-    • Behoben: 32 MB RTG-Grafikspeicher deaktivierten die Grafikkarte
-      stillschweigend. Die Option entfällt, und eine bereits betroffene
-      Konfiguration repariert sich beim nächsten Start
-    • Behoben: dasselbe Festplatten-Image ließ sich doppelt einbinden
+    New in 0.7.5: one-tap quick controls, a disk button, copy & paste with iOS, several hard disks at once, and CDs beyond the CD32 — plus the LHA crash fixed.
 
-> **The LHA line is the one that matters.** It was the entire 0.7.1 field
-> crash — five reports, one user, retrying. Say it plainly rather than
-> burying it under the feature.
-
-> **Keywords ride with this submission.** `cd32` and `gamepad` are now in
-> the en-US list above (91/100). `joystick` would fit too — all three are
-> exactly 100 — but is left off to keep headroom. de-DE is 91/100, so
-> something must give there before anything is added. **Not yet pushed to
-> ASC**: keywords are version-scoped and need an editable 0.7.5 version
-> record.
+> [!important] Generate release notes from `git log <last shipped>..HEAD`, never from the release commit
+> The first draft of this was built from the 0.7.5 commit message and
+> covered barely a third of the release — it missed the quick controls,
+> the disk button, iOS copy & paste, CDs beyond the CD32, floppy speed,
+> the LED sharpness fix and the start-up hang fix. **0.7.3 and 0.7.4 were
+> never released**, so everything since 0.7.2 ships here.
+> `git log release/0.7.2..HEAD` is what produces the true list. Length is
+> never the constraint — the limit is 4000 chars and the full list used
+> 1,254.
 
 ## What's New — 0.7.1
 
