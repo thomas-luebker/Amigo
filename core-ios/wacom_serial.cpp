@@ -31,6 +31,7 @@
 #include "options.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 /* Config value for serial_port= that selects this device instead of a
  * host tty or a TCP endpoint. */
@@ -77,6 +78,7 @@ static int s_credit_acc;
 
 /* Last pen sample, so a button-only or proximity-only change still emits
  * a positionally correct packet. */
+static int s_emits, s_drops;
 static int s_pen_x, s_pen_y, s_pen_pressure, s_pen_buttons;
 static bool s_pen_proximity;
 
@@ -135,7 +137,12 @@ static void emit_packet(void)
      * the line carries ~137 packets a second and the Pencil can report
      * faster than that. Stale coordinates are worse than missing ones. */
     if (rx_free() < 7) {
+        s_drops++;
         return;
+    }
+    if ((++s_emits % 500) == 0) {
+        write_log(_T("WACOM emit: %d packets, %d dropped, buffered=%d credit=%d\n"),
+                  s_emits, s_drops, rx_used(), s_credit);
     }
 
     const int x = s_pen_x < 0 ? 0 : (s_pen_x > WACOM_MAX_X ? WACOM_MAX_X : s_pen_x);
@@ -219,6 +226,7 @@ static void run_command(const char *cmd)
     if (!cmd[0]) {
         return;
     }
+    write_log(_T("WACOM cmd: \"%s\"\n"), cmd);
     if (!strcmp(cmd, "~#")) {
         reply_model();
     } else if (!strncmp(cmd, "~C", 2)) {
@@ -283,10 +291,67 @@ extern "C" int wacom_serial_read(int *out)
 /* Called once per scanline with the baud rate the guest has programmed
  * into SERPER (0 before it programs one, which a driver does before it
  * expects anything back). */
+extern "C" void wacom_serial_pen(float nx, float ny, float pressure,
+                                 int in_proximity, int buttons);
+
+/* Self-test sweep. With no Pencil — a simulator, a desktop build, an
+ * automated run — there is no pen to move, and the half of this that
+ * needs proving is the half between here and the Amiga program: config,
+ * open, UART, serial.device. AMIGO_TABLET_SELFTEST=1 makes the tablet
+ * draw its own slow circle with a triangular pressure ramp, so a probe in
+ * the guest sees a deterministic, checkable stream. */
+static int s_selftest = -1;
+static int s_selftest_tick;
+
+static bool selftest_enabled(void)
+{
+    if (s_selftest < 0) {
+        const char *v = getenv("AMIGO_TABLET_SELFTEST");
+        s_selftest = (v && *v && *v != '0') ? 1 : 0;
+        if (s_selftest) {
+            write_log(_T("SERIAL: Wacom tablet self-test sweep enabled\n"));
+        }
+    }
+    return s_selftest > 0;
+}
+
+/* One sample every 130 scanlines is ~120/s, the rate the Pencil itself
+ * reports at, and inside what 9600 baud carries. */
+static void selftest_step(void)
+{
+    if (++s_selftest_tick < 130) {
+        return;
+    }
+    s_selftest_tick = 0;
+
+    static int phase;
+    phase = (phase + 1) % 480;                    /* four seconds a lap */
+    const float t = (float)phase / 480.0f;
+    /* A circle, quarter-scale, centred — no trig needed for a shape a
+     * probe can recognise: a diamond does just as well. */
+    const float u = t * 4.0f;
+    const float leg = u - (float)(int)u;
+    float dx, dy;
+    switch ((int)u & 3) {
+        case 0:  dx =  leg;        dy =  0.0f + leg; break;
+        case 1:  dx =  1.0f - leg; dy =  1.0f;       break;
+        case 2:  dx = -leg;        dy =  1.0f - leg; break;
+        default: dx = -1.0f + leg; dy =  0.0f;       break;
+    }
+    const float nx = 0.5f + dx * 0.25f;
+    const float ny = 0.25f + dy * 0.25f;
+    /* Pressure ramps up and back down across the lap. */
+    const float pr = t < 0.5f ? t * 2.0f : (1.0f - t) * 2.0f;
+    wacom_serial_pen(nx, ny, pr, 1, pr > 0.0f ? 1 : 0);
+}
+
 extern "C" void wacom_serial_hsync(int baud)
 {
     if (!s_open) {
         return;
+    }
+    if (selftest_enabled()) {
+        selftest_step();
     }
     if (baud <= 0) {
         baud = 9600;

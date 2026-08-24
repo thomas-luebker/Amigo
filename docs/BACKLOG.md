@@ -307,6 +307,72 @@ PenPartner, Tableau Pro, FormAldiHyd, AccuPoint — work inside Amigo too
 and feed the genuine `tablet.library`, rather than the boot ROM's
 stand-in.
 
+**End-to-end test in the Simulator — the tablet reaches AmigaOS (2026-08-25).**
+
+`scripts/test-tablet-simulator.sh` boots a bootable 8 MB test disk
+(`scripts/build-guest-tests.sh`) whose Startup-Sequence runs a 68k probe,
+`core-ios/tests/guest/sertest.c`, with `AMIGO_TABLET_SELFTEST=1` so the
+tablet moves its own pen. No Pencil, no device, no human.
+
+**Result: the Amiga sees the tablet.** The probe read the model string and
+the coordinate range off the wire, and in one run decoded a live packet
+stream — `x= 6689 y= 3112 pressure= 81 prox=1 tip=1` climbing smoothly
+with monotonic pressure (`build/tests/tablet-test7.png`). That is a real
+AmigaOS program reading a Wacom Protocol IV tablet through Amigo's
+emulated serial port.
+
+**Four real bugs, none of them in the protocol.** Every one was invisible
+to the Mac-side unit test and would have been invisible to reasoning:
+
+1. **`serial_port=` is not a config key — `unix.serial_port=` is.** Target
+   options only reach `target_parse_option()` when they carry the
+   `TARGET_NAME.` prefix (`cfgfile.cpp:3543`), and TARGET_NAME is "unix".
+   Written without it the core logs "unknown config entry" and the port
+   silently stays closed. `ConfigStore.setSerialTablet` was wrong and is
+   fixed.
+2. **The TBE interrupt was never raised.** `SERDATR` reports TBE and TSRE,
+   but AmigaOS's serial.device is interrupt-driven: it hands a byte to
+   SERDAT and waits for `INTB_TBE`. Nothing in the port ever raised it, so
+   **every `CMD_WRITE` from the guest blocked forever in DoIO**. The old
+   UAE `serial.cpp` at the repo root does `intreq |= 1` right there; the
+   Unix port lost it. Fixed in `od-unix/serial.cpp` — this affects any
+   Amiga program that writes to the serial port, not just the tablet.
+3. **Every transmitted byte was doubled.** SERDAT emitted a `0xa8|bit`
+   prefix whenever SERDAT bit 8 was set, to convey a ninth data bit — but
+   AmigaOS sets that bit as the *stop bit* on ordinary 8N1 writes, so the
+   host saw `a9` before every byte. The guest's commands arrived as
+   `"\xa9S\xa9T\xa9"`. Now gated on 9-bit mode (SERPER bit 15).
+4. **The RDB boot flag is not the default.** `rdb-build --part "DH0:DOS3"`
+   produces a partition that mounts, reads and never boots — `Flags:
+   00000000`, insert-disk screen. It is the fourth field: `DH0:DOS3::1`.
+   Worth carrying into the `amiga-disk` skill.
+
+Also learned, and worth keeping: **`serial.device` is not in the Kickstart
+ROM.** A bare boot disk has nine devices and serial is not among them —
+it lives in `DEVS:`. `build-guest-tests.sh` borrows one from a system
+image rather than committing Amiga OS files here.
+
+> **Xcode will not relink when only `libuaecore.a` changed.** The static
+> library is not in its dependency graph, so `xcodebuild` reports BUILD
+> SUCCEEDED and installs a stale binary — which cost an hour of chasing a
+> bug that was already fixed. Touch a Swift source, or delete DerivedData,
+> whenever the core changes. Verify with
+> `strings Amigo.app/Amigo.debug.dylib | grep "virtual Wacom"` (debug
+> builds put the code in `Amigo.debug.dylib`, not the 37 KB launcher).
+
+**Still open — sustained streaming.** After the handshake the device keeps
+emitting (100 packets, 0 dropped, ~630 bytes buffered, credit pegged at
+its cap) while the guest stops draining. It streamed fine for the reader
+that polled `SDCMD_QUERY`; it stalls for one that queues `CMD_READ`. The
+probe's own serial IO was wrong in three ways already found and fixed
+(one IORequest shared between read and write, byte-at-a-time reads,
+`io_RBufLen` left at 0), so the probe is the prime suspect — but the
+receive path deserves a look too: `checkreceive_serial()` only delivers
+while `!rx_full`, and `rx_full` clears solely on a SERDATR read.
+`serial_rbf_change()` *is* wired from `custom.cpp:3182`, so start by
+checking whether the RBF interrupt is actually reaching the guest's
+handler.
+
 **Open — needs the device:**
 
 - [ ] **Does SDL report Pencil pressure at all on iOS?** The feed keys

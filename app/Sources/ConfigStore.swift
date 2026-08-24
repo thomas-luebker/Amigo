@@ -414,15 +414,21 @@ enum ConfigStore {
     /// The port is opened at reset, so this takes effect on the next boot.
     /// It claims the serial port for the tablet; nothing else in Amigo
     /// uses it today.
+    /// The key is `unix.serial_port`, not `serial_port`: target options
+    /// only reach `target_parse_option()` when they carry the
+    /// `TARGET_NAME.` prefix (`cfgfile.cpp:3543`), and TARGET_NAME is
+    /// "unix" here. Written without the prefix the core logs "unknown
+    /// config entry" and the port stays closed — which is exactly what
+    /// the first end-to-end run did.
     static var serialTablet: Bool {
-        currentValue("serial_port")?.uppercased() == "WACOM_TABLET"
+        currentValue("unix.serial_port")?.uppercased() == "WACOM_TABLET"
     }
 
     static func setSerialTablet(_ on: Bool) {
         if on {
-            set("serial_port", "WACOM_TABLET")
+            set("unix.serial_port", "WACOM_TABLET")
         } else {
-            removeAll("serial_port")
+            removeAll("unix.serial_port")
         }
     }
 
