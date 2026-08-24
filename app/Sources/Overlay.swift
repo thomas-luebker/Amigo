@@ -240,6 +240,7 @@ final class OverlayState: ObservableObject {
     @Published var vsync = UserDefaults.standard.object(forKey: "vsync") as? Bool ?? false
     @Published var tabletMode = ConfigStore.tabletMode
     @Published var penPressure = ConfigStore.penPressure
+    @Published var serialTablet = ConfigStore.serialTablet
     // Default OFF, matching the core's default — see unix_video_external_enabled
     // in video_sdl.cpp for why auto-detection must not run on the very first
     // boot before this preference has a chance to sync.
@@ -1226,6 +1227,21 @@ struct InputPanel: View {
                     Text(state.penPressure
                          ? "Deluxe Paint and other paint programs that read tablet pressure follow the Pencil's tip force. Takes effect after a restart."
                          : "Off — paint programs see a plain mouse.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 4)
+                        .padding(.bottom, 4)
+                    MenuRow(icon: state.serialTablet ? "cable.connector.horizontal" : "cable.connector",
+                            title: state.serialTablet
+                                ? "Serial Tablet: On (Wacom)"
+                                : "Serial Tablet: Off",
+                            active: state.serialTablet) {
+                        state.serialTablet.toggle()
+                        ConfigStore.setSerialTablet(state.serialTablet)
+                    }
+                    Text(state.serialTablet
+                         ? "The Pencil appears on the serial port as a Wacom tablet, for programs that talk to one directly — pick it in TVPaint's launch menu. Takes effect after a restart."
+                         : "Off — the serial port is empty.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 4)

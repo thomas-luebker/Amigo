@@ -120,9 +120,17 @@ extern "C" void ipaduae_set_pen_hover(int active)
  * drawing area — reported as TABLETA_ResolutionX/Y. */
 #define PEN_TABLET_RES     400
 
+/* The other consumer of the same samples: the virtual Wacom on the
+ * serial port (wacom_serial.cpp), for programs like TVPaint that drive a
+ * serial tablet themselves instead of opening tablet.library. Both can be
+ * live at once — they are different ports, and a program uses one. */
+extern "C" void wacom_serial_pen(float nx, float ny, float pressure,
+                                 int in_proximity, int buttons);
+
 extern "C" void ipaduae_pen_tablet(float nx, float ny, float pressure,
                                    int in_proximity, int buttons)
 {
+    wacom_serial_pen(nx, ny, pressure, in_proximity, buttons);
 #ifdef WITH_TABLETLIBRARY
     if (!currprefs.tablet_library) {
         return;

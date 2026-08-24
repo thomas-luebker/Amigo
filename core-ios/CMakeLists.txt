@@ -18,4 +18,8 @@ target_sources(winuae_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../vendor/WinUAE
 # include context — avoids upstream patches for app-facing helpers.
 target_sources(winuae_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ios_glue.cpp")
 
+# Virtual Wacom Protocol IV tablet on the emulated serial port, driven by
+# the Apple Pencil (serial_port=WACOM_TABLET). Hooked from od-unix/serial.cpp.
+target_sources(winuae_core PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/wacom_serial.cpp")
+
 add_library(uaecore STATIC $<TARGET_OBJECTS:winuae_core>)

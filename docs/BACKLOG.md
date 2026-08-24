@@ -256,6 +256,57 @@ That settles which interface DPaint opens.
   the gear menu. Installed by the boot ROM at reset, so unlike 1:1 Mouse
   it needs a restart.
 
+**Serial Wacom tablet — done on the same branch (2026-08-24).**
+
+TVPaint does not open `tablet.library` and never will: its tablet support
+is built into the application and talks to a serial tablet directly, from
+the menu it shows on a right-click at launch. The people who actually ran
+it did so with Wacom UD/UltraPad units — an A4000 with a **UD-0806** and
+an A1200 with an **UltraPad A5** are both on record in the TVPaint forum
+thread, which turns out to be Chad's own from 2019. Those are Protocol IV
+tablets. So the answer for TVPaint is not a driver: it is to *be* the
+tablet.
+
+`core-ios/wacom_serial.cpp` is a Wacom Protocol IV device on the emulated
+serial port, selected with `serial_port=WACOM_TABLET` (parsed at
+`od-unix/config.cpp:407`, which sets `sername` and `use_serial` together).
+It is a device, not a byte generator — it answers `~#`, `~C` and `~R`,
+honours `ST`/`SP`/`PH`, and only then streams 7-byte packets.
+
+Hooks in `od-unix/serial.cpp`, all guarded to iOS, following the shape
+upstream already established for `LOOPBACK_SERIAL`:
+
+| hook | what it does |
+|---|---|
+| `serial_open()` | recognises the device name |
+| `serial_read_byte()` / `readseravail()` | receive from the tablet |
+| `writeser()` | guest bytes become tablet commands |
+| `serial_readstatus()` | reports DSR/CAR/CTS, as loopback does |
+| `serial_hsynchandler()` | one scanline of baud-rate credit |
+
+**Pacing matters more than it looks.** `checkreceive_serial()` runs per
+scanline (~15.6 kHz), so an unmetered buffer would deliver a whole packet
+between two scanlines and overrun a driver expecting 9600 baud. Credit
+accrues from the baud the guest programmed into SERPER, spent one byte at
+a time, with a 32-byte burst bucket.
+
+**Tested without an Amiga.** `scripts/test-wacom-serial.sh` compiles the
+device against stub headers, drives the full Protocol IV handshake and
+decodes its own packets back — 31 checks covering framing, coordinate and
+pressure round-trip, proximity, buttons, `ST`/`SP` gating and baud pacing
+at 9600 and 19200. All pass. It also pinned the burst bucket: the measured
+overshoot is exactly 32 bytes.
+
+Unverified and marked as such in the source: the exact `~#`/`~R` reply
+text, and the Y origin corner (Wacom digitizers historically count Y up
+from the bottom; `WACOM_Y_DOWN` is the one line to flip if TVPaint draws
+mirrored).
+
+**Bonus:** with a serial Wacom present, the real Amiga drivers —
+PenPartner, Tableau Pro, FormAldiHyd, AccuPoint — work inside Amigo too
+and feed the genuine `tablet.library`, rather than the boot ROM's
+stand-in.
+
 **Open — needs the device:**
 
 - [ ] **Does SDL report Pencil pressure at all on iOS?** The feed keys
@@ -267,13 +318,12 @@ That settles which interface DPaint opens.
   log answers this. New `iPadUAE pen: stroke start` line marks detection.
 - [ ] Test in DPaint (pressure-capable per upstream) and confirm whether
   the `<< 15` scaling reads as full range on the Amiga side.
-- [ ] **TVPaint is a separate question.** It talks to serial tablets with
-  its own drivers, chosen from the right-click launch menu, and may
-  never open `tablet.library`. If so the route is wire-level Wacom IV
-  emulation on the emulated serial port — `SERIAL_PORT` is already
-  compiled in for iOS (`od-unix/sysconfig.h:79`) and
-  `od-unix/serial.cpp` has the loopback/TCP backends to slot into. Ask
-  Chad for a photo of that launch menu before spending the effort.
+- [ ] **Which tablet TVPaint's launch menu actually lists.** Protocol IV
+  is the educated bet from what people ran, but UD tablets also speak the
+  older Wacom II-S, and a 1995 program may target that — or the menu may
+  offer SummaSketch/Kurta instead. One photo of that right-click menu
+  from Chad settles it; the II-S variant would be a second packet format
+  in the same device, not a rewrite.
 - [ ] Chad's other report — Pencil clicks misbehaving in 1:1 mode — is a
   separate bug: `FINGER_DOWN` palm-rejects the whole touch when
   `unix_input_pen_hover_active` is set, and nothing guarantees the hover

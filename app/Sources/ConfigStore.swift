@@ -404,6 +404,28 @@ enum ConfigStore {
         set("tablet_library", on ? "true" : "false")
     }
 
+    /// Serial tablet emulation: the Pencil appears on the Amiga's serial
+    /// port as a Wacom Protocol IV tablet (`core-ios/wacom_serial.cpp`).
+    /// This is the route for programs that drive a serial tablet
+    /// themselves rather than opening `tablet.library` — TVPaint being
+    /// the one that matters, where the tablet is picked from the menu it
+    /// shows on a right-click at launch.
+    ///
+    /// The port is opened at reset, so this takes effect on the next boot.
+    /// It claims the serial port for the tablet; nothing else in Amigo
+    /// uses it today.
+    static var serialTablet: Bool {
+        currentValue("serial_port")?.uppercased() == "WACOM_TABLET"
+    }
+
+    static func setSerialTablet(_ on: Bool) {
+        if on {
+            set("serial_port", "WACOM_TABLET")
+        } else {
+            removeAll("serial_port")
+        }
+    }
+
     /// Default the library on for setups that predate it. Absent means
     /// "off" to the core (its own default), so the key has to be written
     /// rather than left out — and an explicit `false` is left alone.
