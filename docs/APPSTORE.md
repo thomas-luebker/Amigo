@@ -109,6 +109,31 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     third-party trademarks in keywords are a rejection trigger; "amiga"
     is needed for search and is standard across shipping emulators.)
 
+## Promotional text — 0.7.5 (DRAFT, not yet pushed)
+
+Limit 170 chars. Same "New in X" pattern as the live 0.7.2 text.
+**Promotional text is the one field editable WITHOUT review**, on the live
+version too.
+
+en-US (161):
+
+    New in 0.7.5: several hard disks at once, each its own volume — plus fixes for an LHA crash, a 32 MB RTG setting that killed graphics, and double-mounted images.
+
+de-DE (152):
+
+    Neu in 0.7.5: mehrere Festplatten gleichzeitig, jede als eigenes Laufwerk — dazu Fixes für einen LHA-Absturz, 32 MB RTG und doppelt eingebundene Images.
+
+> [!warning] Do NOT push this to the live 0.7.2 record
+> Because it needs no review it is tempting to set it now — but it would
+> advertise 0.7.5 features to people who can still only download 0.7.2.
+> Push it to the 0.7.5 record so it goes live *with* the release, or to the
+> live record only once 0.7.5 is `READY_FOR_SALE`.
+>
+> Live 0.7.2 text for reference — en-US 152 chars, de-DE 165:
+> *"New in 0.7.2: iCloud sync for your setups and save states, both Shift
+> keys fixed at last, drag & drop from Files, CRT scanlines, and four
+> floppy drives."*
+
 ## What's New — 0.7.5 (DRAFT, not yet pushed to ASC)
 
 *Drafted 2026-08-23 from the actual commits in `9da5d82`. Every line maps
