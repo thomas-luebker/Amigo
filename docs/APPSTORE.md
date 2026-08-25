@@ -109,6 +109,34 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     third-party trademarks in keywords are a rejection trigger; "amiga"
     is needed for search and is standard across shipping emulators.)
 
+## 0.7.6 — archive built 2026-08-25, NOT yet pushed to ASC
+
+Build `20260825`, `MARKETING_VERSION 0.7.6`. Archive at
+`build/Amigo.xcarchive`. Two user-reported bugs fixed, both verified on
+real hardware the day they arrived, plus Apple Pencil pressure.
+
+Drafted from `git log 5b15217..HEAD`, per the warning below — not from a
+release commit.
+
+en-US What's New, draft (needs pushing to ASC):
+
+    • AHI sound works again — the emulated sound card was never actually placed on the Amiga's expansion bus, so drivers found nothing to open. Existing setups repair themselves on the next launch
+    • Apple Pencil pressure reaches the Amiga. Turn on Pencil Pressure in Input & Overlays for programs that read tablet pressure through the system, such as Deluxe Paint
+    • Serial Tablet, in the same menu, puts a Wacom graphics tablet on the Amiga's serial port for programs that drive one themselves. In TVPaint set the tablet type to "Wacom A4+ Pressure"
+    • Fixed: the Apple Pencil's own tip could be mistaken for a resting palm and ignored, so taps and strokes went missing or seemed to stick
+    • Fixed: the emulated serial port never told the Amiga a byte had been sent, so any program writing to it waited forever. Terminal and comms software could not work at all
+    • Fixed: every byte the Amiga sent out of the serial port was doubled
+
+Promotional text, draft:
+
+    New in 0.7.6: Apple Pencil pressure in Amiga paint programs, AHI sound working again, and the serial port fixed — plus Pencil taps no longer mistaken for your palm.
+
+> [!warning] Not pushed yet — this went no further than the archive
+> Nothing has been uploaded to App Store Connect and no metadata has been
+> set. Remaining: Xcode → Organizer → Distribute App, then What's New,
+> promotional text and the de-DE translations. **de-DE is ~45% of
+> downloads** and its What's New still has to be written.
+
 ## 0.7.5 — LIVE on ASC (pushed 2026-08-24, verified by read-back)
 
 **What's New** — en-US 1,254 chars / de-DE 1,371, 11 bullets each.
