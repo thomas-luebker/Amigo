@@ -271,7 +271,7 @@ int main(int argc, char **argv)
              * host may be busy. Count them and keep listening — a driver
              * would. Only a long total silence ends the run. */
             gaps++;
-            if (gaps > 20) {
+            if (gaps > 60) {
                 printf("SerTest: stream ended after %d packets, %d gaps\n",
                        (int)packets, (int)gaps);
                 goto done;
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
          * second, and a program that tries falls behind serial.device's
          * input buffer and overruns it — which looks like the tablet
          * stopping when it is really the printing that cannot keep up. */
-        if (packets % 25) {
+        if (packets % 5) {
             continue;
         }
         {

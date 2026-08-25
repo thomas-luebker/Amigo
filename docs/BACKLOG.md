@@ -454,6 +454,33 @@ tip is down, and the hover feed skips the tablet for its duration. The
 self-test sweep has no hover, which is exactly why it never showed this —
 a reminder of what synthetic input cannot cover.
 
+**Both routes confirmed with a real Apple Pencil (2026-08-25, M4 iPad).**
+
+    TabTest: [129] pressure= 1787002880 ( 83%)   → tablet.library, DPaint's route
+    TabTest: pressure reached the Amiga side
+    SerTest: [  5] x= 4726 y= 3895 pressure= 20 prox=1 tip=1   → serial Wacom, TVPaint's route
+
+A Wacom Protocol IV packet built from Pencil force, carried over the
+emulated serial port, decoded by an AmigaOS program — and the same force
+reaching `tablet.library` at up to 83% of full scale. The two interfaces
+this branch set out to feed are both live on real hardware.
+
+**The palm rejection was eating every Pencil stroke.** `FINGER_DOWN`
+rejected any touch that arrived while the Pencil hovered — including the
+Pencil's own tip. On M-series hardware the hover recognizer's `.ended`
+routinely lands *after* SDL delivers the touch, so the tip's contact was
+swallowed whole: tap, motion and lift. Measured before the fix: **303
+touch events carrying Pencil pressure, zero recognised strokes.** After:
+strokes recognised immediately and packets flowing. A touch that reports
+analogue force is the Pencil — no finger does — so that case now cancels
+hover instead of rejecting the touch. This is very likely the
+"doesn't click properly, or always stays clicked" in the report that
+started this work.
+
+**Still thin:** that run produced only 7 packets before the probe gave up,
+because the drawing was brief. The path is proven; sustained throughput
+and latency under a real continuous stroke are not yet characterised.
+
 **Open — needs the device:**
 
 - [x] **Does SDL report Pencil pressure at all on iOS? YES — settled on

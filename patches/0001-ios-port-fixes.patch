@@ -1323,7 +1323,7 @@ index 73a3ff4a..47b18b1c 100644
          return 0;
      }
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..d3365370 100644
+index 13e88b9d..504b51d4 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -2120,7 +2120,7 @@ index 13e88b9d..d3365370 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2490,298 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2490,312 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -2156,10 +2156,24 @@ index 13e88b9d..d3365370 100644
 +                break;
 +            }
 +            if (unix_input_pen_hover_active) {
-+                /* Palm/finger contact while the Pencil hovers: ignore the
-+                 * whole touch sequence. */
-+                pen_ignore_finger(event.tfinger.fingerID);
-+                break;
++                if (touch_pressure_is_pen(event.tfinger.pressure)) {
++                    /* This IS the Pencil's own tip landing: it reports
++                     * analogue force, which no finger does. The hover
++                     * recognizer simply has not caught up — on M-series
++                     * hardware .ended often arrives after SDL delivers the
++                     * touch, and rejecting it here swallowed the whole
++                     * stroke: the tap, its motion and its lift. Measured on
++                     * device as 303 touch events carrying Pencil pressure
++                     * and not one recognised stroke. Almost certainly the
++                     * "doesn't click properly, or always stays clicked"
++                     * in the report that started this work. */
++                    unix_input_pen_hover_active = false;
++                } else {
++                    /* Palm or finger contact while the Pencil hovers:
++                     * ignore the whole touch sequence. */
++                    pen_ignore_finger(event.tfinger.fingerID);
++                    break;
++                }
 +            }
 +            s_touch_finger_count++;
 +            if (s_touch_finger_count > s_touch_max_fingers) {
@@ -2421,7 +2435,7 @@ index 13e88b9d..d3365370 100644
          case SDL_EVENT_JOYSTICK_ADDED:
          case SDL_EVENT_JOYSTICK_REMOVED:
          case SDL_EVENT_GAMEPAD_ADDED:
-@@ -1962,6 +2810,166 @@ int unix_video_poll_window_events(bool *quit_requested)
+@@ -1962,6 +2824,166 @@ int unix_video_poll_window_events(bool *quit_requested)
      return unix_video_poll_internal(quit_requested, false);
  }
  
@@ -2588,7 +2602,7 @@ index 13e88b9d..d3365370 100644
  static void unix_video_present_on_event_thread(const struct unix_video_frame *frame)
  {
      if (!frame || !frame->pixels || frame->width <= 0 || frame->height <= 0 || frame->rowbytes <= 0) {
-@@ -1981,15 +2989,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -1981,15 +3003,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
      if (!ensure_texture(frame->width, frame->height, frame->pixbytes, frame->backbuffers)) {
          return;
      }
@@ -2619,7 +2633,7 @@ index 13e88b9d..d3365370 100644
      SDL_SetRenderLogicalPresentation(s_renderer, 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
      int output_width = 0;
      int output_height = 0;
-@@ -2006,10 +3025,19 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -2006,10 +3039,19 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
      render_scanline_overlay(filter, &layout.frame_dst);
      SDL_SetRenderClipRect(s_renderer, NULL);
  
