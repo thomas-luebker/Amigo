@@ -502,7 +502,37 @@ whole point: TVPaint's brushes respond to pen speed as well as pressure,
 so a freehand scribble cannot separate the two, and a hand-drawn test
 showing thick and thin strokes proves nothing.
 
-Result: **the rungs came out uniform width.** Pressure demonstrably
+Re-run with the tools named as pressure-sensitive, selected through
+TVPaint's own ARexx port (`rexx_TVPaint` — it does have one;
+`tv_version` answers "Tecsoft Video Paint 3.59 us", and `tv_clear`,
+`tv_pen`, `tv_chalk` all work, which makes this repeatable without
+clicking anything):
+
+- **`tv_pen`** — five rungs, identical width.
+- **`tv_chalk`** — the lowest-pressure rung came out visibly sparser than
+  the rest. So *something* is responding to pressure — density, not width.
+
+Two hypotheses remain, and they are distinguishable:
+
+1. TVPaint needs pressure→size enabling. `tv_pressureprofile` exists as a
+   command and returns empty when called bare; its arguments are in the
+   User's Guide, which we do not have (only *Getting Started* shipped in
+   the free download). There is also a "Sensitivity" string in the binary.
+2. Our pressure encoding is not what TVPaint decodes — byte 6 as
+   `0x40 | (p >> 2)` plus the two extra bits may not match its reader.
+   The chalk density difference argues against this, but weakly.
+
+Cheap next test: run the ladder with every rung at maximum pressure, then
+again at minimum, and compare chalk density. If the two are
+indistinguishable, it is hypothesis 2 and the packet layout needs work;
+if they differ, it is hypothesis 1 and the fix is a TVPaint setting.
+
+**DPaint would settle it faster** and is the better demo anyway —
+upstream says it is the `tablet.library` consumer, and that path already
+measured 83% of full scale. It is not installed in the 8 GB system image
+or anywhere else on this Mac.
+
+Original result for the record: **the rungs came out uniform width.** Pressure demonstrably
 reaches TVPaint (the wire log shows `PH1` and the packets carry it), so
 this is the brush, not the transport — the manual says the pen, chalk and
 airbrush are the pressure-sensitive tools, and the default tool evidently
