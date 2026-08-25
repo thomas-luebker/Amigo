@@ -494,6 +494,28 @@ Setup guidance for anyone running TVPaint under Amigo: set Type to
 because the drawing was brief. The path is proven; sustained throughput
 and latency under a real continuous stroke are not yet characterised.
 
+**Pressure-to-width: arrives, but the default TVPaint tool ignores it
+(2026-08-25).** The self-test sweep was replaced with a *pressure ladder*
+— eight left-to-right strokes at identical speed, each one eighth more
+pressure than the last, tip lifted between them. Constant speed is the
+whole point: TVPaint's brushes respond to pen speed as well as pressure,
+so a freehand scribble cannot separate the two, and a hand-drawn test
+showing thick and thin strokes proves nothing.
+
+Result: **the rungs came out uniform width.** Pressure demonstrably
+reaches TVPaint (the wire log shows `PH1` and the packets carry it), so
+this is the brush, not the transport — the manual says the pen, chalk and
+airbrush are the pressure-sensitive tools, and the default tool evidently
+is not one of them. Next step is a TVPaint UI matter: select a
+pressure-sensitive brush and re-run the ladder. No code change implied.
+
+A caution for whoever does that: `screenshot()`'s `pixels` buffer did not
+index as `y * width + x` in the obvious way — a column scan produced
+1-pixel runs 3 pixels apart where the rendered frame plainly shows solid
+lines 55 apart. Do not measure stroke widths from it without first
+working out the real stride; the rendered PNG is trustworthy, that
+indexing is not.
+
 **Open — needs the device:**
 
 - [x] **Does SDL report Pencil pressure at all on iOS? YES — settled on

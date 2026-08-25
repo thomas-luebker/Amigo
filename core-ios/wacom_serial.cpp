@@ -336,7 +336,17 @@ static bool selftest_enabled(void)
 }
 
 /* One sample every 130 scanlines is ~120/s, the rate the Pencil itself
- * reports at, and inside what 9600 baud carries. */
+ * reports at, and inside what 9600 baud carries.
+ *
+ * The shape is a pressure ladder: eight left-to-right strokes at constant
+ * speed, each at a fixed pressure one eighth higher than the last, with
+ * the tip lifted between them. Constant speed is the point — TVPaint's
+ * brushes respond to pen speed as well as pressure, so a freehand
+ * scribble cannot tell the two apart. Here velocity is identical on every
+ * rung, so any difference in width is pressure and nothing else. */
+#define SWEEP_RUNGS   8
+#define SWEEP_SAMPLES 60      /* per rung: 55 drawing, 5 lifted */
+
 static void selftest_step(void)
 {
     if (++s_selftest_tick < 130) {
@@ -344,24 +354,18 @@ static void selftest_step(void)
     }
     s_selftest_tick = 0;
 
-    static int phase;
-    phase = (phase + 1) % 480;                    /* four seconds a lap */
-    const float t = (float)phase / 480.0f;
-    /* A circle, quarter-scale, centred — no trig needed for a shape a
-     * probe can recognise: a diamond does just as well. */
-    const float u = t * 4.0f;
-    const float leg = u - (float)(int)u;
-    float dx, dy;
-    switch ((int)u & 3) {
-        case 0:  dx =  leg;        dy =  0.0f + leg; break;
-        case 1:  dx =  1.0f - leg; dy =  1.0f;       break;
-        case 2:  dx = -leg;        dy =  1.0f - leg; break;
-        default: dx = -1.0f + leg; dy =  0.0f;       break;
-    }
-    const float nx = 0.5f + dx * 0.25f;
-    const float ny = 0.25f + dy * 0.25f;
-    /* Pressure ramps up and back down across the lap. */
-    const float pr = t < 0.5f ? t * 2.0f : (1.0f - t) * 2.0f;
+    static int n;
+    const int rung = (n / SWEEP_SAMPLES) % SWEEP_RUNGS;
+    const int step = n % SWEEP_SAMPLES;
+    n++;
+
+    const float t = (float)step / (float)(SWEEP_SAMPLES - 5);
+    const bool lifted = step >= SWEEP_SAMPLES - 5;
+
+    const float nx = 0.12f + 0.76f * (t > 1.0f ? 1.0f : t);
+    const float ny = 0.18f + 0.08f * (float)rung;
+    const float pr = lifted ? 0.0f : (float)(rung + 1) / (float)SWEEP_RUNGS;
+
     ipaduae_pen_tablet(nx, ny, pr, 1, pr > 0.0f ? 1 : 0);
 }
 
