@@ -896,6 +896,97 @@ select both, boot. "It took me longer to copy the files than it did to
 get AGS running." That path is worth protecting in any Hard Drive UI
 change, and it reads like the quick-start the help panel wants.
 
+## From user mail (2026-08-25)
+
+- [x] **AHI via `uae.audio` — the UAESND board was never put on the bus.
+  FIXED and hardware-verified 2026-08-25.**
+
+  Oli Förster, by mail: HippoPlayer reports an AHI device error and the
+  AHI Prefs test tone is silent. His AHI is configured with `uae.audio`,
+  and **the same HDD image works under Amiberry on the Mac** — so the
+  guest side was correct and this was ours.
+
+  `uae.audio` is the AHI driver for WinUAE's UAESND autoconfig sound
+  card, registered in `vendor/WinUAE/expansion.cpp:6329` as `uaesnd_z2` /
+  `uaesnd_z3` under `WITH_TOCCATA`, which `CMakeLists.txt:885` defines.
+  The board's implementation is compiled in — `sndboard.cpp` and
+  `od-unix/sndboard_host.cpp` are both in the core source list, and
+  `nm build/ios/libuaecore.a` finds `uaesndboard_init_z2`. What was
+  missing was the configuration: `default.uae` carried exactly one sound
+  line, `sound_output=exact`. No board on the bus, so the driver found no
+  device to open.
+
+  UAESND is `ROMTYPE_NOT`, so it takes no ROM file and presence is
+  signalled by the literal string `:ENABLED` in the romfile field — the
+  same `:`-marker convention as `kickstart_rom_file=:AROS`. The line is
+  therefore `uaesnd_z2_rom_file=:ENABLED`.
+
+  Fixed in `app/Resources/default.uae` (fresh installs) and
+  `ConfigStore.ensureSoundBoard(in:)`, which adds the line to any config
+  lacking it from `healAllConfigurations()` at startup and from
+  `loadConfiguration(name:)`. Saved configs matter more than the shipped
+  default: someone who already has a machine set up is exactly the person
+  with an AmigaOS install carrying AHI. A config that *names* the key with
+  an empty value is left alone, so turning the board back off is possible.
+
+  **Verified on the M4 iPad**, guest AmigaOS 3.2.3 (Kickstart 47.115),
+  68030, with `tools/amiga/uaesndprobe.c` — which does the same
+  `FindConfigDev(NULL, 6502, 2)` `uae.audio` does (`uaesnd_ahi.s:1242`)
+  and then reads the board's identification registers at base + `$80`:
+
+  | build | probe |
+  |---|---|
+  | before the fix | `ABSENT: no board with manufacturer 6502 product 2` (rc 5) |
+  | after the fix | `PRESENT: UAESND at 0x00E90000, 65536 bytes` (rc 0) |
+
+  and the board answers: `uae_version=0x00060100`, `snd version 1.0`,
+  `frequency 44100`, `max channels 8`, `max streams 8`. The host log
+  agrees — `Card 3: Z2 0x00e90000 64K IO uaesnd z2`.
+
+  The fix reached that machine through `ensureSoundBoard()`, not through
+  the shipped default: the config on it was a hand-made one with no
+  `uaesnd` line, and the startup heal appended it.
+
+  - [x] **Does the extra board shift autoconfig order?** No. The worry was
+    Zorro II space, since the config carries `fastmem_size=8` and 8 MB of
+    Z2 Fast RAM fills `0x00200000`–`0x009FFFFF`, which is the whole Z2
+    *RAM* window. It does not matter: UAESND is a 64K **I/O** board and
+    lands at `0x00E90000`, in the Z2 I/O window, alongside the Filesystem
+    autoconfig ROM at `0x00EA0000`. Z3 Fast RAM still gets `0x40000000`
+    and RTG still gets `0x48000000`; `uaegfx.card 3.4 init` with 12 modes
+    and `RTG=1/1` after the change. No autoconfig complaint in the log.
+
+  Still open:
+
+  - [ ] **AHI playing sound is not proven — only that the driver can now
+    find its board.** Proving the last step needs `uae.audio` inside the
+    guest, and the guest's AHI 4.18 install has only `paula.audio` and
+    `filesave.audio` in `DEVS:AHI`. Oli has the driver from his Amiberry
+    setup; ours does not. What *is* proven is exactly the thing that was
+    broken — `FindConfigDev` now succeeds where it returned NULL before.
+
+  - [ ] **Ship `uae.audio`, and ship it as an amipkg package rather than
+    in the app bundle.** `scripts/build-uae-audio.sh` now builds it from
+    `vendor/WinUAE/uaesnd_ahi.s`, so the binary is no longer a blocker.
+    Two findings that shape the decision:
+
+    - **It cannot be built against any released AHI SDK.** Aminet's
+      `dev/misc/ahidev_4.18.lha` is the newest developer archive there is,
+      and its Asm side is still `ahi_sub.i` 4.1 from 1997 — it predates
+      both `AHIST_L7_1` (`$00c3000a`) and `AHISF_KNOWMULTICHANNEL` (bit 7)
+      that this driver uses. The recipe has to take those two includes
+      from AHI's `BRANCH_6` on GitHub. Worth knowing before anyone
+      promises a rebuild.
+
+    - **The driver alone is not enough.** AHI only offers a driver that a
+      `DEVS:AudioModes` entry names, and WinUAE's repository ships only
+      the `.s` — no mode file. Oli's working setup must have got both from
+      Amiberry. So the shippable unit is `uae.audio` **plus** an
+      AudioModes entry, which is a package, not a file — and `amiga-pkg`
+      already carries an `ahi` package this could depend on. That keeps a
+      GPL 68k binary out of the App Store bundle, which is the right place
+      for it not to be.
+
 ## Apple Vision Pro — "Designed for iPad" only (assessed 2026-08-22)
 
 Decided: **compatibility mode, not a native visionOS port.**
