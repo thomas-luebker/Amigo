@@ -546,6 +546,27 @@ lines 55 apart. Do not measure stroke widths from it without first
 working out the real stride; the rendered PNG is trustworthy, that
 indexing is not.
 
+**TVPaint reads our pressure — settled 2026-08-25.** The deciding
+experiment: the same ladder, same chalk tool, same constant speed, run
+twice with every rung pinned to one pressure via
+`AMIGO_TABLET_FORCE=<percent>`.
+
+    100%  → five dense chalk rungs, one of them solid
+     10%  → blank canvas, nothing laid down at all
+            (8000 packets emitted, 0 dropped, buffer empty —
+             TVPaint consumed every one of them)
+
+So the guest decodes the pressure bits correctly and acts on them: at 10%
+the chalk stays below its own threshold and lays down nothing. That kills
+the encoding hypothesis. **Pressure works in TVPaint through Amigo.**
+
+What is *not* demonstrated is stroke **width** varying with pressure —
+neither `tv_pen` nor `tv_chalk` changed width across the ramp. On the
+evidence that is a TVPaint tool/profile matter (`tv_pressureprofile`,
+"Sensitivity" — both in the binary, both documented in the User's Guide
+that was not in the free download), not a transport problem. Density
+responds; width may need the right tool or profile.
+
 **Open — needs the device:**
 
 - [x] **Does SDL report Pencil pressure at all on iOS? YES — settled on

@@ -364,7 +364,22 @@ static void selftest_step(void)
 
     const float nx = 0.12f + 0.76f * (t > 1.0f ? 1.0f : t);
     const float ny = 0.18f + 0.08f * (float)rung;
-    const float pr = lifted ? 0.0f : (float)(rung + 1) / (float)SWEEP_RUNGS;
+    /* AMIGO_TABLET_FORCE=<percent> pins every rung to one pressure. Two
+     * runs at opposite ends answer the question the ladder cannot: if a
+     * max-pressure page and a min-pressure page look identical, the guest
+     * is not decoding our pressure bits at all, and the packet layout is
+     * at fault rather than the paint program's settings. */
+    static int forced = -2;
+    if (forced == -2) {
+        const char *v = getenv("AMIGO_TABLET_FORCE");
+        forced = (v && *v) ? atoi(v) : -1;
+        if (forced >= 0) {
+            write_log(_T("SERIAL: Wacom self-test pinned to %d%% pressure\n"), forced);
+        }
+    }
+    const float ramp = (float)(rung + 1) / (float)SWEEP_RUNGS;
+    const float pr = lifted ? 0.0f
+                            : (forced >= 0 ? (float)forced / 100.0f : ramp);
 
     ipaduae_pen_tablet(nx, ny, pr, 1, pr > 0.0f ? 1 : 0);
 }
