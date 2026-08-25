@@ -50,6 +50,8 @@ extern "C" void ipaduae_set_tablet_runtime(int on)
  * mode; relative mode has no absolute pointer concept). Normalized [0,1]
  * window coordinates from the UIKit hover recognizer. */
 extern bool unix_video_pointer_abs_normalized(float nx, float ny);
+/* Set by the touch layer while the Pencil tip is in contact. */
+extern bool unix_input_pen_stroke_active;
 extern "C" void ipaduae_pen_tablet(float nx, float ny, float pressure,
                                   int in_proximity, int buttons);
 
@@ -61,8 +63,16 @@ extern "C" void ipaduae_pointer_hover(float nx, float ny)
     /* A hovering Pencil is a tablet stylus in proximity with no tip
      * pressure — exactly what a paint program wants to track before the
      * stroke starts. Independent of 1:1 mode: a program reading
-     * tablet.library does its own pointer positioning. */
-    ipaduae_pen_tablet(nx, ny, 0.0f, 1, 0);
+     * tablet.library does its own pointer positioning.
+     *
+     * Not while the tip is down, though. The hover recognizer keeps
+     * firing during contact, and feeding its zero here made the guest
+     * read pressure, 0, pressure, 0 — half the samples flat. Visible on
+     * device as alternating rows; invisible to the self-test sweep,
+     * which has no hover. */
+    if (!unix_input_pen_stroke_active) {
+        ipaduae_pen_tablet(nx, ny, 0.0f, 1, 0);
+    }
 }
 
 /* Save states: quick slots through the core's queued input-code path so

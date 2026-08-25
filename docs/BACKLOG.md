@@ -430,6 +430,30 @@ step is to try the other model entries (A4+, A3) or match the range the
 A5 entry assumes. Pressure-to-width is also unconfirmed — the default
 brush may not be pressure-sensitive.
 
+**tablet.library confirmed with a real Pencil on the iPad (2026-08-25).**
+`TabTest` on the M4 iPad, drawing with an actual Apple Pencil:
+
+    [129] x= 1961/ 4095 y= 2674/ 4095 pressure= 1787002880 ( 83%)
+    [131] x= 1365/ 4095 y= 3077/ 4095 pressure= 1484718080 ( 69%)
+    [133] x= 1207/ 4095 y= 3508/ 4095 pressure= 1159823360 ( 54%)
+    TabTest: pressure reached the Amiga side
+
+Pressure reaches AmigaOS through `tablet.library` at up to **83% of full
+scale**, tracking how hard the pen is pressed. That is the Deluxe Paint
+route proven end to end on real hardware — the question this branch
+started from.
+
+**And it found a bug the synthetic sweep could not.** Every other sample
+read zero: `41% · 0% · 83% · 0% · 69% · 0%`. The hover path fed the tablet
+a zero-pressure sample unconditionally, and on M-series hardware the hover
+recognizer keeps firing *while the tip is in contact* — so hover zeros
+interleaved with real samples and half the readings were flat. A paint
+program would see pressure chattering to nothing on every other poll.
+Fixed: `unix_input_pen_stroke_active` is set by the touch layer while the
+tip is down, and the hover feed skips the tablet for its duration. The
+self-test sweep has no hover, which is exactly why it never showed this —
+a reminder of what synthetic input cannot cover.
+
 **Open — needs the device:**
 
 - [x] **Does SDL report Pencil pressure at all on iOS? YES — settled on

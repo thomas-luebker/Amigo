@@ -1323,7 +1323,7 @@ index 73a3ff4a..47b18b1c 100644
          return 0;
      }
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..ff4cdbe5 100644
+index 13e88b9d..d3365370 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -1803,7 +1803,7 @@ index 13e88b9d..ff4cdbe5 100644
      destroy_frame_textures();
      if (s_status_texture) {
          SDL_DestroyTexture(s_status_texture);
-@@ -1790,6 +2081,201 @@ void unix_video_shutdown(void)
+@@ -1790,6 +2081,210 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -1881,6 +1881,13 @@ index 13e88b9d..ff4cdbe5 100644
 +
 +static SDL_FingerID s_pen_finger;
 +static bool s_pen_finger_active = false;
++/* True while the Pencil tip is actually down. The hover path in
++ * ios_glue.cpp feeds the tablet a zero-pressure sample, which is right
++ * before a stroke starts and wrong during one: on M-series hardware the
++ * hover recognizer keeps firing while the tip is in contact, so those
++ * zeros interleave with real samples and the guest sees pressure
++ * alternating with 0 — measured on device, every other reading. */
++bool unix_input_pen_stroke_active = false;
 +
 +static bool touch_pressure_is_pen(float pressure)
 +{
@@ -1898,6 +1905,7 @@ index 13e88b9d..ff4cdbe5 100644
 +        }
 +        s_pen_finger = f->fingerID;
 +        s_pen_finger_active = true;
++        unix_input_pen_stroke_active = true;
 +        static int pen_logged;
 +        if (pen_logged < 4) {
 +            pen_logged++;
@@ -1920,6 +1928,7 @@ index 13e88b9d..ff4cdbe5 100644
 +        return;
 +    }
 +    s_pen_finger_active = false;
++    unix_input_pen_stroke_active = false;
 +    ipaduae_pen_tablet(nx, ny, 0.0f, unix_input_pen_hover_active ? 1 : 0, 0);
 +}
 +
@@ -2005,7 +2014,7 @@ index 13e88b9d..ff4cdbe5 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +2309,11 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +2318,11 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -2017,7 +2026,7 @@ index 13e88b9d..ff4cdbe5 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2361,52 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2370,52 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
@@ -2070,7 +2079,7 @@ index 13e88b9d..ff4cdbe5 100644
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2418,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2427,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -2085,7 +2094,7 @@ index 13e88b9d..ff4cdbe5 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1888,6 +2433,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1888,6 +2442,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          case SDL_EVENT_MOUSE_BUTTON_DOWN:
          case SDL_EVENT_MOUSE_BUTTON_UP:
          {
@@ -2101,7 +2110,7 @@ index 13e88b9d..ff4cdbe5 100644
              if (!input_events) {
                  break;
              }
-@@ -1915,7 +2469,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2478,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -2111,7 +2120,7 @@ index 13e88b9d..ff4cdbe5 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2481,298 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2490,298 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -2412,7 +2421,7 @@ index 13e88b9d..ff4cdbe5 100644
          case SDL_EVENT_JOYSTICK_ADDED:
          case SDL_EVENT_JOYSTICK_REMOVED:
          case SDL_EVENT_GAMEPAD_ADDED:
-@@ -1962,6 +2801,166 @@ int unix_video_poll_window_events(bool *quit_requested)
+@@ -1962,6 +2810,166 @@ int unix_video_poll_window_events(bool *quit_requested)
      return unix_video_poll_internal(quit_requested, false);
  }
  
@@ -2579,7 +2588,7 @@ index 13e88b9d..ff4cdbe5 100644
  static void unix_video_present_on_event_thread(const struct unix_video_frame *frame)
  {
      if (!frame || !frame->pixels || frame->width <= 0 || frame->height <= 0 || frame->rowbytes <= 0) {
-@@ -1981,15 +2980,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -1981,15 +2989,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
      if (!ensure_texture(frame->width, frame->height, frame->pixbytes, frame->backbuffers)) {
          return;
      }
@@ -2610,7 +2619,7 @@ index 13e88b9d..ff4cdbe5 100644
      SDL_SetRenderLogicalPresentation(s_renderer, 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
      int output_width = 0;
      int output_height = 0;
-@@ -2006,10 +3016,19 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -2006,10 +3025,19 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
      render_scanline_overlay(filter, &layout.frame_dst);
      SDL_SetRenderClipRect(s_renderer, NULL);
  
