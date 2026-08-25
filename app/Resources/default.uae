@@ -12,6 +12,9 @@ cpu_cycle_exact=false
 cpu_memory_cycle_exact=false
 blitter_cycle_exact=false
 sound_output=exact
+# UAESND Zorro II sound card. AHI's uae.audio driver binds to this
+# board; without it AHI reports a device error and plays silence.
+uaesnd_z2_rom_file=:ENABLED
 gfx_width=720
 gfx_height=568
 gfx_lores=false

@@ -612,6 +612,7 @@ enum ConfigStore {
         try? FileManager.default.removeItem(at: configURL)
         try? FileManager.default.copyItem(at: src, to: configURL)
         healPaths(in: configURL)
+        ensureSoundBoard(in: configURL)
         // The loaded setup carries its own drive count; adopt it rather
         // than leaving the menu showing this device's previous one.
         OverlayState.shared.refreshFloppyDrivesFromConfig()
@@ -657,8 +658,42 @@ enum ConfigStore {
     static func healAllConfigurations() {
         for url in files(in: configurationsDir, extensions: ["uae"]) {
             healPaths(in: url)
+            ensureSoundBoard(in: url)
         }
         healPaths(in: configURL)
+        ensureSoundBoard(in: configURL)
+    }
+
+    // MARK: UAESND — the board AHI's uae.audio driver binds to
+    //
+    // Reported by mail 2026-08-25: HippoPlayer gives an AHI device error
+    // and the AHI Prefs test tone is silent, with the same HDD image
+    // working under Amiberry. The guest side was right; we simply never
+    // put the board on the bus. sndboard.cpp is compiled in and
+    // expansion.cpp registers uaesnd_z2/uaesnd_z3, but nothing enabled
+    // either, so the driver had no device to open.
+    //
+    // The board is ROMTYPE_NOT — it needs no ROM file, and presence is
+    // signalled by the literal ":ENABLED" in the romfile field
+    // (win32gui.cpp:11052 is where the desktop GUI writes it). Same
+    // ":"-marker convention as kickstart_rom_file=:AROS.
+    //
+    // Z2 and not Z3 on purpose: Zorro II autoconfig space exists on every
+    // machine Amigo emulates; Zorro III only on the A3000/A4000.
+    //
+    // Applied to saved configs too, not just the shipped default — anyone
+    // who already has a machine set up is exactly the person who has an
+    // AmigaOS install with AHI on it.
+
+    static let soundBoardKey = "uaesnd_z2_rom_file"
+
+    static func ensureSoundBoard(in url: URL) {
+        guard var text = try? String(contentsOf: url, encoding: .utf8),
+              !text.contains(soundBoardKey) else { return }
+        if !text.isEmpty && !text.hasSuffix("\n") { text += "\n" }
+        text += "\(soundBoardKey)=:ENABLED\n"
+        try? text.write(to: url, atomically: true, encoding: .utf8)
+        NSLog("iPadUAE: added UAESND sound board to %@", url.lastPathComponent)
     }
 
     static func files(in dir: URL, extensions: [String]) -> [URL] {
