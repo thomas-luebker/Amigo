@@ -1225,8 +1225,8 @@ struct InputPanel: View {
                     // boot ROM at reset, so this cannot be a live toggle
                     // like 1:1 Mouse above it.
                     Text(state.penPressure
-                         ? "Deluxe Paint and other paint programs that read tablet pressure follow the Pencil's tip force. Takes effect after a restart."
-                         : "Off — paint programs see a plain mouse.")
+                         ? "On. Deluxe Paint and other programs that read tablet pressure follow the Pencil's tip force. Restart the Amiga to apply."
+                         : "Off — paint programs see a plain mouse. Switch on for Pencil pressure in Deluxe Paint and the like, then restart the Amiga.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 4)
@@ -1240,8 +1240,8 @@ struct InputPanel: View {
                         ConfigStore.setSerialTablet(state.serialTablet)
                     }
                     Text(state.serialTablet
-                         ? "The Pencil appears on the serial port as a Wacom tablet, for programs that talk to one directly — pick it in TVPaint's launch menu. Takes effect after a restart."
-                         : "Off — the serial port is empty.")
+                         ? "On. The Pencil is a Wacom tablet on the serial port. In TVPaint set the tablet Type to \"Wacom A4+ Pressure\". Restart the Amiga to apply."
+                         : "Off — the serial port is empty. Switch on for TVPaint and other programs that drive a tablet themselves, then restart the Amiga.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 4)

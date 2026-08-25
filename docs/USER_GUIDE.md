@@ -73,14 +73,15 @@ squeeze (= right click) is Apple Pencil Pro only.
 **Pencil pressure.** Amiga paint programs read pressure through one of two
 interfaces, and Amigo can feed both. Under **Input & Overlays**:
 
-- **Pencil Pressure** (on by default) offers the Amiga a `tablet.library`,
-  which is what Deluxe Paint opens. Nothing else notices it.
-- **Serial Tablet** (off by default) puts a Wacom graphics tablet on the
-  Amiga's serial port, for programs that drive a tablet themselves rather
-  than going through the system — TVPaint being the one that matters.
+- **Pencil Pressure** offers the Amiga a `tablet.library`, which is what
+  Deluxe Paint opens.
+- **Serial Tablet** puts a Wacom graphics tablet on the Amiga's serial
+  port, for programs that drive a tablet themselves rather than going
+  through the system — TVPaint being the one that matters.
 
-Both take effect on the next restart, because the Amiga sets its hardware
-up at boot.
+**Both are off until you turn them on**, and both take effect on the next
+restart, because the Amiga sets its hardware up at boot. Leaving them off
+costs you nothing: the Pencil still works as a pointer either way.
 
 **Using it with TVPaint:** turn on *Serial Tablet*, restart, and in
 TVPaint's configuration set the tablet **Type** to **Wacom A4+ Pressure**.

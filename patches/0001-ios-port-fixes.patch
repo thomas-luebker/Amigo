@@ -1323,7 +1323,7 @@ index 73a3ff4a..47b18b1c 100644
          return 0;
      }
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..504b51d4 100644
+index 13e88b9d..59e5de6f 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -2120,7 +2120,7 @@ index 13e88b9d..504b51d4 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2490,312 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2490,289 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -2146,12 +2146,6 @@ index 13e88b9d..504b51d4 100644
 +            break;
 +#if defined(__APPLE__) && TARGET_OS_IPHONE
 +        case SDL_EVENT_FINGER_DOWN: {
-+            /* TEMP diag (mini trackpad multi-click) */
-+            write_log(_T("iPadUAE finger: DOWN id=%lld touch=%lld type=%d pressure=%.3f xy=%.3f,%.3f t=%llu\n"),
-+                (long long)event.tfinger.fingerID, (long long)event.tfinger.touchID,
-+                (int)SDL_GetTouchDeviceType(event.tfinger.touchID), event.tfinger.pressure,
-+                event.tfinger.x, event.tfinger.y,
-+                (unsigned long long)SDL_GetTicks());
 +            if (!input_events) {
 +                break;
 +            }
@@ -2271,17 +2265,6 @@ index 13e88b9d..504b51d4 100644
 +            break;
 +        }
 +        case SDL_EVENT_FINGER_MOTION:
-+            /* TEMP diag (mini trackpad multi-click), rate-limited */
-+            {
-+                static int motion_logcnt;
-+                if ((motion_logcnt++ & 15) == 0) {
-+                    write_log(_T("iPadUAE finger: MOVE id=%lld touch=%lld type=%d pressure=%.3f xy=%.3f,%.3f t=%llu\n"),
-+                        (long long)event.tfinger.fingerID, (long long)event.tfinger.touchID,
-+                        (int)SDL_GetTouchDeviceType(event.tfinger.touchID), event.tfinger.pressure,
-+                        event.tfinger.x, event.tfinger.y,
-+                        (unsigned long long)SDL_GetTicks());
-+                }
-+            }
 +            if (!input_events) {
 +                break;
 +            }
@@ -2349,12 +2332,6 @@ index 13e88b9d..504b51d4 100644
 +            touch_reset_all();
 +            break;
 +        case SDL_EVENT_FINGER_UP: {
-+            /* TEMP diag (mini trackpad multi-click) */
-+            write_log(_T("iPadUAE finger: UP   id=%lld touch=%lld type=%d pressure=%.3f xy=%.3f,%.3f t=%llu\n"),
-+                (long long)event.tfinger.fingerID, (long long)event.tfinger.touchID,
-+                (int)SDL_GetTouchDeviceType(event.tfinger.touchID), event.tfinger.pressure,
-+                event.tfinger.x, event.tfinger.y,
-+                (unsigned long long)SDL_GetTicks());
 +            if (!input_events) {
 +                break;
 +            }
@@ -2435,7 +2412,7 @@ index 13e88b9d..504b51d4 100644
          case SDL_EVENT_JOYSTICK_ADDED:
          case SDL_EVENT_JOYSTICK_REMOVED:
          case SDL_EVENT_GAMEPAD_ADDED:
-@@ -1962,6 +2824,166 @@ int unix_video_poll_window_events(bool *quit_requested)
+@@ -1962,6 +2801,166 @@ int unix_video_poll_window_events(bool *quit_requested)
      return unix_video_poll_internal(quit_requested, false);
  }
  
@@ -2602,7 +2579,7 @@ index 13e88b9d..504b51d4 100644
  static void unix_video_present_on_event_thread(const struct unix_video_frame *frame)
  {
      if (!frame || !frame->pixels || frame->width <= 0 || frame->height <= 0 || frame->rowbytes <= 0) {
-@@ -1981,15 +3003,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -1981,15 +2980,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
      if (!ensure_texture(frame->width, frame->height, frame->pixbytes, frame->backbuffers)) {
          return;
      }
@@ -2633,7 +2610,7 @@ index 13e88b9d..504b51d4 100644
      SDL_SetRenderLogicalPresentation(s_renderer, 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
      int output_width = 0;
      int output_height = 0;
-@@ -2006,10 +3039,19 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -2006,10 +3016,19 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
      render_scanline_overlay(filter, &layout.frame_dst);
      SDL_SetRenderClipRect(s_renderer, NULL);
  

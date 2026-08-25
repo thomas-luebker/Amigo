@@ -388,8 +388,12 @@ enum ConfigStore {
         }
     }
 
-    /// Apple Pencil pressure. The UAE boot ROM can offer the guest a
-    /// `tablet.library` — the interface Deluxe Paint opens to read stylus
+    /// Apple Pencil pressure. Off unless the user asks for it: switching
+    /// it on makes the boot ROM install a resident `tablet.library` at
+    /// every reset, and that is not a change to impose on the boot path
+    /// of people who will never open a paint program.
+    ///
+    /// The UAE boot ROM can offer the guest a `tablet.library` — the interface Deluxe Paint opens to read stylus
     /// pressure — and `core-ios/ios_glue.cpp` feeds it from the Pencil.
     /// Position and clicking are unaffected either way; this only decides
     /// whether the library exists for a paint program to open.
@@ -429,15 +433,6 @@ enum ConfigStore {
             set("unix.serial_port", "WACOM_TABLET")
         } else {
             removeAll("unix.serial_port")
-        }
-    }
-
-    /// Default the library on for setups that predate it. Absent means
-    /// "off" to the core (its own default), so the key has to be written
-    /// rather than left out — and an explicit `false` is left alone.
-    static func seedPenPressureDefault() {
-        if currentValue("tablet_library") == nil {
-            set("tablet_library", "true")
         }
     }
 
@@ -758,5 +753,4 @@ public func ipaduae_heal_config_paths() {
     // session crashed mid-change), then heal container paths in it.
     ConfigStore.recoverFromCrashedChange()
     ConfigStore.healAllConfigurations()
-    ConfigStore.seedPenPressureDefault()
 }
