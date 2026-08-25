@@ -360,18 +360,29 @@ image rather than committing Amiga OS files here.
 > `strings Amigo.app/Amigo.debug.dylib | grep "virtual Wacom"` (debug
 > builds put the code in `Amigo.debug.dylib`, not the 37 KB launcher).
 
-**Still open — sustained streaming.** After the handshake the device keeps
-emitting (100 packets, 0 dropped, ~630 bytes buffered, credit pegged at
-its cap) while the guest stops draining. It streamed fine for the reader
-that polled `SDCMD_QUERY`; it stalls for one that queues `CMD_READ`. The
-probe's own serial IO was wrong in three ways already found and fixed
-(one IORequest shared between read and write, byte-at-a-time reads,
-`io_RBufLen` left at 0), so the probe is the prime suspect — but the
-receive path deserves a look too: `checkreceive_serial()` only delivers
-while `!rx_full`, and `rx_full` clears solely on a SERDATR read.
-`serial_rbf_change()` *is* wired from `custom.cpp:3182`, so start by
-checking whether the RBF interrupt is actually reaching the guest's
-handler.
+**Both halves proven on AmigaOS (2026-08-25).** `TabTest`
+(`core-ios/tests/guest/tabtest.c`) opens `tablet.library`, calls
+`AllocTablet`/`DoTablet` and reads the tag list; `SerTest` drives the
+serial Wacom. One run shows both:
+
+    [11] x= 2107/ 4095 y= 2048/ 4095 pressure= 2084831232 ( 97%)
+    TabTest: pressure reached the Amiga side
+    [ 150] x= 5863 y= 3810 pressure=216 prox=1 tip=1
+
+- **tablet.library carries pressure at 97% of full scale.** That is the
+  scaling fix confirmed from the Amiga side: raw device units, as the
+  Windows path feeds, would arrive at ~1.5% — indistinguishable from
+  "barely touching", and the likeliest reason for upstream's note that
+  dpaint5 "does not seem to do anything with pressure data".
+- **Sustained serial streaming works** — 150+ packets, coordinates
+  tracking, pressure climbing. The earlier stall was the probe's own
+  serial IO: one IORequest shared between a queued read and writes,
+  byte-at-a-time reads, and `io_RBufLen` left at 0. A driver does none of
+  those. Nothing in the device changed.
+- The self-test sweep now feeds `ipaduae_pen_tablet()` rather than the
+  serial device directly, so one sample fans out to both consumers
+  exactly as a Pencil sample does — which is why both pressure curves
+  move together above.
 
 **Open — needs the device:**
 

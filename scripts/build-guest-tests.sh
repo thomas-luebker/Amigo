@@ -21,7 +21,8 @@ mkdir -p "$OUT"
 
 echo "==> Cross-compiling SerTest"
 "$GCC" -noixemul -O2 -Wall -o "$SRC/SerTest" "$SRC/sertest.c"
-file "$SRC/SerTest"
+"$GCC" -noixemul -O2 -Wall -o "$SRC/TabTest" "$SRC/tabtest.c"
+file "$SRC/SerTest" "$SRC/TabTest"
 
 echo "==> Building the bootable test disk"
 rm -f "$OUT/SerTest.hdf"
@@ -35,9 +36,11 @@ rm -f "$OUT/SerTest.hdf"
 # never be called Workbench or Work.
 "$CLI" disk rdb-format "$OUT/SerTest.hdf" DH0 SerTestVol
 "$CLI" disk fs mkdir "$OUT/SerTest.hdf" DH0 S
-printf 'SerTest\n' > "$OUT/startup.txt"
+# TabTest first: it exits after 20 samples, SerTest streams until stopped.
+printf 'TabTest\nSerTest\n' > "$OUT/startup.txt"
 "$CLI" disk fs copy "$OUT/SerTest.hdf" DH0 "$OUT/startup.txt" "S/Startup-Sequence"
 "$CLI" disk fs copy "$OUT/SerTest.hdf" DH0 "$SRC/SerTest" "SerTest"
+"$CLI" disk fs copy "$OUT/SerTest.hdf" DH0 "$SRC/TabTest" "TabTest"
 
 # serial.device is NOT in the Kickstart ROM — it is a disk-based device in
 # DEVS:, and a bare boot disk without it fails OpenDevice with a bald

@@ -291,8 +291,12 @@ extern "C" int wacom_serial_read(int *out)
 /* Called once per scanline with the baud rate the guest has programmed
  * into SERPER (0 before it programs one, which a driver does before it
  * expects anything back). */
-extern "C" void wacom_serial_pen(float nx, float ny, float pressure,
-                                 int in_proximity, int buttons);
+/* The sweep feeds the pen, not this device: ipaduae_pen_tablet() fans one
+ * sample out to both consumers — this tablet and the guest's
+ * tablet.library — so a self-test exercises the same path the Pencil
+ * does, and both halves can be probed from inside the Amiga. */
+extern "C" void ipaduae_pen_tablet(float nx, float ny, float pressure,
+                                   int in_proximity, int buttons);
 
 /* Self-test sweep. With no Pencil — a simulator, a desktop build, an
  * automated run — there is no pen to move, and the half of this that
@@ -342,7 +346,7 @@ static void selftest_step(void)
     const float ny = 0.25f + dy * 0.25f;
     /* Pressure ramps up and back down across the lap. */
     const float pr = t < 0.5f ? t * 2.0f : (1.0f - t) * 2.0f;
-    wacom_serial_pen(nx, ny, pr, 1, pr > 0.0f ? 1 : 0);
+    ipaduae_pen_tablet(nx, ny, pr, 1, pr > 0.0f ? 1 : 0);
 }
 
 extern "C" void wacom_serial_hsync(int baud)
