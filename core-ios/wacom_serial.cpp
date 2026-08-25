@@ -147,10 +147,7 @@ static void emit_packet(void)
         s_drops++;
         return;
     }
-    if ((++s_emits % 500) == 0) {
-        write_log(_T("WACOM emit: %d packets, %d dropped, buffered=%d credit=%d\n"),
-                  s_emits, s_drops, rx_used(), s_credit);
-    }
+    s_emits++;
 
     const int x = s_pen_x < 0 ? 0 : (s_pen_x > WACOM_MAX_X ? WACOM_MAX_X : s_pen_x);
     const int y = s_pen_y < 0 ? 0 : (s_pen_y > WACOM_MAX_Y ? WACOM_MAX_Y : s_pen_y);
