@@ -10,6 +10,9 @@
 #include "keyboard.h"
 #include "gui.h"
 #include "disk.h"
+#ifdef WITH_TABLETLIBRARY
+#include "tabletlibrary.h"
+#endif
 #include <sys/stat.h>
 #include <unistd.h>
 #include <CoreFoundation/CoreFoundation.h>
@@ -47,11 +50,28 @@ extern "C" void ipaduae_set_tablet_runtime(int on)
  * mode; relative mode has no absolute pointer concept). Normalized [0,1]
  * window coordinates from the UIKit hover recognizer. */
 extern bool unix_video_pointer_abs_normalized(float nx, float ny);
+/* Set by the touch layer while the Pencil tip is in contact. */
+extern bool unix_input_pen_stroke_active;
+extern "C" void ipaduae_pen_tablet(float nx, float ny, float pressure,
+                                  int in_proximity, int buttons);
 
 extern "C" void ipaduae_pointer_hover(float nx, float ny)
 {
     if (currprefs.input_tablet != TABLET_OFF) {
         unix_video_pointer_abs_normalized(nx, ny);
+    }
+    /* A hovering Pencil is a tablet stylus in proximity with no tip
+     * pressure — exactly what a paint program wants to track before the
+     * stroke starts. Independent of 1:1 mode: a program reading
+     * tablet.library does its own pointer positioning.
+     *
+     * Not while the tip is down, though. The hover recognizer keeps
+     * firing during contact, and feeding its zero here made the guest
+     * read pressure, 0, pressure, 0 — half the samples flat. Visible on
+     * device as alternating rows; invisible to the self-test sweep,
+     * which has no hover. */
+    if (!unix_input_pen_stroke_active) {
+        ipaduae_pen_tablet(nx, ny, 0.0f, 1, 0);
     }
 }
 
@@ -83,6 +103,68 @@ extern bool unix_input_pen_hover_active;
 extern "C" void ipaduae_set_pen_hover(int active)
 {
     unix_input_pen_hover_active = active != 0;
+}
+
+/* Apple Pencil -> the guest's tablet.library.
+ *
+ * The UAE boot ROM offers the guest a tablet.library (vendor
+ * tabletlibrary.cpp, built in via WINUAE_UNIX_WITH_TABLETLIBRARY); it is
+ * the interface Deluxe Paint and friends open for pressure. Upstream
+ * only ever fed it from the Windows wintab code, so on iOS it sat
+ * installed and empty. This is the feed.
+ *
+ * Ranges. The tablet surface is logical: Intuition and any program
+ * reading the tablet scale the reported position against the reported
+ * range, so it only has to be finer than the Amiga screen. Pressure is
+ * the number that matters — tabletlibrary.cpp encodes it as
+ * (pressure << 15) into the signed 32-bit TABLETA_Pressure tag, so a
+ * full-scale 0xFFFF fills the tag to 0x7FFF8000 as the Amiga side
+ * expects. Feeding raw device units instead (what the Windows path
+ * does, where a Wacom reports 0..1023) lands at 1.5% of full scale and
+ * reads as "barely touching" — the likeliest reason upstream's own note
+ * says dpaint5 "does not seem to do anything with pressure data".
+ */
+#define PEN_TABLET_RANGE   4095
+#define PEN_TABLET_MAXPRES 65535
+/* Lines per inch the range corresponds to, over roughly an iPad
+ * drawing area — reported as TABLETA_ResolutionX/Y. */
+#define PEN_TABLET_RES     400
+
+/* The other consumer of the same samples: the virtual Wacom on the
+ * serial port (wacom_serial.cpp), for programs like TVPaint that drive a
+ * serial tablet themselves instead of opening tablet.library. Both can be
+ * live at once — they are different ports, and a program uses one. */
+extern "C" void wacom_serial_pen(float nx, float ny, float pressure,
+                                 int in_proximity, int buttons);
+
+extern "C" void ipaduae_pen_tablet(float nx, float ny, float pressure,
+                                   int in_proximity, int buttons)
+{
+    wacom_serial_pen(nx, ny, pressure, in_proximity, buttons);
+#ifdef WITH_TABLETLIBRARY
+    if (!currprefs.tablet_library) {
+        return;
+    }
+    if (nx < 0.0f) nx = 0.0f;
+    if (nx > 1.0f) nx = 1.0f;
+    if (ny < 0.0f) ny = 0.0f;
+    if (ny > 1.0f) ny = 1.0f;
+    if (pressure < 0.0f) pressure = 0.0f;
+    if (pressure > 1.0f) pressure = 1.0f;
+
+    const int x = (int)(nx * PEN_TABLET_RANGE + 0.5f);
+    const int y = (int)(ny * PEN_TABLET_RANGE + 0.5f);
+    const int p = (int)(pressure * PEN_TABLET_MAXPRES + 0.5f);
+
+    /* Re-sent every sample rather than once: the library's statics are
+     * re-initialised on every reset, and this costs four stores. */
+    tabletlib_tablet_info(PEN_TABLET_RANGE, PEN_TABLET_RANGE, 0, 0, 0, 0,
+                          PEN_TABLET_RES, PEN_TABLET_RES);
+    tabletlib_tablet(x, y, 0, p, PEN_TABLET_MAXPRES,
+                     (uae_u32)buttons, in_proximity, 0, 0, 0);
+#else
+    (void)nx; (void)ny; (void)pressure; (void)in_proximity; (void)buttons;
+#endif
 }
 
 /* Mouse button injection for UIKit-side input (Apple Pencil squeeze /

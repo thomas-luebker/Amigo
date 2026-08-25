@@ -70,6 +70,26 @@ pad mode and autofire live there too.
 Pro). Hover-as-pointer needs an M2 or newer iPad with a compatible Pencil;
 squeeze (= right click) is Apple Pencil Pro only.
 
+**Pencil pressure.** Amiga paint programs read pressure through one of two
+interfaces, and Amigo can feed both. Under **Input & Overlays**:
+
+- **Pencil Pressure** offers the Amiga a `tablet.library`, which is what
+  Deluxe Paint opens.
+- **Serial Tablet** puts a Wacom graphics tablet on the Amiga's serial
+  port, for programs that drive a tablet themselves rather than going
+  through the system — TVPaint being the one that matters.
+
+**Both are off until you turn them on**, and both take effect on the next
+restart, because the Amiga sets its hardware up at boot. Leaving them off
+costs you nothing: the Pencil still works as a pointer either way.
+
+**Using it with TVPaint:** turn on *Serial Tablet*, restart, and in
+TVPaint's configuration set the tablet **Type** to **Wacom A4+ Pressure**.
+That entry matches the tablet Amigo emulates; picking a different size
+leaves the pointer stuck at the edge of the screen. Pressure then reaches
+TVPaint — how much a stroke changes with it depends on the brush and
+profile you choose inside TVPaint.
+
 **Cursor keys** type as cursor keys. Showing the **Virtual Joystick** turns
 them (plus right Ctrl) into the emulated joystick — hide it to type again.
 

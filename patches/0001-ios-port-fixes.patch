@@ -1,8 +1,24 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 4756e337..9b77808e 100644
+index 4756e337..8df8b6fa 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -622,7 +622,16 @@ if(WINUAE_UNIX_WITH_CHD)
+@@ -184,6 +184,7 @@ option(WINUAE_UNIX_WITH_LIBMPEG2 "Build CD32 FMV video decode support when libmp
+ option(WINUAE_UNIX_WITH_BSDSOCKET "Build bsdsocket.library on top of POSIX sockets" ON)
+ option(WINUAE_UNIX_WITH_UAESCSI "Build uaescsi.device using the shared CD/tape SCSI emulation layer" ON)
+ option(WINUAE_UNIX_WITH_UAESERIAL "Build uaeserial.device on top of the Unix serial backend" ON)
++option(WINUAE_UNIX_WITH_TABLETLIBRARY "Build the UAE tablet.library the boot ROM offers the guest (pressure-sensitive tablet support)" ON)
+ option(WINUAE_UNIX_WITH_SAMPLER "Build SDL3 recording support for the parallel-port sampler" ON)
+ option(WINUAE_UNIX_WITH_NATIVE_HARDDRIVES "Build Unix raw hard-drive enumeration and read-only open support" ON)
+ option(WINUAE_UNIX_WITH_NATIVE_CD "Build Unix native CD/DVD drive access" ON)
+@@ -361,6 +362,7 @@ set(WINUAE_UNIX_ENABLE_UAENET_PCAP OFF)
+ set(WINUAE_UNIX_ENABLE_BSDSOCKET OFF)
+ set(WINUAE_UNIX_ENABLE_UAESCSI OFF)
+ set(WINUAE_UNIX_ENABLE_UAESERIAL OFF)
++set(WINUAE_UNIX_ENABLE_TABLETLIBRARY OFF)
+ set(WINUAE_UNIX_ENABLE_SAMPLER OFF)
+ set(WINUAE_UNIX_ENABLE_NATIVE_HARDDRIVES OFF)
+ set(WINUAE_UNIX_ENABLE_NATIVE_CD OFF)
+@@ -622,7 +624,16 @@ if(WINUAE_UNIX_WITH_CHD)
      endif()
  
      set(WINUAE_UNIX_CHD_FLAC_OK OFF)
@@ -20,6 +36,21 @@ index 4756e337..9b77808e 100644
          if(APPLE AND WINUAE_UNIX_MACOS_DEPS_PREFIX)
              unset(__pkg_config_checked_FLAC CACHE)
              unset(pkgcfg_lib_FLAC_FLAC CACHE)
+@@ -1094,6 +1105,14 @@ if(WINUAE_UNIX_WITH_UAESERIAL)
+     )
+ endif()
+ 
++if(WINUAE_UNIX_WITH_TABLETLIBRARY)
++    set(WINUAE_UNIX_ENABLE_TABLETLIBRARY ON)
++    target_compile_definitions(winuae_core PRIVATE WITH_TABLETLIBRARY=1)
++    list(APPEND WINUAE_UNIX_EXTRA_SOURCES
++        tabletlibrary.cpp
++    )
++endif()
++
+ target_compile_definitions(winuae_core PRIVATE NCR=1 NCR9X=1)
+ set_source_files_properties(ncr_scsi.cpp ncr9x_scsi.cpp PROPERTIES COMPILE_DEFINITIONS WITH_QEMU_CPU=1)
+ list(APPEND WINUAE_UNIX_EXTRA_SOURCES
 diff --git a/archivers/lha/huf.cpp b/archivers/lha/huf.cpp
 index cb996f4e..0ac7bdbc 100644
 --- a/archivers/lha/huf.cpp
@@ -1106,6 +1137,150 @@ index ce574a41..cf28cb71 100644
  }
  
  #ifndef GFXBOARD
+diff --git a/od-unix/serial.cpp b/od-unix/serial.cpp
+index 9fc74c5e..2eb07ef8 100644
+--- a/od-unix/serial.cpp
++++ b/od-unix/serial.cpp
+@@ -40,6 +40,23 @@ static int conn_fd = -1;
+ static bool tcpserial;
+ static bool serloop_enabled;
+ static bool serempty_enabled;
++
++#ifdef WITH_PEN_TABLET
++/* Virtual Wacom Protocol IV tablet driven by the Apple Pencil
++ * (core-ios/wacom_serial.cpp). Selected with serial_port=WACOM_TABLET,
++ * the same way LOOPBACK_SERIAL selects the loopback below. */
++extern "C" int wacom_serial_is_name(const TCHAR *name);
++extern "C" void wacom_serial_open(void);
++extern "C" void wacom_serial_close(void);
++extern "C" int wacom_serial_readavail(void);
++extern "C" int wacom_serial_read(int *out);
++extern "C" void wacom_serial_write(int c);
++extern "C" void wacom_serial_hsync(int baud);
++static bool serwacom_enabled;
++#define SERWACOM_ENABLED serwacom_enabled
++#else
++#define SERWACOM_ENABLED false
++#endif
+ static bool rx_full;
+ static bool rx_irq;
+ static bool ovrun;
+@@ -308,6 +325,11 @@ void closeser(void)
+ 
+ static int serial_read_byte(int *out)
+ {
++#ifdef WITH_PEN_TABLET
++	if (serwacom_enabled) {
++		return wacom_serial_read(out);
++	}
++#endif
+ 	if (tcpserial) {
+ 		if (!tcp_accept_pending()) {
+ 			return 0;
+@@ -385,6 +407,11 @@ int readseravail(bool *breakcond)
+ 	if (breakcond) {
+ 		*breakcond = false;
+ 	}
++#ifdef WITH_PEN_TABLET
++	if (serwacom_enabled) {
++		return wacom_serial_readavail();
++	}
++#endif
+ 	if (tcpserial) {
+ 		if (!tcp_accept_pending()) {
+ 			return 0;
+@@ -429,6 +456,12 @@ void writeser_flush(void)
+ 
+ void writeser(int c)
+ {
++#ifdef WITH_PEN_TABLET
++	if (serwacom_enabled) {
++		wacom_serial_write(c);
++		return;
++	}
++#endif
+ 	unsigned char b = (unsigned char)c;
+ 	if (tcpserial) {
+ 		if (tcp_accept_pending() && send(conn_fd, &b, 1, 0) != 1) {
+@@ -589,7 +622,13 @@ void SERDAT(uae_u16 w)
+ 		return;
+ 	}
+ 	const int c = w & 0xff;
+-	if (w & 0x100) {
++	/* The 0xa8|bit prefix conveys a ninth data bit, and belongs only in
++	 * 9-bit mode (SERPER bit 15). Keyed off SERDAT bit 8 alone it fires
++	 * on ordinary 8N1 traffic too — AmigaOS sets that bit as the stop bit
++	 * on every single write — so every byte the guest sent arrived at the
++	 * host doubled, 0xa9 then the data. Anything reading the guest's
++	 * serial output saw pure corruption. */
++	if ((serper & 0x8000) && (w & 0x100)) {
+ 		writeser(((w >> 8) & 1) | 0xa8);
+ 	}
+ 	if (currprefs.serial_crlf && c == 10 && serial_send_previous != 13) {
+@@ -597,6 +636,14 @@ void SERDAT(uae_u16 w)
+ 	}
+ 	writeser(c);
+ 	serial_send_previous = (uae_u8)c;
++	/* Transmit-buffer-empty interrupt. SERDATR above already reports TBE
++	 * and TSRE, but AmigaOS's serial.device is interrupt-driven: it hands
++	 * a byte to SERDAT and waits for INTB_TBE before completing the write
++	 * request. Nothing in this port ever raised it, so every CMD_WRITE
++	 * blocked forever in DoIO — invisible until something in the guest
++	 * actually wrote to the serial port. The virtual tablet's handshake
++	 * was the first thing to try. */
++	INTREQ_INT(0, 0);
+ }
+ 
+ void serial_rbf_change(bool set)
+@@ -630,7 +677,7 @@ uae_u8 serial_readstatus(uae_u8 v, uae_u8)
+ 	int status = 0;
+ 	uae_u8 serbits = oldserbits;
+ 
+-	if (serloop_enabled) {
++	if (serloop_enabled || SERWACOM_ENABLED) {
+ 		status = TIOCM_DSR | TIOCM_CAR | TIOCM_CTS;
+ 	} else if (currprefs.use_serial) {
+ 		getserstat(&status);
+@@ -703,6 +750,14 @@ void serial_rethink(void)
+ 
+ void serial_hsynchandler(void)
+ {
++#ifdef WITH_PEN_TABLET
++	if (serwacom_enabled) {
++		/* Meter the tablet's stream at the baud the guest programmed,
++		 * so a driver that times its reads sees a 9600-baud device
++		 * rather than a whole packet arriving between two scanlines. */
++		wacom_serial_hsync(serial_period_to_baud(serper));
++	}
++#endif
+ 	checkreceive_serial();
+ }
+ 
+@@ -724,6 +779,11 @@ void serial_open(void)
+ 	serper = 0;
+ 	if (!_tcsicmp(currprefs.sername, SERIAL_LOOPBACK)) {
+ 		serloop_enabled = true;
++#ifdef WITH_PEN_TABLET
++	} else if (wacom_serial_is_name(currprefs.sername)) {
++		wacom_serial_open();
++		serwacom_enabled = true;
++#endif
+ 	} else if (!currprefs.sername[0]) {
+ 		serempty_enabled = true;
+ 	} else if (!openser(currprefs.sername)) {
+@@ -738,6 +798,12 @@ void serial_close(void)
+ {
+ 	closeser();
+ 	serdev = 0;
++#ifdef WITH_PEN_TABLET
++	if (serwacom_enabled) {
++		wacom_serial_close();
++		serwacom_enabled = false;
++	}
++#endif
+ 	serloop_enabled = false;
+ 	serempty_enabled = false;
+ 	rx_full = false;
 diff --git a/od-unix/support.cpp b/od-unix/support.cpp
 index 07e6a3c1..6d88b57c 100644
 --- a/od-unix/support.cpp
@@ -1148,7 +1323,7 @@ index 73a3ff4a..47b18b1c 100644
          return 0;
      }
 diff --git a/od-unix/video_sdl.cpp b/od-unix/video_sdl.cpp
-index 13e88b9d..ea763410 100644
+index 13e88b9d..59e5de6f 100644
 --- a/od-unix/video_sdl.cpp
 +++ b/od-unix/video_sdl.cpp
 @@ -4,6 +4,9 @@
@@ -1628,7 +1803,7 @@ index 13e88b9d..ea763410 100644
      destroy_frame_textures();
      if (s_status_texture) {
          SDL_DestroyTexture(s_status_texture);
-@@ -1790,6 +2081,142 @@ void unix_video_shutdown(void)
+@@ -1790,6 +2081,210 @@ void unix_video_shutdown(void)
      s_available = false;
  }
  
@@ -1692,6 +1867,71 @@ index 13e88b9d..ea763410 100644
 +    return false;
 +}
 +
++/* Apple Pencil pressure -> the guest's tablet.library (ios_glue.cpp).
++ * Deluxe Paint and other Amiga paint programs read pressure from
++ * tablet.library, which the UAE boot ROM provides; nothing else in the
++ * port feeds it. Pressure arrives here on the ordinary touch events: a
++ * finger reports a fixed value (0.0 or 1.0 depending on the panel), a
++ * Pencil the analogue tip force. The "iPadUAE pen:" log line records
++ * what the device actually reports, so the heuristic below can be
++ * replaced with a UIKit-side UITouch.force feed if it turns out SDL
++ * flattens finger and Pencil to the same number. */
++extern "C" void ipaduae_pen_tablet(float nx, float ny, float pressure,
++                                   int in_proximity, int buttons);
++
++static SDL_FingerID s_pen_finger;
++static bool s_pen_finger_active = false;
++/* True while the Pencil tip is actually down. The hover path in
++ * ios_glue.cpp feeds the tablet a zero-pressure sample, which is right
++ * before a stroke starts and wrong during one: on M-series hardware the
++ * hover recognizer keeps firing while the tip is in contact, so those
++ * zeros interleave with real samples and the guest sees pressure
++ * alternating with 0 — measured on device, every other reading. */
++bool unix_input_pen_stroke_active = false;
++
++static bool touch_pressure_is_pen(float pressure)
++{
++    return pressure > 0.001f && pressure < 0.999f;
++}
++
++/* Feed one touch sample. Returns true once a stroke is recognised as the
++ * Pencil, so the caller keeps feeding it even when a later sample lands
++ * on exactly 1.0 (a hard press). */
++static bool pen_feed_from_finger(const SDL_TouchFingerEvent *f, int buttons)
++{
++    if (!s_pen_finger_active) {
++        if (!touch_pressure_is_pen(f->pressure)) {
++            return false;
++        }
++        s_pen_finger = f->fingerID;
++        s_pen_finger_active = true;
++        unix_input_pen_stroke_active = true;
++        static int pen_logged;
++        if (pen_logged < 4) {
++            pen_logged++;
++            write_log(_T("iPadUAE pen: stroke start pressure=%.3f xy=%.3f,%.3f\n"),
++                f->pressure, f->x, f->y);
++        }
++    } else if (f->fingerID != s_pen_finger) {
++        return false;
++    }
++    ipaduae_pen_tablet(f->x, f->y, f->pressure, 1, buttons);
++    return true;
++}
++
++/* End of a Pencil stroke: zero pressure so the guest stops drawing, and
++ * drop out of proximity unless the Pencil is still hovering (hover keeps
++ * feeding position on its own). */
++static void pen_end_stroke(float nx, float ny)
++{
++    if (!s_pen_finger_active) {
++        return;
++    }
++    s_pen_finger_active = false;
++    unix_input_pen_stroke_active = false;
++    ipaduae_pen_tablet(nx, ny, 0.0f, unix_input_pen_hover_active ? 1 : 0, 0);
++}
++
 +static SDL_FingerID s_touch_primary_finger;
 +static bool s_touch_primary_active = false;
 +static float s_touch_last_x = 0.0f, s_touch_last_y = 0.0f;
@@ -1736,6 +1976,9 @@ index 13e88b9d..ea763410 100644
 +        unix_input_mouse_button(1, false);
 +    }
 +    s_pen_ignored_count = 0;
++    if (s_pen_finger_active) {
++        pen_end_stroke(s_touch_last_x, s_touch_last_y);
++    }
 +    s_touch_primary_active = false;
 +    s_touch_second_active = false;
 +    s_touch_second_mode = 0;
@@ -1771,7 +2014,7 @@ index 13e88b9d..ea763410 100644
  static int unix_video_poll_internal(bool *quit_requested, bool input_events)
  {
      SDL_Event event;
-@@ -1823,6 +2250,11 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1823,6 +2318,11 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          got = 1;
      }
  
@@ -1783,7 +2026,7 @@ index 13e88b9d..ea763410 100644
      while (SDL_PollEvent(&event)) {
          got = 1;
          switch (event.type) {
-@@ -1870,6 +2302,52 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1870,6 +2370,52 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (event.key.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE && s_mouse_grabbed) {
                  unix_video_set_mouse_grab(false);
              }
@@ -1836,7 +2079,7 @@ index 13e88b9d..ea763410 100644
              unix_input_keyboard_key((int)event.key.scancode, event.key.type == SDL_EVENT_KEY_DOWN,
                  unix_input_lock_state_from_sdl(event.key.mod));
              break;
-@@ -1881,6 +2359,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1881,6 +2427,14 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                  s_suppressed_mouse_buttons &= event.motion.state;
                  break;
              }
@@ -1851,7 +2094,7 @@ index 13e88b9d..ea763410 100644
              if (s_mouse_grabbed) {
                  unix_input_mouse_motion((int)event.motion.xrel, (int)event.motion.yrel);
              }
-@@ -1888,6 +2374,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1888,6 +2442,15 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
          case SDL_EVENT_MOUSE_BUTTON_DOWN:
          case SDL_EVENT_MOUSE_BUTTON_UP:
          {
@@ -1867,7 +2110,7 @@ index 13e88b9d..ea763410 100644
              if (!input_events) {
                  break;
              }
-@@ -1915,7 +2410,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1915,7 +2478,8 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
                      s_status_click_button = 0;
                      break;
                  }
@@ -1877,7 +2120,7 @@ index 13e88b9d..ea763410 100644
                      unix_video_set_mouse_grab(true);
                  }
                  unix_input_mouse_button(button, event.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
-@@ -1926,14 +2422,293 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
+@@ -1926,14 +2490,289 @@ static int unix_video_poll_internal(bool *quit_requested, bool input_events)
              if (!input_events) {
                  break;
              }
@@ -1903,25 +2146,34 @@ index 13e88b9d..ea763410 100644
 +            break;
 +#if defined(__APPLE__) && TARGET_OS_IPHONE
 +        case SDL_EVENT_FINGER_DOWN: {
-+            /* TEMP diag (mini trackpad multi-click) */
-+            write_log(_T("iPadUAE finger: DOWN id=%lld touch=%lld type=%d pressure=%.3f xy=%.3f,%.3f t=%llu\n"),
-+                (long long)event.tfinger.fingerID, (long long)event.tfinger.touchID,
-+                (int)SDL_GetTouchDeviceType(event.tfinger.touchID), event.tfinger.pressure,
-+                event.tfinger.x, event.tfinger.y,
-+                (unsigned long long)SDL_GetTicks());
 +            if (!input_events) {
 +                break;
 +            }
 +            if (unix_input_pen_hover_active) {
-+                /* Palm/finger contact while the Pencil hovers: ignore the
-+                 * whole touch sequence. */
-+                pen_ignore_finger(event.tfinger.fingerID);
-+                break;
++                if (touch_pressure_is_pen(event.tfinger.pressure)) {
++                    /* This IS the Pencil's own tip landing: it reports
++                     * analogue force, which no finger does. The hover
++                     * recognizer simply has not caught up — on M-series
++                     * hardware .ended often arrives after SDL delivers the
++                     * touch, and rejecting it here swallowed the whole
++                     * stroke: the tap, its motion and its lift. Measured on
++                     * device as 303 touch events carrying Pencil pressure
++                     * and not one recognised stroke. Almost certainly the
++                     * "doesn't click properly, or always stays clicked"
++                     * in the report that started this work. */
++                    unix_input_pen_hover_active = false;
++                } else {
++                    /* Palm or finger contact while the Pencil hovers:
++                     * ignore the whole touch sequence. */
++                    pen_ignore_finger(event.tfinger.fingerID);
++                    break;
++                }
 +            }
 +            s_touch_finger_count++;
 +            if (s_touch_finger_count > s_touch_max_fingers) {
 +                s_touch_max_fingers = s_touch_finger_count;
 +            }
++            pen_feed_from_finger(&event.tfinger, 1);
 +            if (currprefs.input_tablet > 0) {
 +                /* 1:1 mode: finger = pointer. Primary finger presses LMB at
 +                 * its position; a second finger scrolls (moving) or holds
@@ -2013,23 +2265,13 @@ index 13e88b9d..ea763410 100644
 +            break;
 +        }
 +        case SDL_EVENT_FINGER_MOTION:
-+            /* TEMP diag (mini trackpad multi-click), rate-limited */
-+            {
-+                static int motion_logcnt;
-+                if ((motion_logcnt++ & 15) == 0) {
-+                    write_log(_T("iPadUAE finger: MOVE id=%lld touch=%lld type=%d pressure=%.3f xy=%.3f,%.3f t=%llu\n"),
-+                        (long long)event.tfinger.fingerID, (long long)event.tfinger.touchID,
-+                        (int)SDL_GetTouchDeviceType(event.tfinger.touchID), event.tfinger.pressure,
-+                        event.tfinger.x, event.tfinger.y,
-+                        (unsigned long long)SDL_GetTicks());
-+                }
-+            }
 +            if (!input_events) {
 +                break;
 +            }
 +            if (pen_ignored_finger(event.tfinger.fingerID, false)) {
 +                break;
 +            }
++            pen_feed_from_finger(&event.tfinger, 1);
 +            if (s_touch_primary_active && event.tfinger.fingerID == s_touch_primary_finger) {
 +                int win_w = 0, win_h = 0;
 +                SDL_Window *win = SDL_GetWindowFromID(event.tfinger.windowID);
@@ -2090,17 +2332,14 @@ index 13e88b9d..ea763410 100644
 +            touch_reset_all();
 +            break;
 +        case SDL_EVENT_FINGER_UP: {
-+            /* TEMP diag (mini trackpad multi-click) */
-+            write_log(_T("iPadUAE finger: UP   id=%lld touch=%lld type=%d pressure=%.3f xy=%.3f,%.3f t=%llu\n"),
-+                (long long)event.tfinger.fingerID, (long long)event.tfinger.touchID,
-+                (int)SDL_GetTouchDeviceType(event.tfinger.touchID), event.tfinger.pressure,
-+                event.tfinger.x, event.tfinger.y,
-+                (unsigned long long)SDL_GetTicks());
 +            if (!input_events) {
 +                break;
 +            }
 +            if (pen_ignored_finger(event.tfinger.fingerID, true)) {
 +                break;
++            }
++            if (s_pen_finger_active && event.tfinger.fingerID == s_pen_finger) {
++                pen_end_stroke(event.tfinger.x, event.tfinger.y);
 +            }
 +            if (currprefs.input_tablet > 0) {
 +                if (s_touch_primary_active && event.tfinger.fingerID == s_touch_primary_finger) {
@@ -2173,7 +2412,7 @@ index 13e88b9d..ea763410 100644
          case SDL_EVENT_JOYSTICK_ADDED:
          case SDL_EVENT_JOYSTICK_REMOVED:
          case SDL_EVENT_GAMEPAD_ADDED:
-@@ -1962,6 +2737,166 @@ int unix_video_poll_window_events(bool *quit_requested)
+@@ -1962,6 +2801,166 @@ int unix_video_poll_window_events(bool *quit_requested)
      return unix_video_poll_internal(quit_requested, false);
  }
  
@@ -2340,7 +2579,7 @@ index 13e88b9d..ea763410 100644
  static void unix_video_present_on_event_thread(const struct unix_video_frame *frame)
  {
      if (!frame || !frame->pixels || frame->width <= 0 || frame->height <= 0 || frame->rowbytes <= 0) {
-@@ -1981,15 +2916,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -1981,15 +2980,26 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
      if (!ensure_texture(frame->width, frame->height, frame->pixbytes, frame->backbuffers)) {
          return;
      }
@@ -2371,7 +2610,7 @@ index 13e88b9d..ea763410 100644
      SDL_SetRenderLogicalPresentation(s_renderer, 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
      int output_width = 0;
      int output_height = 0;
-@@ -2006,10 +2952,19 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
+@@ -2006,10 +3016,19 @@ static void unix_video_present_on_event_thread(const struct unix_video_frame *fr
      render_scanline_overlay(filter, &layout.frame_dst);
      SDL_SetRenderClipRect(s_renderer, NULL);
  

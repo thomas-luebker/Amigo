@@ -210,6 +210,397 @@ is never raced against mid-write. All access goes through
   the copy. Scope it separately if media sync is to be more than
   "CDs, ROMs and unmounted disks".
 
+## Apple Pencil pressure — `feature/pencil-pressure` (started 2026-08-24)
+
+From Chad Essley (artist on *Jake and Peppy*, Apollo V4), by email: the
+Pencil works in TVPaint but the pointer is offset unless 1:1 is on, and
+then clicking misbehaves — and the dream is pressure-sensitive painting
+on a tablet Amiga.
+
+**What the port was actually missing.** WinUAE has carried the guest-side
+half of this for years and the Unix port never wired it up:
+
+- `tabletlibrary.cpp` — the boot ROM offers the guest a **`tablet.library`**
+  serving position, proximity, buttons and `TABLETA_Pressure`. It was
+  Windows-only (`WITH_TABLETLIBRARY` defined solely in
+  `od-win32/sysconfig.h:108`) and not in `WINUAE_CORE_SOURCES` at all.
+- `filesys.asm:2932` — the mousehack driver can also post
+  `IESUBCLASS_NEWTABLET` input events carrying pressure, gated on
+  `input_tablet == TABLET_REAL` and on `is_tablet()`, which od-unix stubs
+  to `0` (`od-unix/input.cpp:1533`).
+- Both are fed by `inputdevice_tablet()` / `tabletlib_tablet()`, whose
+  only caller in the tree is `od-win32/dinput.cpp:694`.
+
+**Why tablet.library and not the input events:** upstream's own changelog
+says *"Deluxe Paint requires it for pressure support"* (line 13527).
+That settles which interface DPaint opens.
+
+**Done on the branch:**
+
+- [x] `WINUAE_UNIX_WITH_TABLETLIBRARY` (default ON) compiles
+  `tabletlibrary.cpp` into the iOS core.
+- [x] `ipaduae_pen_tablet()` in `core-ios/ios_glue.cpp` feeds it; hover
+  supplies proximity + position at zero pressure, the touch layer
+  supplies tip pressure (`pen_feed_from_finger` / `pen_end_stroke` in
+  `od-unix/video_sdl.cpp`).
+- [x] **Pressure scaling.** `tabletlibrary.cpp` encodes pressure as
+  `pressure << 15` into the signed 32-bit tag, so full scale is `0xFFFF`
+  — we feed 0..65535. The Windows path passes raw device units instead
+  (a Wacom reports 0..1023), which lands at **1.5% of full scale**. That
+  is the most likely reason for upstream's note at changelog line 8154:
+  *"dpaint5 does not seem to do anything with pressure data. It reads
+  pressure tag contents but nothing seems to happen."* Untested claim —
+  it is the first thing to check on device.
+- [x] `tablet_library=true` written into the config (seeded for existing
+  setups in `ipaduae_heal_config_paths`), *Pencil Pressure* toggle in
+  the gear menu. Installed by the boot ROM at reset, so unlike 1:1 Mouse
+  it needs a restart.
+
+**Serial Wacom tablet — done on the same branch (2026-08-24).**
+
+TVPaint does not open `tablet.library` and never will: its tablet support
+is built into the application and talks to a serial tablet directly, from
+the menu it shows on a right-click at launch. The people who actually ran
+it did so with Wacom UD/UltraPad units — an A4000 with a **UD-0806** and
+an A1200 with an **UltraPad A5** are both on record in the TVPaint forum
+thread, which turns out to be Chad's own from 2019. Those are Protocol IV
+tablets. So the answer for TVPaint is not a driver: it is to *be* the
+tablet.
+
+`core-ios/wacom_serial.cpp` is a Wacom Protocol IV device on the emulated
+serial port, selected with `serial_port=WACOM_TABLET` (parsed at
+`od-unix/config.cpp:407`, which sets `sername` and `use_serial` together).
+It is a device, not a byte generator — it answers `~#`, `~C` and `~R`,
+honours `ST`/`SP`/`PH`, and only then streams 7-byte packets.
+
+Hooks in `od-unix/serial.cpp`, all guarded to iOS, following the shape
+upstream already established for `LOOPBACK_SERIAL`:
+
+| hook | what it does |
+|---|---|
+| `serial_open()` | recognises the device name |
+| `serial_read_byte()` / `readseravail()` | receive from the tablet |
+| `writeser()` | guest bytes become tablet commands |
+| `serial_readstatus()` | reports DSR/CAR/CTS, as loopback does |
+| `serial_hsynchandler()` | one scanline of baud-rate credit |
+
+**Pacing matters more than it looks.** `checkreceive_serial()` runs per
+scanline (~15.6 kHz), so an unmetered buffer would deliver a whole packet
+between two scanlines and overrun a driver expecting 9600 baud. Credit
+accrues from the baud the guest programmed into SERPER, spent one byte at
+a time, with a 32-byte burst bucket.
+
+**Tested without an Amiga.** `scripts/test-wacom-serial.sh` compiles the
+device against stub headers, drives the full Protocol IV handshake and
+decodes its own packets back — 31 checks covering framing, coordinate and
+pressure round-trip, proximity, buttons, `ST`/`SP` gating and baud pacing
+at 9600 and 19200. All pass. It also pinned the burst bucket: the measured
+overshoot is exactly 32 bytes.
+
+Unverified and marked as such in the source: the exact `~#`/`~R` reply
+text, and the Y origin corner (Wacom digitizers historically count Y up
+from the bottom; `WACOM_Y_DOWN` is the one line to flip if TVPaint draws
+mirrored).
+
+**Bonus:** with a serial Wacom present, the real Amiga drivers —
+PenPartner, Tableau Pro, FormAldiHyd, AccuPoint — work inside Amigo too
+and feed the genuine `tablet.library`, rather than the boot ROM's
+stand-in.
+
+**End-to-end test in the Simulator — the tablet reaches AmigaOS (2026-08-25).**
+
+`scripts/test-tablet-simulator.sh` boots a bootable 8 MB test disk
+(`scripts/build-guest-tests.sh`) whose Startup-Sequence runs a 68k probe,
+`core-ios/tests/guest/sertest.c`, with `AMIGO_TABLET_SELFTEST=1` so the
+tablet moves its own pen. No Pencil, no device, no human.
+
+**Result: the Amiga sees the tablet.** The probe read the model string and
+the coordinate range off the wire, and in one run decoded a live packet
+stream — `x= 6689 y= 3112 pressure= 81 prox=1 tip=1` climbing smoothly
+with monotonic pressure (`build/tests/tablet-test7.png`). That is a real
+AmigaOS program reading a Wacom Protocol IV tablet through Amigo's
+emulated serial port.
+
+**Four real bugs, none of them in the protocol.** Every one was invisible
+to the Mac-side unit test and would have been invisible to reasoning:
+
+1. **`serial_port=` is not a config key — `unix.serial_port=` is.** Target
+   options only reach `target_parse_option()` when they carry the
+   `TARGET_NAME.` prefix (`cfgfile.cpp:3543`), and TARGET_NAME is "unix".
+   Written without it the core logs "unknown config entry" and the port
+   silently stays closed. `ConfigStore.setSerialTablet` was wrong and is
+   fixed.
+2. **The TBE interrupt was never raised.** `SERDATR` reports TBE and TSRE,
+   but AmigaOS's serial.device is interrupt-driven: it hands a byte to
+   SERDAT and waits for `INTB_TBE`. Nothing in the port ever raised it, so
+   **every `CMD_WRITE` from the guest blocked forever in DoIO**. The old
+   UAE `serial.cpp` at the repo root does `intreq |= 1` right there; the
+   Unix port lost it. Fixed in `od-unix/serial.cpp` — this affects any
+   Amiga program that writes to the serial port, not just the tablet.
+3. **Every transmitted byte was doubled.** SERDAT emitted a `0xa8|bit`
+   prefix whenever SERDAT bit 8 was set, to convey a ninth data bit — but
+   AmigaOS sets that bit as the *stop bit* on ordinary 8N1 writes, so the
+   host saw `a9` before every byte. The guest's commands arrived as
+   `"\xa9S\xa9T\xa9"`. Now gated on 9-bit mode (SERPER bit 15).
+4. **The RDB boot flag is not the default.** `rdb-build --part "DH0:DOS3"`
+   produces a partition that mounts, reads and never boots — `Flags:
+   00000000`, insert-disk screen. It is the fourth field: `DH0:DOS3::1`.
+   Worth carrying into the `amiga-disk` skill.
+
+Also learned, and worth keeping: **`serial.device` is not in the Kickstart
+ROM.** A bare boot disk has nine devices and serial is not among them —
+it lives in `DEVS:`. `build-guest-tests.sh` borrows one from a system
+image rather than committing Amiga OS files here.
+
+> **Xcode will not relink when only `libuaecore.a` changed.** The static
+> library is not in its dependency graph, so `xcodebuild` reports BUILD
+> SUCCEEDED and installs a stale binary — which cost an hour of chasing a
+> bug that was already fixed. Touch a Swift source, or delete DerivedData,
+> whenever the core changes. Verify with
+> `strings Amigo.app/Amigo.debug.dylib | grep "virtual Wacom"` (debug
+> builds put the code in `Amigo.debug.dylib`, not the 37 KB launcher).
+
+**Both halves proven on AmigaOS (2026-08-25).** `TabTest`
+(`core-ios/tests/guest/tabtest.c`) opens `tablet.library`, calls
+`AllocTablet`/`DoTablet` and reads the tag list; `SerTest` drives the
+serial Wacom. One run shows both:
+
+    [11] x= 2107/ 4095 y= 2048/ 4095 pressure= 2084831232 ( 97%)
+    TabTest: pressure reached the Amiga side
+    [ 150] x= 5863 y= 3810 pressure=216 prox=1 tip=1
+
+- **tablet.library carries pressure at 97% of full scale.** That is the
+  scaling fix confirmed from the Amiga side: raw device units, as the
+  Windows path feeds, would arrive at ~1.5% — indistinguishable from
+  "barely touching", and the likeliest reason for upstream's note that
+  dpaint5 "does not seem to do anything with pressure data".
+- **Sustained serial streaming works** — 150+ packets, coordinates
+  tracking, pressure climbing. The earlier stall was the probe's own
+  serial IO: one IORequest shared between a queued read and writes,
+  byte-at-a-time reads, and `io_RBufLen` left at 0. A driver does none of
+  those. Nothing in the device changed.
+- The self-test sweep now feeds `ipaduae_pen_tablet()` rather than the
+  serial device directly, so one sample fans out to both consumers
+  exactly as a Pencil sample does — which is why both pressure curves
+  move together above.
+
+**TVPaint drives the virtual tablet on the iPad (2026-08-25).** Installed
+TVPaint 3.59 — released free by TVPaint Développement in 1999 — on the M4
+iPad next to the Pencil tablet, and drove the guest through amiagent (the
+Amigo guest is a fleet node; token `a4000` from `S:StartAmiagent`).
+
+**It works.** TVPaint initialises the tablet, asks for pressure, consumes
+our packets and draws from them — 19,000 packets, 0 dropped, buffer
+empty, i.e. the guest drains the stream as fast as it is produced. The
+strokes on its canvas came from the self-test sweep: no human, no Pencil.
+
+**The find that mattered: TVPaint never sends `ST`.** Its init sequence,
+read off the wire, is
+
+    SR · AS1 · LA2 · IT4 · IC1 · SU0 · AS1 · PH1
+
+`SR` is stream mode and is what starts the flow; `PH1` turns pressure on.
+The device honoured only `ST` (which is what the linuxwacom notes
+document), so it sat initialised, in pressure mode, and **silent** —
+indistinguishable from no tablet at all. Fixed: `SR` starts the stream
+too, and the unit test now drives TVPaint's real sequence.
+
+Other things learned on the way:
+
+- **The tablet is chosen in `ENV:/ENVARC:TVPaint.config`**, not by the
+  right-click-at-launch menu (that gesture could not be reproduced — see
+  below). The file is a 248-byte IFF `FORM TVP2`; the `ULONG` at **0x18**
+  is the tablet type, `0x1c`/`0x20` are screen width/height, and the
+  device name string sits at 0x2c. Type `0` is "None", which is why
+  TVPaint ignored the port. The list order is `None, Summa A4, Summa A3,
+  Wacom A5, Wacom A5 Pressure, …` so **4 = Wacom A5 Pressure**.
+- **The manual settles the protocol question**: §1.4.1 says TVPaint
+  supports "Wacom (A5, A4, A4Plus, A3, A3Plus, Artpad) and ZPen" — all
+  Protocol IV. The binary carries the same list as menu strings.
+- **amiagent cannot produce a hardware button press.** It injects at the
+  input.device level; Amigo's own Pencil/touch right-click goes through
+  `unix_input_mouse_button` → `setmousebuttonstate()`, the emulated
+  hardware bits. A program polling the buttons at startup — like
+  TVPaint's tablet menu — sees the latter and never the former.
+
+**Still open — coordinate calibration.** TVPaint never asks `~C`, so it
+must assume a fixed range per model. Our 10160 x 7620 does not land where
+expected: the sweep drew two legs and then pegged at the right edge. Next
+step is to try the other model entries (A4+, A3) or match the range the
+A5 entry assumes. Pressure-to-width is also unconfirmed — the default
+brush may not be pressure-sensitive.
+
+**tablet.library confirmed with a real Pencil on the iPad (2026-08-25).**
+`TabTest` on the M4 iPad, drawing with an actual Apple Pencil:
+
+    [129] x= 1961/ 4095 y= 2674/ 4095 pressure= 1787002880 ( 83%)
+    [131] x= 1365/ 4095 y= 3077/ 4095 pressure= 1484718080 ( 69%)
+    [133] x= 1207/ 4095 y= 3508/ 4095 pressure= 1159823360 ( 54%)
+    TabTest: pressure reached the Amiga side
+
+Pressure reaches AmigaOS through `tablet.library` at up to **83% of full
+scale**, tracking how hard the pen is pressed. That is the Deluxe Paint
+route proven end to end on real hardware — the question this branch
+started from.
+
+**And it found a bug the synthetic sweep could not.** Every other sample
+read zero: `41% · 0% · 83% · 0% · 69% · 0%`. The hover path fed the tablet
+a zero-pressure sample unconditionally, and on M-series hardware the hover
+recognizer keeps firing *while the tip is in contact* — so hover zeros
+interleaved with real samples and half the readings were flat. A paint
+program would see pressure chattering to nothing on every other poll.
+Fixed: `unix_input_pen_stroke_active` is set by the touch layer while the
+tip is down, and the hover feed skips the tablet for its duration. The
+self-test sweep has no hover, which is exactly why it never showed this —
+a reminder of what synthetic input cannot cover.
+
+**Both routes confirmed with a real Apple Pencil (2026-08-25, M4 iPad).**
+
+    TabTest: [129] pressure= 1787002880 ( 83%)   → tablet.library, DPaint's route
+    TabTest: pressure reached the Amiga side
+    SerTest: [  5] x= 4726 y= 3895 pressure= 20 prox=1 tip=1   → serial Wacom, TVPaint's route
+
+A Wacom Protocol IV packet built from Pencil force, carried over the
+emulated serial port, decoded by an AmigaOS program — and the same force
+reaching `tablet.library` at up to 83% of full scale. The two interfaces
+this branch set out to feed are both live on real hardware.
+
+**The palm rejection was eating every Pencil stroke.** `FINGER_DOWN`
+rejected any touch that arrived while the Pencil hovered — including the
+Pencil's own tip. On M-series hardware the hover recognizer's `.ended`
+routinely lands *after* SDL delivers the touch, so the tip's contact was
+swallowed whole: tap, motion and lift. Measured before the fix: **303
+touch events carrying Pencil pressure, zero recognised strokes.** After:
+strokes recognised immediately and packets flowing. A touch that reports
+analogue force is the Pencil — no finger does — so that case now cancels
+hover instead of rejecting the touch. This is very likely the
+"doesn't click properly, or always stays clicked" in the report that
+started this work.
+
+**Calibration solved — pick "Wacom A4+ Pressure", not A5 (2026-08-25).**
+TVPaint never sends `~C`, so our answer to it is ignored: it assumes a
+coordinate range per model. With the A5 entry our 10160 x 7620 ran off
+the end of what it expected, the pointer pegged at the edge, and ink
+landed far from the pen — which reads as "the Pencil does not work at
+all". Switching the type to **6 = Wacom A4+ Pressure** (an A4 being about
+twice an A5) tracks correctly. Confirmed by the user on device.
+
+That pairing is now a documented constraint: `WACOM_MAX_X/Y` in
+`core-ios/wacom_serial.cpp` and the TVPaint model entry have to agree.
+Setup guidance for anyone running TVPaint under Amigo: set Type to
+**Wacom A4+ Pressure**.
+
+**Still thin:** that run produced only 7 packets before the probe gave up,
+because the drawing was brief. The path is proven; sustained throughput
+and latency under a real continuous stroke are not yet characterised.
+
+**Pressure-to-width: arrives, but the default TVPaint tool ignores it
+(2026-08-25).** The self-test sweep was replaced with a *pressure ladder*
+— eight left-to-right strokes at identical speed, each one eighth more
+pressure than the last, tip lifted between them. Constant speed is the
+whole point: TVPaint's brushes respond to pen speed as well as pressure,
+so a freehand scribble cannot separate the two, and a hand-drawn test
+showing thick and thin strokes proves nothing.
+
+Re-run with the tools named as pressure-sensitive, selected through
+TVPaint's own ARexx port (`rexx_TVPaint` — it does have one;
+`tv_version` answers "Tecsoft Video Paint 3.59 us", and `tv_clear`,
+`tv_pen`, `tv_chalk` all work, which makes this repeatable without
+clicking anything):
+
+- **`tv_pen`** — five rungs, identical width.
+- **`tv_chalk`** — the lowest-pressure rung came out visibly sparser than
+  the rest. So *something* is responding to pressure — density, not width.
+
+Two hypotheses remain, and they are distinguishable:
+
+1. TVPaint needs pressure→size enabling. `tv_pressureprofile` exists as a
+   command and returns empty when called bare; its arguments are in the
+   User's Guide, which we do not have (only *Getting Started* shipped in
+   the free download). There is also a "Sensitivity" string in the binary.
+2. Our pressure encoding is not what TVPaint decodes — byte 6 as
+   `0x40 | (p >> 2)` plus the two extra bits may not match its reader.
+   The chalk density difference argues against this, but weakly.
+
+Cheap next test: run the ladder with every rung at maximum pressure, then
+again at minimum, and compare chalk density. If the two are
+indistinguishable, it is hypothesis 2 and the packet layout needs work;
+if they differ, it is hypothesis 1 and the fix is a TVPaint setting.
+
+**DPaint would settle it faster** and is the better demo anyway —
+upstream says it is the `tablet.library` consumer, and that path already
+measured 83% of full scale. It is not installed in the 8 GB system image
+or anywhere else on this Mac.
+
+Original result for the record: **the rungs came out uniform width.** Pressure demonstrably
+reaches TVPaint (the wire log shows `PH1` and the packets carry it), so
+this is the brush, not the transport — the manual says the pen, chalk and
+airbrush are the pressure-sensitive tools, and the default tool evidently
+is not one of them. Next step is a TVPaint UI matter: select a
+pressure-sensitive brush and re-run the ladder. No code change implied.
+
+A caution for whoever does that: `screenshot()`'s `pixels` buffer did not
+index as `y * width + x` in the obvious way — a column scan produced
+1-pixel runs 3 pixels apart where the rendered frame plainly shows solid
+lines 55 apart. Do not measure stroke widths from it without first
+working out the real stride; the rendered PNG is trustworthy, that
+indexing is not.
+
+**TVPaint reads our pressure — settled 2026-08-25.** The deciding
+experiment: the same ladder, same chalk tool, same constant speed, run
+twice with every rung pinned to one pressure via
+`AMIGO_TABLET_FORCE=<percent>`.
+
+    100%  → five dense chalk rungs, one of them solid
+     10%  → blank canvas, nothing laid down at all
+            (8000 packets emitted, 0 dropped, buffer empty —
+             TVPaint consumed every one of them)
+
+So the guest decodes the pressure bits correctly and acts on them: at 10%
+the chalk stays below its own threshold and lays down nothing. That kills
+the encoding hypothesis. **Pressure works in TVPaint through Amigo.**
+
+What is *not* demonstrated is stroke **width** varying with pressure —
+neither `tv_pen` nor `tv_chalk` changed width across the ramp. On the
+evidence that is a TVPaint tool/profile matter (`tv_pressureprofile`,
+"Sensitivity" — both in the binary, both documented in the User's Guide
+that was not in the free download), not a transport problem. Density
+responds; width may need the right tool or profile.
+
+**Open — needs the device:**
+
+- [x] **Does SDL report Pencil pressure at all on iOS? YES — settled on
+  device 2026-08-25.** The log from a real Pencil session on the M4 iPad
+  carries analogue force on ordinary finger events —
+  `pressure=0.080 … 0.135 … 0.209 … 0.310`, continuously varying, never
+  the flat 1.0 a finger reports — and the detection fired four times:
+  `iPadUAE pen: stroke start pressure=0.080`. So `event.tfinger.pressure`
+  is real on iOS, `touch_pressure_is_pen()` identifies the Pencil
+  correctly, and **the UIKit `UITouch.force` fallback is not needed**.
+  (Values topped out around 0.31 in that session — light drawing, not a
+  ceiling; worth re-checking with a hard press before assuming the scale
+  reaches 1.0.)
+
+- [ ] ~~Does SDL report Pencil pressure at all on iOS?~~ (superseded) The feed keys
+  off `event.tfinger.pressure` being strictly between 0 and 1
+  (`touch_pressure_is_pen`). If iOS flattens finger and Pencil to the
+  same value, the fallback is a UIKit-side `UITouch.force` feed from a
+  passive recognizer in `PencilSupport.swift`. The existing `iPadUAE
+  finger:` diag lines already print pressure — one Pencil session with a
+  log answers this. New `iPadUAE pen: stroke start` line marks detection.
+- [ ] Test in DPaint (pressure-capable per upstream) and confirm whether
+  the `<< 15` scaling reads as full range on the Amiga side.
+- [ ] **Which tablet TVPaint's launch menu actually lists.** Protocol IV
+  is the educated bet from what people ran, but UD tablets also speak the
+  older Wacom II-S, and a 1995 program may target that — or the menu may
+  offer SummaSketch/Kurta instead. One photo of that right-click menu
+  from Chad settles it; the II-S variant would be a second packet format
+  in the same device, not a rewrite.
+- [ ] Chad's other report — Pencil clicks misbehaving in 1:1 mode — is a
+  separate bug: `FINGER_DOWN` palm-rejects the whole touch when
+  `unix_input_pen_hover_active` is set, and nothing guarantees the hover
+  recognizer reaches `.ended` before SDL delivers the tip's touch.
+
 ## 0.7.5 — on TestFlight (build 20260824, 2026-08-21)
 
 - [x] **RTG silently dies at 32 MB — option removed and existing configs
@@ -880,10 +1271,14 @@ three carry feature requests.
   appreciate PS5 joypad support". Done. The later 08-19 review reports a
   PS4 pad working with no setup at all, so the original report was most
   likely a pairing problem rather than missing support.
-- [ ] **Multiple HDFs mounted as separate volumes** (WlkAme, 4★ US,
-  08-19) — "still missing multi-hdd support, to mount several HDF images
-  as diff volumes". The whole review; it is the only 4★ to date and the
-  reason the US average sits at 4.00. Being added.
+- [x] **Multiple HDFs mounted as separate volumes — SHIPPED in 0.7.5,
+  live 2026-08-25** (WlkAme, 4★ US, 08-19) — "still missing multi-hdd
+  support, to mount several HDF images as diff volumes". The whole review;
+  it is the only 4★ to date and the reason the US average sits at 4.00.
+  **Worth answering the review in ASC now that it is done** — a developer
+  response notifies the reviewer, is public under the review, and is the
+  cheapest way to turn the one blemish on the rating into a reason to look
+  again.
 - [ ] **Virtual joystick polish + auto-fire** (Smurfy2000, 5★ GB, 08-15)
   — "some enhancement to the virtual joystick would perhaps improve use
   ability (UI enhancements and auto fire support)". Nothing else in this

@@ -388,6 +388,54 @@ enum ConfigStore {
         }
     }
 
+    /// Apple Pencil pressure. Off unless the user asks for it: switching
+    /// it on makes the boot ROM install a resident `tablet.library` at
+    /// every reset, and that is not a change to impose on the boot path
+    /// of people who will never open a paint program.
+    ///
+    /// The UAE boot ROM can offer the guest a `tablet.library` — the interface Deluxe Paint opens to read stylus
+    /// pressure — and `core-ios/ios_glue.cpp` feeds it from the Pencil.
+    /// Position and clicking are unaffected either way; this only decides
+    /// whether the library exists for a paint program to open.
+    ///
+    /// The library is installed by the boot ROM at reset, so a change
+    /// takes effect on the next boot, not immediately.
+    static var penPressure: Bool {
+        currentValue("tablet_library") == "true"
+    }
+
+    static func setPenPressure(_ on: Bool) {
+        set("tablet_library", on ? "true" : "false")
+    }
+
+    /// Serial tablet emulation: the Pencil appears on the Amiga's serial
+    /// port as a Wacom Protocol IV tablet (`core-ios/wacom_serial.cpp`).
+    /// This is the route for programs that drive a serial tablet
+    /// themselves rather than opening `tablet.library` — TVPaint being
+    /// the one that matters, where the tablet is picked from the menu it
+    /// shows on a right-click at launch.
+    ///
+    /// The port is opened at reset, so this takes effect on the next boot.
+    /// It claims the serial port for the tablet; nothing else in Amigo
+    /// uses it today.
+    /// The key is `unix.serial_port`, not `serial_port`: target options
+    /// only reach `target_parse_option()` when they carry the
+    /// `TARGET_NAME.` prefix (`cfgfile.cpp:3543`), and TARGET_NAME is
+    /// "unix" here. Written without the prefix the core logs "unknown
+    /// config entry" and the port stays closed — which is exactly what
+    /// the first end-to-end run did.
+    static var serialTablet: Bool {
+        currentValue("unix.serial_port")?.uppercased() == "WACOM_TABLET"
+    }
+
+    static func setSerialTablet(_ on: Bool) {
+        if on {
+            set("unix.serial_port", "WACOM_TABLET")
+        } else {
+            removeAll("unix.serial_port")
+        }
+    }
+
     private static func restart() {
         NSLog("iPadUAE: restarting with config %@", configURL.path)
         ipaduae_restart_with_config(configURL.path)
