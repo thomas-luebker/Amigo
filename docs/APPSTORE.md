@@ -131,6 +131,19 @@ Promotional text, draft:
 
     New in 0.7.6: Apple Pencil pressure in Amiga paint programs, AHI sound working again, and the serial port fixed — plus Pencil taps no longer mistaken for your palm.
 
+de-DE What's New, draft (needs pushing to ASC):
+
+    • AHI-Sound funktioniert wieder — die emulierte Soundkarte lag nie am Erweiterungsbus des Amiga, weshalb Treiber kein Gerät zum Öffnen fanden. Bestehende Konfigurationen reparieren sich beim nächsten Start selbst
+    • Der Druck des Apple Pencil erreicht jetzt den Amiga. Schalten Sie unter „Input & Overlays" den Pencil-Druck ein — für Programme, die Tablett-Druck über das System lesen, etwa Deluxe Paint
+    • „Serial Tablet" im selben Menü legt ein Wacom-Grafiktablett an die serielle Schnittstelle des Amiga, für Programme, die ein Tablett selbst ansteuern. In TVPaint als Typ „Wacom A4+ Pressure" wählen
+    • Behoben: Die Spitze des Apple Pencil konnte für eine aufliegende Handfläche gehalten und ignoriert werden — Striche und Klicks gingen verloren oder schienen hängen zu bleiben
+    • Behoben: Die emulierte serielle Schnittstelle meldete dem Amiga nie, dass ein Byte gesendet war. Programme, die darauf schrieben, warteten endlos — Terminal- und Kommunikationssoftware konnte gar nicht arbeiten
+    • Behoben: Jedes Byte, das der Amiga über die serielle Schnittstelle sendete, wurde verdoppelt
+
+de-DE promotional text, draft:
+
+    Neu in 0.7.6: Apple-Pencil-Druck in Malprogrammen, AHI-Sound läuft wieder, serielle Schnittstelle repariert — und die Pencil-Spitze gilt nicht mehr als Handfläche.
+
 > [!warning] Not pushed yet — this went no further than the archive
 > Nothing has been uploaded to App Store Connect and no metadata has been
 > set. Remaining: Xcode → Organizer → Distribute App, then What's New,
