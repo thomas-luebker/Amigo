@@ -233,7 +233,16 @@ static void run_command(const char *cmd)
         reply_max_coords();
     } else if (!strncmp(cmd, "~R", 2)) {
         reply_config();
-    } else if (!strcmp(cmd, "ST")) {
+    } else if (!strcmp(cmd, "ST") || !strcmp(cmd, "SR")) {
+        /* Two ways to start. The linuxwacom notes document ST; TVPaint
+         * 3.59 never sends it — its init sequence, read off the wire on a
+         * real Amiga, is:
+         *
+         *     SR · AS1 · LA2 · IT4 · IC1 · SU0 · AS1 · PH1
+         *
+         * SR is stream mode, and it is what starts the flow. Honouring
+         * only ST left the tablet initialised, in pressure mode, and
+         * silent — which looks exactly like a tablet that is not there. */
         s_started = true;
     } else if (!strcmp(cmd, "SP")) {
         s_started = false;

@@ -1,6 +1,15 @@
 #include "stub/sysdeps.h"
 #include "../wacom_serial.cpp"
 
+/* In the app this lives in ios_glue.cpp and fans one pen sample out to
+ * both the serial tablet and the guest's tablet.library. The harness only
+ * exercises the serial half. */
+extern "C" void ipaduae_pen_tablet(float nx, float ny, float pressure,
+                                   int in_proximity, int buttons)
+{
+    wacom_serial_pen(nx, ny, pressure, in_proximity, buttons);
+}
+
 #include <assert.h>
 #include <string>
 
@@ -61,8 +70,15 @@ int main(void)
     r = drain(2000);
     check(r.empty(), "no packets before ST");
 
+    // TVPaint's real init sequence, captured from the wire: it starts the
+    // stream with SR, not ST.
+    send("SR\r");
+    send("AS1\r");
+    send("LA2\r");
+    send("IT4\r");
+    send("IC1\r");
+    send("SU0\r");
     send("PH1\r");
-    send("ST\r");
     r = drain(2000);
     check(r.empty(), "ST itself produces no output");
 

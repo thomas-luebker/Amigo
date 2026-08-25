@@ -384,6 +384,52 @@ serial Wacom. One run shows both:
   exactly as a Pencil sample does — which is why both pressure curves
   move together above.
 
+**TVPaint drives the virtual tablet on the iPad (2026-08-25).** Installed
+TVPaint 3.59 — released free by TVPaint Développement in 1999 — on the M4
+iPad next to the Pencil tablet, and drove the guest through amiagent (the
+Amigo guest is a fleet node; token `a4000` from `S:StartAmiagent`).
+
+**It works.** TVPaint initialises the tablet, asks for pressure, consumes
+our packets and draws from them — 19,000 packets, 0 dropped, buffer
+empty, i.e. the guest drains the stream as fast as it is produced. The
+strokes on its canvas came from the self-test sweep: no human, no Pencil.
+
+**The find that mattered: TVPaint never sends `ST`.** Its init sequence,
+read off the wire, is
+
+    SR · AS1 · LA2 · IT4 · IC1 · SU0 · AS1 · PH1
+
+`SR` is stream mode and is what starts the flow; `PH1` turns pressure on.
+The device honoured only `ST` (which is what the linuxwacom notes
+document), so it sat initialised, in pressure mode, and **silent** —
+indistinguishable from no tablet at all. Fixed: `SR` starts the stream
+too, and the unit test now drives TVPaint's real sequence.
+
+Other things learned on the way:
+
+- **The tablet is chosen in `ENV:/ENVARC:TVPaint.config`**, not by the
+  right-click-at-launch menu (that gesture could not be reproduced — see
+  below). The file is a 248-byte IFF `FORM TVP2`; the `ULONG` at **0x18**
+  is the tablet type, `0x1c`/`0x20` are screen width/height, and the
+  device name string sits at 0x2c. Type `0` is "None", which is why
+  TVPaint ignored the port. The list order is `None, Summa A4, Summa A3,
+  Wacom A5, Wacom A5 Pressure, …` so **4 = Wacom A5 Pressure**.
+- **The manual settles the protocol question**: §1.4.1 says TVPaint
+  supports "Wacom (A5, A4, A4Plus, A3, A3Plus, Artpad) and ZPen" — all
+  Protocol IV. The binary carries the same list as menu strings.
+- **amiagent cannot produce a hardware button press.** It injects at the
+  input.device level; Amigo's own Pencil/touch right-click goes through
+  `unix_input_mouse_button` → `setmousebuttonstate()`, the emulated
+  hardware bits. A program polling the buttons at startup — like
+  TVPaint's tablet menu — sees the latter and never the former.
+
+**Still open — coordinate calibration.** TVPaint never asks `~C`, so it
+must assume a fixed range per model. Our 10160 x 7620 does not land where
+expected: the sweep drew two legs and then pegged at the right edge. Next
+step is to try the other model entries (A4+, A3) or match the range the
+A5 entry assumes. Pressure-to-width is also unconfirmed — the default
+brush may not be pressure-sensitive.
+
 **Open — needs the device:**
 
 - [ ] **Does SDL report Pencil pressure at all on iOS?** The feed keys
@@ -1076,10 +1122,14 @@ three carry feature requests.
   appreciate PS5 joypad support". Done. The later 08-19 review reports a
   PS4 pad working with no setup at all, so the original report was most
   likely a pairing problem rather than missing support.
-- [ ] **Multiple HDFs mounted as separate volumes** (WlkAme, 4★ US,
-  08-19) — "still missing multi-hdd support, to mount several HDF images
-  as diff volumes". The whole review; it is the only 4★ to date and the
-  reason the US average sits at 4.00. Being added.
+- [x] **Multiple HDFs mounted as separate volumes — SHIPPED in 0.7.5,
+  live 2026-08-25** (WlkAme, 4★ US, 08-19) — "still missing multi-hdd
+  support, to mount several HDF images as diff volumes". The whole review;
+  it is the only 4★ to date and the reason the US average sits at 4.00.
+  **Worth answering the review in ASC now that it is done** — a developer
+  response notifies the reviewer, is public under the review, and is the
+  cheapest way to turn the one blemish on the rating into a reason to look
+  again.
 - [ ] **Virtual joystick polish + auto-fire** (Smurfy2000, 5★ GB, 08-15)
   — "some enhancement to the virtual joystick would perhaps improve use
   ability (UI enhancements and auto fire support)". Nothing else in this

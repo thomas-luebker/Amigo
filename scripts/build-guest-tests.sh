@@ -37,7 +37,10 @@ rm -f "$OUT/SerTest.hdf"
 "$CLI" disk rdb-format "$OUT/SerTest.hdf" DH0 SerTestVol
 "$CLI" disk fs mkdir "$OUT/SerTest.hdf" DH0 S
 # TabTest first: it exits after 20 samples, SerTest streams until stopped.
-printf 'TabTest\nSerTest\n' > "$OUT/startup.txt"
+# TabTest first with a generous sample count — on a device a human needs
+# time to pick the Pencil up — then leave the shell at its prompt so
+# SerTest can be run by hand when they are ready.
+printf 'TabTest 150\nEcho "Now run SerTest to test the serial tablet"\n' > "$OUT/startup.txt"
 "$CLI" disk fs copy "$OUT/SerTest.hdf" DH0 "$OUT/startup.txt" "S/Startup-Sequence"
 "$CLI" disk fs copy "$OUT/SerTest.hdf" DH0 "$SRC/SerTest" "SerTest"
 "$CLI" disk fs copy "$OUT/SerTest.hdf" DH0 "$SRC/TabTest" "TabTest"

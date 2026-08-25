@@ -88,13 +88,27 @@ static LONG find_tag(ULONG *tags, ULONG want, LONG *out)
     return 0;
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
+    /* Sample count on the command line: a human needs time to pick up the
+     * Pencil, and the default 20 samples are gone in four seconds. */
+    int samples = 20;
     ULONG taglist[6];
     UBYTE fake_event[64];
     APTR td;
     int i;
     int seen_pressure = 0;
+
+    if (argc > 1) {
+        int n = 0;
+        const char *a = argv[1];
+        while (*a >= '0' && *a <= '9') {
+            n = n * 10 + (*a++ - '0');
+        }
+        if (n > 0) {
+            samples = n;
+        }
+    }
 
     TabletBase = OpenLibrary((CONST_STRPTR)"tablet.library", 0);
     if (!TabletBase) {
@@ -126,7 +140,7 @@ int main(void)
     }
 
     printf("TabTest: sampling — hover or draw with the Pencil\n");
-    for (i = 0; i < 20; i++) {
+    for (i = 0; i < samples; i++) {
         LONG x, y, rx, ry, pressure = 0;
         ULONG *tags;
 
