@@ -37,9 +37,16 @@
  * host tty or a TCP endpoint. */
 #define WACOM_SERIAL_NAME _T("WACOM_TABLET")
 
-/* The tablet we claim to be: a UD-0608, 8x6 inches at 1270 lpi. The
- * numbers only have to be self-consistent — the guest scales reported
- * coordinates against the maximum this same device reports to ~C. */
+/* The tablet we claim to be: a UD-0608, 8x6 inches at 1270 lpi.
+ *
+ * "Self-consistent is enough" was wrong, and the device said so. A guest
+ * that asks ~C scales against what we answer — but TVPaint never asks. It
+ * assumes a range per model, so the range has to match the model the user
+ * picks. Verified on the iPad 2026-08-25: with TVPaint set to
+ * "Wacom A5 Pressure" the pointer pegged at the edge and ink landed
+ * nowhere near the pen; **"Wacom A4+ Pressure" tracks correctly**, an A4
+ * being about twice an A5. Change these numbers and that pairing changes
+ * with them. */
 #define WACOM_MAX_X    10160
 #define WACOM_MAX_Y     7620
 #define WACOM_RES_LPI   1270

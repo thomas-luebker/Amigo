@@ -477,6 +477,19 @@ hover instead of rejecting the touch. This is very likely the
 "doesn't click properly, or always stays clicked" in the report that
 started this work.
 
+**Calibration solved — pick "Wacom A4+ Pressure", not A5 (2026-08-25).**
+TVPaint never sends `~C`, so our answer to it is ignored: it assumes a
+coordinate range per model. With the A5 entry our 10160 x 7620 ran off
+the end of what it expected, the pointer pegged at the edge, and ink
+landed far from the pen — which reads as "the Pencil does not work at
+all". Switching the type to **6 = Wacom A4+ Pressure** (an A4 being about
+twice an A5) tracks correctly. Confirmed by the user on device.
+
+That pairing is now a documented constraint: `WACOM_MAX_X/Y` in
+`core-ios/wacom_serial.cpp` and the TVPaint model entry have to agree.
+Setup guidance for anyone running TVPaint under Amigo: set Type to
+**Wacom A4+ Pressure**.
+
 **Still thin:** that run produced only 7 packets before the probe gave up,
 because the drawing was brief. The path is proven; sustained throughput
 and latency under a real continuous stroke are not yet characterised.
