@@ -432,7 +432,19 @@ brush may not be pressure-sensitive.
 
 **Open — needs the device:**
 
-- [ ] **Does SDL report Pencil pressure at all on iOS?** The feed keys
+- [x] **Does SDL report Pencil pressure at all on iOS? YES — settled on
+  device 2026-08-25.** The log from a real Pencil session on the M4 iPad
+  carries analogue force on ordinary finger events —
+  `pressure=0.080 … 0.135 … 0.209 … 0.310`, continuously varying, never
+  the flat 1.0 a finger reports — and the detection fired four times:
+  `iPadUAE pen: stroke start pressure=0.080`. So `event.tfinger.pressure`
+  is real on iOS, `touch_pressure_is_pen()` identifies the Pencil
+  correctly, and **the UIKit `UITouch.force` fallback is not needed**.
+  (Values topped out around 0.31 in that session — light drawing, not a
+  ceiling; worth re-checking with a hard press before assuming the scale
+  reaches 1.0.)
+
+- [ ] ~~Does SDL report Pencil pressure at all on iOS?~~ (superseded) The feed keys
   off `event.tfinger.pressure` being strictly between 0 and 1
   (`touch_pressure_is_pen`). If iOS flattens finger and Pencil to the
   same value, the fallback is a UIKit-side `UITouch.force` feed from a
