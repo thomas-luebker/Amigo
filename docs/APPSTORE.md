@@ -109,7 +109,7 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     third-party trademarks in keywords are a rejection trigger; "amiga"
     is needed for search and is standard across shipping emulators.)
 
-## 0.7.6 — archive built 2026-08-25, NOT yet pushed to ASC
+## 0.7.6 — SUBMITTED FOR REVIEW 2026-08-26 (metadata verified by read-back)
 
 Build `20260825`, `MARKETING_VERSION 0.7.6`. Archive at
 `build/Amigo.xcarchive`. Two user-reported bugs fixed, both verified on
@@ -144,11 +144,19 @@ de-DE promotional text, draft:
 
     Neu in 0.7.6: Apple-Pencil-Druck in Malprogrammen, AHI-Sound läuft wieder, serielle Schnittstelle repariert — und die Pencil-Spitze gilt nicht mehr als Handfläche.
 
-> [!warning] Not pushed yet — this went no further than the archive
-> Nothing has been uploaded to App Store Connect and no metadata has been
-> set. Remaining: Xcode → Organizer → Distribute App, then What's New,
-> promotional text and the de-DE translations. **de-DE is ~45% of
-> downloads** and its What's New still has to be written.
+> [!success] Pushed and verified 2026-08-26
+> Build `20260825` uploaded, metadata pushed with
+> `scripts/asc-push-metadata.py 0.7.6 --push` against version record
+> `6b3542da`, and **all four fields read back MATCHES**: en-US What's New
+> 925 chars / promo 164, de-DE 1,086 / 163. Both localizations already
+> existed, so this patched rather than created — no 409 risk. Submitted
+> for review the same day.
+>
+> ASC first refused the submission with *"What's New in This Version —
+> This field is required"* for both locales, which is what an uploaded
+> build with empty release notes looks like. That is the moment to push
+> metadata: the version is in `PREPARE_FOR_SUBMISSION` and localizations
+> can still be created.
 
 ## 0.7.5 — LIVE on ASC (pushed 2026-08-24, verified by read-back)
 
