@@ -567,6 +567,27 @@ evidence that is a TVPaint tool/profile matter (`tv_pressureprofile`,
 that was not in the free download), not a transport problem. Density
 responds; width may need the right tool or profile.
 
+**Pressure-to-width: Chad has told us where the setting is (2026-08-26).**
+From his reply, and he beta-tests for TVPaint, so this is close to
+authoritative:
+
+> If you make a right click on the pen tool, you will see settings for
+> pressure to play with there. They are backward to begin if I remember
+> correctly. I set it to 0 and 4, or 1 and 5, something like this. It
+> will be reversed at first, 3 and 0 or something like that.
+
+So it is a **right-click on the pen tool** — not the gear panel, not a
+tooltype — and there are two numbers whose defaults are **inverted**,
+which would explain a ladder that showed no width change at all: with a
+reversed profile, more pressure asks for *less* width.
+
+To try when the iPad is reachable: right-click the pen tool in the
+toolbox, screenshot the panel, set the pair to `0 4` (or `1 5`), then
+re-run `AMIGO_TABLET_SELFTEST=1` with the pressure ladder. Injected
+clicks do not position TVPaint's pointer while the tablet is live, so
+either set the tablet type to 0 first, or drive it through
+`rexx_TVPaint` — `tv_pressureprofile` is very likely this same pair.
+
 **Open — needs the device:**
 
 - [x] **Does SDL report Pencil pressure at all on iOS? YES — settled on
