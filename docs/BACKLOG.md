@@ -1283,10 +1283,26 @@ Done: controller-routing-lost-on-restart fix, LHA/LZX/7z pickers,
 Controls & Help panel, tap-then-drag + hold-to-drag + KS1.3 1:1
 fallback (all 0.7.1 candidates). iPhone: shipped with 0.7.0.
 
-## From App Store reviews (2026-08-15 → 08-19)
+## From App Store reviews (2026-08-15 → 08-27)
 
-Three written reviews so far, 11 ratings across DE/GB/US/SE. Two of the
-three carry feature requests.
+Five written reviews, 18 ratings across DE/GB/HR/PT/SE/US, 4.61 average.
+Three carry feature requests; one is the only rating in its storefront.
+
+- [x] **The 2★ (Beronk, PT, 08-27) — answered in ASC 2026-08-28.** Whole
+  body: *"All games i tried that work on other emulators don't work on
+  this one."* No configuration is visible in the ASC payload — reviews
+  carry no device or ROM detail — so the reply names the most likely
+  cause rather than claiming to know it: the **bundled AROS ROM**. AROS
+  boots, but most floppy games drive the hardware directly and will not
+  run on it, and an emulator that "works" elsewhere is almost always one
+  where a real Kickstart was already set up. The reply gives the fix
+  (own ROM into `Kickstarts`, gear menu → Kickstart ROM, reset) and asks
+  for game names at the issue tracker if it was already tried.
+
+  > Worth revisiting the store text: `docs/APPSTORE.md:80` promises the
+  > bundled ROM "boots many titles without any Amiga files", which is
+  > optimistic for exactly the floppy games this reviewer tried. One
+  > 2★ is the entire PT storefront average.
 
 - [x] **PS4/PS5 joypad** (Smurfy2000, 5★ GB, 08-15) — "would really
   appreciate PS5 joypad support". Done. The later 08-19 review reports a
@@ -1294,12 +1310,19 @@ three carry feature requests.
   likely a pairing problem rather than missing support.
 - [x] **Multiple HDFs mounted as separate volumes — SHIPPED in 0.7.5,
   live 2026-08-25** (WlkAme, 4★ US, 08-19) — "still missing multi-hdd
-  support, to mount several HDF images as diff volumes". The whole review;
-  it is the only 4★ to date and the reason the US average sits at 4.00.
-  **Worth answering the review in ASC now that it is done** — a developer
-  response notifies the reviewer, is public under the review, and is the
-  cheapest way to turn the one blemish on the rating into a reason to look
+  support, to mount several HDF images as diff volumes". The whole review,
+  and part of why the US average sits at 4.00.
+
+  The 2026-08-22 response said only *"this will be introduced in 0.7.5"*.
+  **Replaced 2026-08-28** with one saying it is live, which re-notifies
+  the reviewer — the cheapest way to turn this one into a reason to look
   again.
+
+  > **There is no PATCH for a review response.** `POST
+  > /v1/customerReviewResponses` against a review that already has one
+  > *replaces* it and mints a new response id; the old one is gone. Both
+  > responses go to `PENDING_PUBLISH` and are moderated by Apple before
+  > they appear, so an edit is not visible immediately.
 - [ ] **Virtual joystick polish + auto-fire** (Smurfy2000, 5★ GB, 08-15)
   — "some enhancement to the virtual joystick would perhaps improve use
   ability (UI enhancements and auto fire support)". Nothing else in this
@@ -1402,6 +1425,43 @@ change, and it reads like the quick-start the help panel wants.
       already carries an `ahi` package this could depend on. That keeps a
       GPL 68k binary out of the App Store bundle, which is the right place
       for it not to be.
+
+## Apple TV / tvOS — requested by mail (assessed 2026-09-05)
+
+Not decided. **The emulator would port; the app would not.**
+
+Unlike the Vision Pro question above, this is not a compatibility-mode
+freebie: tvOS is a separate platform (device family 3, we ship `1,2`), and the
+parts of Amigo that are *not* the emulator have no tvOS equivalent.
+
+**What ports for free.** WinUAE on the Unix/SDL3 layer — SDL3 supports tvOS —
+so emulation, RTG and the UAESND audio path are platform-neutral. Controller
+support is already the right shape for a television: CD32 pad on port 1,
+auto-fire, MFi pairing. Games with a pad would work on day one.
+
+**What blocks it.** In order of certainty:
+
+| | |
+|---|---|
+| **No Files app, no document picker** | CERTAIN. Drag & drop from Files, `on my iPad/amigo/HardDrive` and the iCloud setup sync all have no tvOS equivalent. Getting a Kickstart ROM and an ADF onto the device needs an in-app LAN server, a CloudKit path, or URL downloads — none of which exist. **This is the work: a new ingest, not a port.** |
+| **Storage is a purgeable cache** | LIKELY. tvOS expects anything essential to be re-downloadable or in iCloud; an 8 GB HDF does not fit that model. Re-check the current limits before planning. |
+| **No pointing device** | UNVERIFIED and load-bearing. tvOS takes controllers and Bluetooth keyboards; mice are believed unsupported in the iPadOS sense. Without a pointer there is no 1:1 Mouse, no Pencil and no trackpad, so Workbench is undrivable and the product is "Amiga games on a TV" rather than "an Amiga on a TV". **Settle this first — it decides whether the rest is worth costing.** |
+
+**The argument for doing nothing.** Smurfy2000's 5★ (2026-08-15): *"So cool to
+experience Amiga on my iPad and connect to my TV screen."* AirPlay and USB-C
+output already serve the television case for iPad owners, and both are on the
+store page. The request may therefore be "I own an Apple TV and not an iPad" —
+a market question, not a capability gap.
+
+- [ ] **Ask the sender what they would run: games with a controller, or
+  Workbench and applications.** That answer decides whether the ingest work is
+  worth starting. Draft reply is in the vault note.
+- [ ] **Verify whether tvOS supports a mouse** (and whether SDL3 surfaces it).
+  Cheap, and it settles the shape of the whole thing.
+- [ ] Confirm current tvOS local-storage limits and whether an app may keep a
+  multi-GB file across launches.
+
+Vault: `Tracking/2026-09-05 Amigo mail — tvOS version request.md`
 
 ## Apple Vision Pro — "Designed for iPad" only (assessed 2026-08-22)
 
