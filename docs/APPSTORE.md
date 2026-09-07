@@ -69,16 +69,20 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
       plain), added via the Files app
     • Internet access for Amiga software through the bsdsocket library
     • Save and switch between named machine configurations
-    • Works out of the box with the bundled open-source AROS Kickstart
-      replacement ROM
+    • Starts right away with the bundled open-source AROS Kickstart
+      replacement — ideal for Workbench and AmigaOS software; most
+      original floppy games want a real Kickstart ROM
 
     BRING YOUR OWN SYSTEM
 
     Amigo includes no Amiga operating system, games or copyrighted ROMs.
     If you own Kickstart ROMs and AmigaOS (for example from a licensed
     distribution), copy them into the Amigo folder in the Files app for
-    the authentic experience. The bundled AROS ROM boots many titles
-    without any Amiga files.
+    the authentic experience. The bundled AROS ROM lets you start with no
+    Amiga files at all and runs a good deal of Workbench software, but it
+    is a replacement rather than a copy: most original floppy games drive
+    the hardware through the real Kickstart and will not boot on it. If
+    you are here for games, add a Kickstart ROM.
 
     FREE SOFTWARE
 
@@ -344,8 +348,10 @@ that de-DE inherits the en-US screenshots (it has no sets of its own).
       und plain) — einfach über die Dateien-App hinzufügen
     • Internetzugang für Amiga-Software über die bsdsocket-Bibliothek
     • Benannte Maschinen-Konfigurationen speichern und umschalten
-    • Läuft sofort mit dem mitgelieferten quelloffenen
-      AROS-Kickstart-Ersatz-ROM
+    • Startet sofort mit dem mitgelieferten quelloffenen
+      AROS-Kickstart-Ersatz — ideal für Workbench und AmigaOS-Software;
+      die meisten Original-Diskettenspiele brauchen ein echtes
+      Kickstart-ROM
 
     EIGENES SYSTEM MITBRINGEN
 
@@ -353,8 +359,11 @@ that de-DE inherits the en-US screenshots (it has no sets of its own).
     urheberrechtlich geschützten ROMs. Wer eigene Kickstart-ROMs und
     AmigaOS besitzt (z. B. aus einer lizenzierten Distribution), kopiert
     sie über die Dateien-App in den Amigo-Ordner — für das authentische
-    Erlebnis. Das mitgelieferte AROS-ROM startet viele Titel auch ohne
-    eigene Amiga-Dateien.
+    Erlebnis. Mit dem mitgelieferten AROS-ROM lässt sich ganz ohne eigene
+    Amiga-Dateien loslegen, und viel Workbench-Software läuft damit. Es
+    ist aber ein Ersatz und keine Kopie: Die meisten Original-
+    Diskettenspiele sprechen die Hardware über das echte Kickstart an und
+    starten damit nicht. Wer spielen möchte, legt ein Kickstart-ROM dazu.
 
     FREIE SOFTWARE
 
