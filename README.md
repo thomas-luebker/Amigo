@@ -9,9 +9,10 @@ upstream Unix/SDL3 layer (`od-unix/`). Runs on iPad and iPhone, and on Apple
 Silicon Macs as a "Designed for iPad" app (see [`docs/MACOS.md`](docs/MACOS.md)).
 **Version 0.7.6 on the App Store.** Licensed **GPL-2** (see `LICENSE`), like WinUAE itself.
 
-**New here?** [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) starts with *Five
-minutes to your first Amiga*: which Kickstart, which machine preset, and why
-most floppy games do not boot on the bundled AROS ROM.
+**New here? Read the [Quick Start](docs/QUICKSTART.md).** It takes you from a
+fresh install to a running game, WHDLoad pack, Workbench or CD32: which
+Kickstart, which machine preset, where files go, and what to do when the
+Amiga keeps showing the insert-disk hand.
 
 Runs full **AmigaOS 3.2 Workbench** on device with RTG graphics (reliable
 across resets), networking, hard drives, 1:1 touch pointer + two-finger
@@ -29,7 +30,8 @@ mousehack-after-reboot fix and an SDL3 UIScene fix (second scene re-ran
 
 ## Docs
 
-- [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) — getting started, troubleshooting, controls
+- [`docs/QUICKSTART.md`](docs/QUICKSTART.md) — fresh install to running Amiga, by goal
+- [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) — every menu and control, troubleshooting
 - [`docs/MACOS.md`](docs/MACOS.md) — running Amigo on an Apple Silicon Mac, and
   where to put your ROMs and disk images there
 - [`docs/TESTER_GUIDE.md`](docs/TESTER_GUIDE.md) — TestFlight tester guide

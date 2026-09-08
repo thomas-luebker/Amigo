@@ -17,6 +17,10 @@ is an early build — expect rough edges, and please tell me what breaks.
 
 ### To run real AmigaOS / your own software
 
+Long version with every path (floppy games, WHDLoad packs, Workbench, CD32):
+https://github.com/thomas-luebker/Amigo/blob/main/docs/QUICKSTART.md
+
+
 1. Open the **Files** app → **On My iPad** → **Amigo**.
 2. Put your **Kickstart ROM** in `Kickstarts/`, disk images (`.adf`) in
    `Floppies/`, hard-disk images (`.hdf`) in `HardDrives/`.

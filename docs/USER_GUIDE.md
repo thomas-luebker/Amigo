@@ -7,6 +7,10 @@ software to run the genuine thing.
 
 **Requires:** iOS / iPadOS 17 or later, or an Apple Silicon Mac.
 
+> **New to Amigo?** The [Quick Start](QUICKSTART.md) is the long-form
+> walkthrough: ROM sources and how to recognise them, one path per goal,
+> and a symptom table for when nothing boots. This page is the reference.
+
 ---
 
 ## Five minutes to your first Amiga
