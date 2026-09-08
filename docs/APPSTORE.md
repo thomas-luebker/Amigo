@@ -113,7 +113,13 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     third-party trademarks in keywords are a rejection trigger; "amiga"
     is needed for search and is standard across shipping emulators.)
 
-## 0.7.7 — TestFlight build 20260908 (2026-09-08), not yet submitted
+## 0.7.7 — metadata PUSHED 2026-09-08 (read-back MATCHES); build 20260908 archived, upload pending
+
+> [!success] Pushed 2026-09-08 with `scripts/asc-push-metadata.py 0.7.7 --push`
+> against version record `d215ad52` (PREPARE_FOR_SUBMISSION, both
+> localizations already present). Read-back MATCHES on all four fields:
+> en-US 798 / 157, de-DE 917 / 161 chars. This cleared the two "What's New
+> — This field is required" errors ASC showed on the version page.
 
 Build `20260908`, `MARKETING_VERSION 0.7.7`. No emulator-core change: the
 release is the onboarding work that answers the two 2★ reviews (a ROM
@@ -146,7 +152,7 @@ en-US What's New, draft:
     • The Kickstart list says when a ROM is imported but the built-in AROS ROM is still active, and which machine preset suits games
     • Importing a ROM now reminds you to select it
     • Amiga Forever's rom.key can be imported from inside the app
-    • Rewritten user guide: github.com/thomas-luebker/Amigo › docs › USER_GUIDE.md
+    • New Quick Start guide: github.com/thomas-luebker/Amigo › docs › QUICKSTART.md
 
 Promotional text, draft:
 
@@ -159,7 +165,7 @@ de-DE What's New, draft:
     • Die Kickstart-Liste sagt, wenn ein ROM importiert, aber noch das eingebaute AROS-ROM aktiv ist — und welches Preset zu Spielen passt
     • Nach dem Import eines ROMs erinnert die App daran, es auszuwählen
     • Die rom.key von Amiga Forever lässt sich jetzt in der App importieren
-    • Überarbeitetes Handbuch: github.com/thomas-luebker/Amigo › docs › USER_GUIDE.md
+    • Neuer Quick-Start-Leitfaden: github.com/thomas-luebker/Amigo › docs › QUICKSTART.md
 
 de-DE promotional text, draft:
 
