@@ -1285,8 +1285,22 @@ fallback (all 0.7.1 candidates). iPhone: shipped with 0.7.0.
 
 ## From App Store reviews (2026-08-15 → 08-27)
 
-Five written reviews, 18 ratings across DE/GB/HR/PT/SE/US, 4.61 average.
-Three carry feature requests; one is the only rating in its storefront.
+Six written reviews, 22 ratings across nine territories, 4.55 average.
+**All six answered as of 2026-09-08.**
+
+- [x] **The 2★ "Almost works" (Dethmuerte, US, 09-03) — answered 2026-09-08.**
+  Bootable ADF read and handed back, A2000 3.1 ROM imported. The reply
+  names the two two-tap causes (ROM imported but not selected; A1200
+  default machine vs an A500-era game → A500 preset), points at 0.7.7's
+  setup check and the Quick Start, and asks for the game name on GitHub.
+- [x] **The 4★ "So close!" (Chad, US, 08-24) — answered 2026-09-08.** 0.7.6
+  fixed every line of it; the reply says which bug caused the stuck click
+  and the unwanted drags, gives both pressure routes and the TVPaint
+  tablet-type step, and keeps the stroke-width caveat.
+
+*(Earlier text follows.)* Five written reviews, 18 ratings across
+DE/GB/HR/PT/SE/US, 4.61 average. Three carry feature requests; one is the
+only rating in its storefront.
 
 - [x] **The 2★ (Beronk, PT, 08-27) — answered in ASC 2026-08-28.** Whole
   body: *"All games i tried that work on other emulators don't work on
