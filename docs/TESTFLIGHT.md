@@ -18,6 +18,13 @@ App Store**, and upload.
 > `Amigo <version> (<build>).xcarchive`) or it will not appear in the
 > list.
 
+> **2026-09-08: the scheme is one day ahead again.** Two builds went up
+> that afternoon, `20260908` (attached to 0.7.7, submitted) and a stray
+> `20260909` four minutes later from a second archive. So `20260909` is
+> already taken: on 2026-09-09 the script's default number will be
+> rejected as a duplicate. **Next build: `20260909.1`.** From 09-10 the
+> plain date works again.
+
 > **Never advance the date to get a higher number. Add a suffix.**
 > On 2026-08-20 six builds went up as `20260819`…`20260824` because each
 > same-day rebuild bumped the *date* instead of adding `.N`. That left the

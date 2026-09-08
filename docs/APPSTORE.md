@@ -113,7 +113,21 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     third-party trademarks in keywords are a rejection trigger; "amiga"
     is needed for search and is standard across shipping emulators.)
 
-## 0.7.7 — metadata PUSHED 2026-09-08 (read-back MATCHES); build 20260908 archived, upload pending
+## 0.7.7 — SUBMITTED FOR REVIEW 2026-09-08, build 20260908; all metadata verified by read-back
+
+> [!success] Submitted 2026-09-08 — `WAITING_FOR_REVIEW` with build `20260908` attached
+> **The Description went up separately.** `asc-push-metadata.py` pushes only
+> What's New and promo text, so the 0.7.7 record inherited 0.7.6's
+> description and the 09-07 AROS rewording was NOT on it at submission.
+> Patched both locales directly on `appStoreVersionLocalizations` after
+> submission — **ASC accepts a description PATCH in WAITING_FOR_REVIEW** —
+> read-back MATCHES: en-US 2,431 chars, de-DE 2,657. The md text is
+> hard-wrapped; it was unwrapped paragraph-wise (bullets stay one line each)
+> before sending. Worth folding into the script.
+> **Keywords were left alone:** de-DE is still `spiele,klassiker` without
+> `cd32`/`gamepad` (undecided which German term to drop; see 0.7.6 notes).
+> **Stray build `20260909`** (a second archive, 4 min later) is on ASC,
+> unattached; it consumed tomorrow's number — next build is `20260909.1`.
 
 > [!success] Pushed 2026-09-08 with `scripts/asc-push-metadata.py 0.7.7 --push`
 > against version record `d215ad52` (PREPARE_FOR_SUBMISSION, both
