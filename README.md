@@ -1,36 +1,66 @@
 # Amigo — Amiga Emulator
 
-(formerly published under the working title "iPadUAE" — renamed repo-wide to
-match the App Store product "Amigo — Amiga Emulator"; the bundle ID and the
-`ipaduae_*` internal symbols keep their historical names.)
+**The classic Commodore Amiga on iPad, iPhone and Apple Silicon Macs.**
+A native port of [WinUAE](https://github.com/tonioni/WinUAE), free, without
+ads or accounts, and **GPL-2** like WinUAE itself.
 
-An iOS port of [WinUAE](https://github.com/tonioni/WinUAE), built directly on the
-upstream Unix/SDL3 layer (`od-unix/`). Runs on iPad and iPhone, and on Apple
-Silicon Macs as a "Designed for iPad" app (see [`docs/MACOS.md`](docs/MACOS.md)).
-**Version 0.7.6 on the App Store.** Licensed **GPL-2** (see `LICENSE`), like WinUAE itself.
+[**Download on the App Store**](https://apps.apple.com/app/id6792285150) ·
+[**Quick Start guide**](docs/QUICKSTART.md) ·
+[User guide](docs/USER_GUIDE.md) ·
+[Report a problem](https://github.com/thomas-luebker/Amigo/issues)
 
-**New here? Read the [Quick Start](docs/QUICKSTART.md).** It takes you from a
-fresh install to a running game, WHDLoad pack, Workbench or CD32: which
-Kickstart, which machine preset, where files go, and what to do when the
-Amiga keeps showing the insert-disk hand.
+**0.7.6 is on the App Store; 0.7.7 was submitted for review on 2026-09-08**
+([release notes](https://github.com/thomas-luebker/Amigo/releases)).
 
-Runs full **AmigaOS 3.2 Workbench** on device with RTG graphics (reliable
-across resets), networking, hard drives, 1:1 touch pointer + two-finger
-scrolling, virtual keyboard/numpad/F-keys/joystick, hardware keyboard & mouse,
-**Apple Pencil** (hover pointer, squeeze right-click, hover-drag, palm
-rejection), **TV output** via USB-C or AirPlay (fullscreen Amiga on the big
-screen, controls on the iPad), **save states** with 5-minute autosave,
-user-saved machine configurations (reinstall-proof media paths), and a native
-SwiftUI control surface. Emulated 68060 benchmarks ~2.8× faster than FS-UAE
-on an M1 (interpreter vs interpreter; no JIT on iOS).
+## First start
 
-Ships with two upstream fixes discovered during the port: a WinUAE
-mousehack-after-reboot fix and an SDL3 UIScene fix (second scene re-ran
-`SDL_main`; crashed any SDL iOS app on AirPlay connect) — see `patches/`.
+Amigo boots the free AROS ROM on first launch, so there is nothing to set up
+to look around. To run real Amiga software you bring your own Kickstart ROM
+and disks; the app ships none. The three things that decide whether something
+runs are the **Kickstart**, the **machine** and the **media**, and the
+[Quick Start](docs/QUICKSTART.md) walks through each one, with one path each
+for floppy games, WHDLoad packs, Workbench and CD32, a table of which
+Kickstart file is which, and a symptom table for when the Amiga keeps showing
+the insert-disk hand. The same check is built in: *Controls & Help › Why
+won't it boot?* reads your setup and names the mismatch.
+
+## What it does
+
+- Emulates the whole classic range, from a stock A500 to a 68060 with RTG
+  graphics, up to 256 MB of Zorro III RAM and networking through
+  `bsdsocket.library`; presets for A500, A1200, A1200 Turbo, RTG + Net and a
+  one-tap **CD32 console**
+- Floppies (ADF, ADZ, DMS, IPF, and ZIP/LHA/LZX/7z archives), several
+  hard-drive images mounted at once, CD images on any machine
+- Touch as a trackpad or 1:1 pointer, on-screen Amiga keyboard, numpad,
+  function keys and joystick, hardware keyboards, mice and trackpads
+- Bluetooth and USB game controllers with port routing, CD32 pad mode and
+  autofire
+- **Apple Pencil**: hover pointer, squeeze and double-tap right-click, and
+  pressure for paint programs through `tablet.library` or an emulated serial
+  Wacom tablet (TVPaint)
+- AHI sound through the UAE sound card, copy and paste with iOS both ways
+- **TV output** over USB-C or AirPlay with the controls staying on the iPad,
+  save states with autosave, named machine configurations, **iCloud sync**
+  of configurations and save states
+- A "Why won't it boot?" setup check that reads the ROM, machine and disk and
+  says what does not match
+
+The 68k CPU is interpreted, since Apple does not allow JIT on the App Store;
+an emulated 68060 still runs several times faster than the real chip on a
+recent iPad.
+
+Ships with upstream fixes discovered during the port — a WinUAE
+mousehack-after-reboot fix, an SDL3 UIScene fix (a second scene re-ran
+`SDL_main` and crashed any SDL iOS app on AirPlay connect), and bounds
+checks in the LHA decoder — see `patches/`.
+
+> Formerly developed under the working title "iPadUAE"; the bundle ID and
+> the `ipaduae_*` internal symbols keep that name.
 
 ## Docs
 
-- [`docs/QUICKSTART.md`](docs/QUICKSTART.md) — fresh install to running Amiga, by goal
+- [`docs/QUICKSTART.md`](docs/QUICKSTART.md) — first start: fresh install to a running Amiga, by goal
 - [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) — every menu and control, troubleshooting
 - [`docs/MACOS.md`](docs/MACOS.md) — running Amigo on an Apple Silicon Mac, and
   where to put your ROMs and disk images there
