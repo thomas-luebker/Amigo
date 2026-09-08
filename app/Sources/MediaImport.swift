@@ -18,6 +18,9 @@ enum MediaImport {
         for ext in ["hdf", "hdz", "vhd"] { map[ext] = "HardDrives" }
         for ext in ["cue", "bin", "ccd", "img", "sub", "mds", "mdf", "nrg", "iso", "chd"] { map[ext] = "CDs" }
         for ext in ["rom", "a500", "a600", "a1200", "a4000"] { map[ext] = "Kickstarts" }
+        // Amiga Forever's rom.key: the core's Cloanto decoder looks for it
+        // next to the ROM, so it belongs in the same folder.
+        map["key"] = "Kickstarts"
         map["uae"] = "Configuration"
         return map
     }()
@@ -94,6 +97,14 @@ enum MediaImport {
            folder(for: first) == "Floppies" {
             ipaduae_insert_floppy(0, first.path)
             OverlayState.shared.importNotice = "DF0: \(first.lastPathComponent)"
+        } else if imported.contains(where: { folder(for: $0) == "Kickstarts" }) {
+            // A ROM that is imported but never selected is the most common
+            // way a first session ends at the insert-disk screen. Deliberately
+            // not auto-selected: that would restart the Amiga under the
+            // user's feet and silently change the machine.
+            OverlayState.shared.importNotice = imported.count == 1
+                ? "Imported \(imported[0].lastPathComponent) — select it under Kickstart ROM…"
+                : "Imported \(imported.count) files — select the ROM under Kickstart ROM…"
         }
         OverlayState.shared.scheduleImportNoticeDismissal()
     }

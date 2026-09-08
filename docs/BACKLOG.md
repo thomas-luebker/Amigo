@@ -1594,10 +1594,36 @@ no Pencil) would have to be reworked.
 
 ## Product hygiene
 
-- [ ] Warn when an HDF is mounted but no RTG board is configured (the
-  "never boots in RTG" fresh-install footgun).
+- [x] **"Why won't it boot?" setup check — `feature/boot-check` (2026-09-08).**
+  `BootCheck.swift`: a read-only diagnosis reached from *Controls & Help*
+  and from the disk panel ("Disk not booting? Check setup…"), presented as
+  a form sheet through the same `modalActive` route as the document
+  picker. It reads the ROM header (0x1114/0x1111 magic, version word at
+  offset 12, Cloanto `AMIROMTYPE1` and whether `rom.key` is beside it),
+  the ADF boot block (size, "DOS" magic, end-around-carry checksum, blank),
+  the machine from `ConfigStore.currentMachine()` and the mounted drives,
+  and reports mismatches in order of severity with a Copy button for
+  support mail. **Never writes a preference** — the DF1/RTG lesson.
+  Verified against real files: an A1200 3.2 ROM reads 47.96; Workbench
+  3.1 Install, 3.0 Workbench and 2.05 disks verify as bootable; the 3.0
+  Extras data disk fails the checksum, as it should. Not yet run on the
+  device — the sheet-over-PassthroughWindow path is the untested part.
+  Absorbs the two items below.
+- [x] Warn when an HDF is mounted but no RTG board is configured (the
+  "never boots in RTG" fresh-install footgun). — in the boot check above,
+  as a read-only warning.
 - [ ] Device-independent RTG mode list (host-derived modes get index-based
   IDs → guest screenmodes break when a setup moves between devices).
+- [x] **Onboarding documentation — `docs/new-user-onboarding` (2026-09-08).**
+  `USER_GUIDE.md` now opens with *Five minutes to your first Amiga* by
+  goal, a which-Kickstart table and a troubleshooting section led by the
+  insert-disk-hand symptom; `HelpPanel` starts with *Getting started* and
+  *Disk not booting?*; the Kickstart picker says when a ROM is present but
+  AROS is still selected. Two code fixes rode along: `MediaImport` now
+  routes `rom.key` into Kickstarts (the Cloanto decoder is compiled into
+  the core but the in-app importer dropped the key), and the import notice
+  for a ROM says to select it. Motivated by the two 2★ reviews, both of
+  which stopped at exactly these steps.
 
 ## Performance (carried from roadmap)
 

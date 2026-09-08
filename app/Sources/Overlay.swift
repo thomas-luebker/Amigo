@@ -981,6 +981,13 @@ struct QuickDisk: View {
             if showingCDs {
                 Text("Inserting a CD restarts the Amiga.")
                     .font(.caption2).foregroundStyle(.secondary)
+            } else {
+                // The insert-disk hand coming back is where new users give
+                // up and write the review; the answer is one tap from here.
+                MenuRow(icon: "stethoscope", title: "Disk not booting? Check setup…") {
+                    withAnimation { state.diskExpanded = false }
+                    BootCheckPresenter.shared.present()
+                }
             }
         }
         .padding(10)
@@ -1347,8 +1354,14 @@ struct KickstartPicker: View {
                 onDone()
             }
             if roms.isEmpty {
-                Text("No ROM files found.\nDrop Kickstart images into Files › Amigo › Kickstarts.")
+                Text("No ROM files found.\nDrop Kickstart images into Files › Amigo › Kickstarts, or use Import Files… in the gear menu.")
                     .font(.footnote).foregroundStyle(.secondary).padding(.vertical, 8)
+            } else if current == ":AROS" {
+                // The single most common onboarding failure: the ROM is
+                // imported, listed here, and never tapped. Say it where it
+                // is about to happen.
+                Text("Your ROM is imported but AROS is still selected — tap the ROM below to use it. Most original floppy games need a real Kickstart.")
+                    .font(.footnote).foregroundStyle(.secondary).padding(.vertical, 4)
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
@@ -1362,6 +1375,10 @@ struct KickstartPicker: View {
                 }
             }
             .frame(maxHeight: 420)
+            if !roms.isEmpty {
+                Text("After choosing a ROM, pick a matching Machine preset: A500 for most floppy games, A1200 for AGA titles and WHDLoad. Amiga Forever ROMs need their rom.key file in the same folder.")
+                    .font(.caption2).foregroundStyle(.secondary).padding(.top, 6)
+            }
         }
     }
 }
