@@ -19,6 +19,10 @@ struct HelpPanel: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
+                    MenuRow(icon: "stethoscope", title: "Why won't it boot? Check my setup…") {
+                        BootCheckPresenter.shared.present()
+                    }
+
                     section("Getting started")
                     row("1.circle", "Amigo boots the free AROS ROM: fine for Workbench software, but most original floppy games need a real Kickstart ROM")
                     row("2.circle", "Add your ROM: Import Files…, drag it onto the screen, or Files › Amigo › Kickstarts")

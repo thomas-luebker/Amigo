@@ -981,6 +981,13 @@ struct QuickDisk: View {
             if showingCDs {
                 Text("Inserting a CD restarts the Amiga.")
                     .font(.caption2).foregroundStyle(.secondary)
+            } else {
+                // The insert-disk hand coming back is where new users give
+                // up and write the review; the answer is one tap from here.
+                MenuRow(icon: "stethoscope", title: "Disk not booting? Check setup…") {
+                    withAnimation { state.diskExpanded = false }
+                    BootCheckPresenter.shared.present()
+                }
             }
         }
         .padding(10)
