@@ -19,6 +19,19 @@ struct HelpPanel: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
+                    section("Getting started")
+                    row("1.circle", "Amigo boots the free AROS ROM: fine for Workbench software, but most original floppy games need a real Kickstart ROM")
+                    row("2.circle", "Add your ROM: Import Files…, drag it onto the screen, or Files › Amigo › Kickstarts")
+                    row("3.circle", "Then SELECT it under Kickstart ROM… — importing alone leaves AROS active")
+                    row("4.circle", "Machine…: A500 preset for most floppy games, A1200 for AGA and WHDLoad, RTG + Net for Workbench")
+                    row("5.circle", "Disk button (bottom right) › DF0 › your ADF. Save the whole setup under Configurations…")
+
+                    section("Disk not booting?")
+                    row("memorychip", "Kickstart ROM… shows AROS checked → pick your ROM. A ROM file is 256 KB or 512 KB; Amiga Forever ROMs need rom.key beside them")
+                    row("cpu", "Insert-disk hand comes back after reading → the machine is wrong for the game: try the A500 preset")
+                    row("opticaldiscdrive", "Data disk, disk 2, or a blank? Boot disk 1 or a Workbench first. Timing-sensitive disks like 1× floppy speed")
+                    row("book", "Full guide with the games, hard-drive and CD32 walkthroughs: github.com/thomas-luebker/Amigo › docs › USER_GUIDE.md")
+
                     section("Touch — trackpad style (default)")
                     row("hand.draw", "Slide anywhere to move the pointer")
                     row("hand.tap", "Tap = left click · two-finger tap = right click")
