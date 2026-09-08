@@ -1540,6 +1540,11 @@ a market question, not a capability gap.
 - [ ] An external improvement plan was reviewed against this tree on
   2026-09-08: `docs/IMPROVEMENT-PLAN-REVIEW-2026-09-08.md`. Its tvOS section
   agrees with this assessment.
+- [x] **Branch `feature/tvos` opened 2026-09-08; milestone 1 green.** The
+  core compiles for `appletvos` (`scripts/build-ios-core.sh tvos`) with
+  CHD off and a two-line slirp guard. Plan, milestones and state:
+  `docs/TVOS.md`. Next: an `appletvos` SDL3 slice, then an empty-window
+  render on the tvOS simulator.
 - [ ] Confirm current tvOS local-storage limits and whether an app may keep a
   multi-GB file across launches.
 

@@ -2631,6 +2631,29 @@ index 13e88b9d..59e5de6f 100644
  }
  
  void unix_video_present(const struct unix_video_frame *frame)
+diff --git a/slirp/misc.cpp b/slirp/misc.cpp
+index 8a57b9df..766e5df9 100644
+--- a/slirp/misc.cpp
++++ b/slirp/misc.cpp
+@@ -244,6 +244,18 @@ int slirp_openpty(int *amaster, int *aslave)
+  * do_pty = 1   Fork/exec using slirp.telnetd
+  * do_ptr = 2   Fork/exec using pty
+  */
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#if TARGET_OS_TV
++/* tvOS has no fork()/execvp() — both are marked unavailable in the SDK.
++ * slirp only needs them for "exec" port forwarding, which Amigo never
++ * configures, so make the calls fail: fork_exec() then logs and returns 0
++ * exactly as it does when a real fork() fails. (Amigo tvOS port.) */
++#define fork() (-1)
++#define execvp(path, argv) (-1)
++#endif
++#endif
++
+ int fork_exec(struct socket *so, char *ex, int do_pty)
+ {
+ 	int s;
 diff --git a/vm.cpp b/vm.cpp
 index d0864118..9a5356b7 100644
 --- a/vm.cpp
