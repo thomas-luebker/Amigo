@@ -113,6 +113,58 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     third-party trademarks in keywords are a rejection trigger; "amiga"
     is needed for search and is standard across shipping emulators.)
 
+## 0.7.7 — TestFlight build 20260908 (2026-09-08), not yet submitted
+
+Build `20260908`, `MARKETING_VERSION 0.7.7`. No emulator-core change: the
+release is the onboarding work that answers the two 2★ reviews (a ROM
+imported but never selected; an OCS floppy handed to the default A1200),
+plus the reworded Description above, which can only ship with a
+submission. Drafted from `git log 97b20d4..HEAD`.
+
+TestFlight "What to Test" (en):
+
+    This build is about the first five minutes. Please try it as if you
+    had never used Amigo:
+    • Import a Kickstart ROM with "Import Files…" — the notice should now
+      tell you to select it under Kickstart ROM…
+    • Open Kickstart ROM… before selecting: it should say your ROM is
+      there but AROS is still active
+    • Insert a game ADF while still on AROS, then open the disk panel and
+      tap "Disk not booting? Check setup…" — does the sheet open, read
+      right, and close cleanly? Tap Copy and paste the report into your
+      feedback
+    • Repeat with your ROM selected and the A500 preset: the same check
+      should come back mostly green
+    • If you own Amiga Forever ROMs: import rom.key with Import Files…
+      and confirm the ROM boots
+    Nothing in the emulator itself changed since 0.7.6.
+
+en-US What's New, draft:
+
+    • "Why won't it boot?" — a new setup check in Controls & Help and in the disk panel. It reads your Kickstart, machine and disk and names the mismatch: AROS still selected, a ROM that is not a Kickstart, an Amiga Forever ROM without its key, a fast A1200 given an A500-era game, a data disk that cannot boot. It changes nothing; Copy puts the report on the clipboard
+    • The help panel now opens with Getting Started: import a ROM, select it, pick the machine preset, insert the disk
+    • The Kickstart list says when a ROM is imported but the built-in AROS ROM is still active, and which machine preset suits games
+    • Importing a ROM now reminds you to select it
+    • Amiga Forever's rom.key can be imported from inside the app
+    • Rewritten user guide: github.com/thomas-luebker/Amigo › docs › USER_GUIDE.md
+
+Promotional text, draft:
+
+    New in 0.7.7: "Why won't it boot?" — a setup check that names the mismatch between your Kickstart, machine and disk, plus a Getting Started guide in the app.
+
+de-DE What's New, draft:
+
+    • „Warum startet es nicht?" — eine neue Konfigurationsprüfung unter „Controls & Help" und im Disketten-Panel. Sie liest Kickstart, Maschine und Diskette und benennt, was nicht zusammenpasst: AROS noch ausgewählt, eine Datei, die kein Kickstart ist, ein Amiga-Forever-ROM ohne Schlüssel, ein schneller A1200 mit einem A500-Spiel, eine Datendiskette, die nicht booten kann. Sie ändert nichts; „Copy" legt den Bericht in die Zwischenablage
+    • Die Hilfe beginnt jetzt mit „Getting Started": ROM importieren, auswählen, Maschinen-Preset wählen, Diskette einlegen
+    • Die Kickstart-Liste sagt, wenn ein ROM importiert, aber noch das eingebaute AROS-ROM aktiv ist — und welches Preset zu Spielen passt
+    • Nach dem Import eines ROMs erinnert die App daran, es auszuwählen
+    • Die rom.key von Amiga Forever lässt sich jetzt in der App importieren
+    • Überarbeitetes Handbuch: github.com/thomas-luebker/Amigo › docs › USER_GUIDE.md
+
+de-DE promotional text, draft:
+
+    Neu in 0.7.7: „Warum startet es nicht?" — eine Prüfung, die benennt, was zwischen Kickstart, Maschine und Diskette nicht zusammenpasst, plus Einstieg in der App.
+
 ## 0.7.6 — SUBMITTED FOR REVIEW 2026-08-26 (metadata verified by read-back)
 
 Build `20260825`, `MARKETING_VERSION 0.7.6`. Archive at

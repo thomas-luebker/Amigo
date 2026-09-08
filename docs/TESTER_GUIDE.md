@@ -21,9 +21,14 @@ is an early build — expect rough edges, and please tell me what breaks.
 2. Put your **Kickstart ROM** in `Kickstarts/`, disk images (`.adf`) in
    `Floppies/`, hard-disk images (`.hdf`) in `HardDrives/`.
    *(You provide these — nothing copyrighted is included.)*
-3. In the gear menu: pick your Kickstart, insert a disk or mount a hard drive,
-   choose a machine in **Machine**, and reset.
+3. In the gear menu: **Kickstart ROM…** and tap your ROM (importing alone
+   does not select it), choose a machine in **Machine** (A500 for most
+   floppy games, A1200 for AGA and WHDLoad), insert a disk or mount a hard
+   drive, and reset.
 4. Save the setup with **Configurations** so you can return to it.
+5. If the Amiga keeps showing the insert-disk hand: **Controls & Help ›
+   Why won't it boot?** (also in the disk panel) says which of ROM, machine
+   or disk does not match. Tap **Copy** and paste it into your feedback.
 
 ### What I'd love feedback on
 
