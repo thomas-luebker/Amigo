@@ -11,6 +11,65 @@ Planning home: the Obsidian vault (see ../CLAUDE.md) —
 `Amigo/Roadmap & Open Questions.md` for the long form. Kept in sync manually;
 this file is the repo-visible mirror.
 
+## 0.7.7 — SUBMITTED FOR REVIEW 2026-09-08 (build 20260908)
+
+The onboarding release. Both recent 2★ reviews stopped at the same two
+steps — a ROM imported but never selected, and an OCS-era floppy handed to
+the default A1200 with fast RAM — so everything here says the same three
+things where the user is standing. **No emulator-core change**;
+`libuaecore.a` is the 08-25 build. Full notes: `APPSTORE.md` → *0.7.7*.
+
+### In the build
+
+- [x] **"Why won't it boot?"** — `BootCheck.swift`, read-only, from
+  *Controls & Help* and the disk panel. ROM header and exec version,
+  Cloanto `AMIROMTYPE1` + `rom.key`, ADF boot block and end-around-carry
+  checksum, machine, mounted drives; findings by severity, Copy button.
+  Logic verified against real Workbench disks and an A1200 3.2 ROM on the
+  Mac. **Never run on a device** — the form sheet over
+  `PassthroughWindow` (via `modalActive`, same as the document picker) is
+  the untested part.
+- [x] Help panel opens with *Getting started* and *Disk not booting?*.
+- [x] Kickstart picker says when a ROM is present but AROS is still
+  selected, and which preset suits games vs AGA.
+- [x] `MediaImport` routes `rom.key` into Kickstarts; the ROM import
+  notice says to select it.
+- [x] `USER_GUIDE.md` rewritten; `QUICKSTART.md` published on GitHub and
+  linked from README, user guide, tester guide.
+
+### Around the release
+
+- [x] What's New + promo pushed and read back (en/de).
+- [x] **Description patched after submission** — `asc-push-metadata.py`
+  does not send it, so the record inherited 0.7.6's text; the 09-07 AROS
+  rewording was missing at submission. ASC accepts the PATCH in
+  `WAITING_FOR_REVIEW`. Read back matches.
+- [x] GitHub: README rewritten around the first start; repo
+  description/homepage/topics; tags + Releases for 0.7.2, 0.7.5, 0.7.6
+  (Latest), 0.7.7 (pre-release).
+- [x] Chad's 4★ and Dethmuerte's 2★ answered (see *From App Store
+  reviews*).
+- [ ] **Run the boot-check sheet on the M4 iPad** from this build.
+- [ ] **Fold the Description into `asc-push-metadata.py`** (unwrap
+  paragraphs, bullets one per line, read back).
+- [ ] **Next build number `20260909.1`** — a stray second upload took
+  `20260909` (see `TESTFLIGHT.md`).
+- [ ] de-DE keywords still without `cd32`/`gamepad` — undecided.
+- [ ] When live: `gh release edit v0.7.7 --prerelease=false --latest`,
+  README version line, amiga-news.de follow-up (draft in the vault and on
+  the Desktop).
+
+### Assessed today, not built
+
+- The external improvement plan: `IMPROVEMENT-PLAN-REVIEW-2026-09-08.md`.
+  Still worth taking from it, in order: a goal-first setup wizard over the
+  existing presets (B1); a WHDLoad folder scan (B2); host folder as a
+  volume (B3 — `fsdb_unix.cpp` is compiled in, only UI and a
+  security-scoped bookmark are missing); integer scale for RTG (the core
+  patch has the branch, unexposed).
+- tvOS: mouse supported (`GCMouse` tvOS 14+, SDL3 14.1+); blocker is the
+  ingest path and an `appletvos` SDL3 build.
+
 ## 0.7.2 — SHIPPED (live 2026-08-19; confirmed READY_FOR_SALE 2026-08-21)
 
 Released with de-DE fully populated — see APPSTORE.md for what went into
