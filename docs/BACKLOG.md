@@ -1323,10 +1323,13 @@ Three carry feature requests; one is the only rating in its storefront.
   > *replaces* it and mints a new response id; the old one is gone. Both
   > responses go to `PENDING_PUBLISH` and are moderated by Apple before
   > they appear, so an edit is not visible immediately.
-- [ ] **Virtual joystick polish + auto-fire** (Smurfy2000, 5★ GB, 08-15)
+- [~] **Virtual joystick polish + auto-fire** (Smurfy2000, 5★ GB, 08-15)
   — "some enhancement to the virtual joystick would perhaps improve use
-  ability (UI enhancements and auto fire support)". Nothing else in this
-  file covers auto-fire.
+  ability (UI enhancements and auto fire support)". **Auto-fire shipped in
+  0.7.5** (`9da5d82`): the Controller submenu's "Auto-Fire: N/sec" row
+  (6/10/15) drives both the pad and `VirtualJoystickView`, which runs its
+  own `autoFireTimer` off the same `autoFireRate`. This entry stayed open
+  by mistake until 2026-09-08. Only the UI-polish half is still open.
 
 Not a request, but worth keeping: NeilDeWheel's 5★ (GB, 08-19) is a
 working recipe someone found without help — rename the AGS 3 AGA `.img`
@@ -1445,7 +1448,7 @@ auto-fire, MFi pairing. Games with a pad would work on day one.
 |---|---|
 | **No Files app, no document picker** | CERTAIN. Drag & drop from Files, `on my iPad/amigo/HardDrive` and the iCloud setup sync all have no tvOS equivalent. Getting a Kickstart ROM and an ADF onto the device needs an in-app LAN server, a CloudKit path, or URL downloads — none of which exist. **This is the work: a new ingest, not a port.** |
 | **Storage is a purgeable cache** | LIKELY. tvOS expects anything essential to be re-downloadable or in iCloud; an 8 GB HDF does not fit that model. Re-check the current limits before planning. |
-| **No pointing device** | UNVERIFIED and load-bearing. tvOS takes controllers and Bluetooth keyboards; mice are believed unsupported in the iPadOS sense. Without a pointer there is no 1:1 Mouse, no Pencil and no trackpad, so Workbench is undrivable and the product is "Amiga games on a TV" rather than "an Amiga on a TV". **Settle this first — it decides whether the rest is worth costing.** |
+| **No pointing device** | **RESOLVED 2026-09-08 — a mouse is supported.** `GCMouse` is available on tvOS 14.0+ (Apple's GameController docs list tvOS in the platforms array), and SDL3's `src/video/uikit/SDL_uikitevents.m` initialises it under `@available(iOS 14.1, tvOS 14.1, *)` with no tvOS exclusion, so a Bluetooth mouse would reach SDL on Apple TV. There is still no touch, no Pencil and no trackpad, but Workbench is drivable: the product could be "an Amiga on a TV", not only games. *(Was: UNVERIFIED and load-bearing.)* |
 
 **The argument for doing nothing.** Smurfy2000's 5★ (2026-08-15): *"So cool to
 experience Amiga on my iPad and connect to my TV screen."* AirPlay and USB-C
@@ -1456,8 +1459,14 @@ a market question, not a capability gap.
 - [ ] **Ask the sender what they would run: games with a controller, or
   Workbench and applications.** That answer decides whether the ingest work is
   worth starting. Draft reply is in the vault note.
-- [ ] **Verify whether tvOS supports a mouse** (and whether SDL3 surfaces it).
-  Cheap, and it settles the shape of the whole thing.
+- [x] **Verify whether tvOS supports a mouse** (and whether SDL3 surfaces it).
+  Yes on both counts — see the table above (2026-09-08).
+- [ ] **SDL3 for tvOS does not exist here.** `vendor/SDL3/SDL3.xcframework`
+  carries `ios-arm64` and the iOS simulator slice only; `scripts/build-sdl3.sh`
+  builds for `iphoneos`. A tvOS spike starts with an `appletvos` SDL3 build.
+- [ ] An external improvement plan was reviewed against this tree on
+  2026-09-08: `docs/IMPROVEMENT-PLAN-REVIEW-2026-09-08.md`. Its tvOS section
+  agrees with this assessment.
 - [ ] Confirm current tvOS local-storage limits and whether an app may keep a
   multi-GB file across launches.
 
@@ -1552,12 +1561,12 @@ no Pencil) would have to be reworked.
   AirPlay, controls stay on the iPad.
 - [x] **Apple Pencil hover as pointer** — shipped:
   `PencilSupport.swift` / `PencilHoverDriver`. Needs an M2+ iPad.
-- [ ] **iCloud-synced setups** — IMPLEMENTED on feature/icloud-sync
-  (CloudSync engine, entitlements, panel toggle, visible iCloud Drive
-  folder); blocked on one-time Xcode GUI Run to register the iCloud
-  capability + container iCloud.de.amiga-imager.uae on the App ID
-  (CLI signing cannot). Resume: checkout branch, GUI Run once, test
-  13"↔11" sync.
+- [x] **iCloud-synced setups** — shipped in 0.7.2; see *iCloud — in 0.7.2
+  after all* above for scope and what is still unverified (the second
+  device). The GUI-Run blocker this entry used to describe never applied.
+  *(Superseded text, kept for the record: IMPLEMENTED on
+  feature/icloud-sync; blocked on one-time Xcode GUI Run to register the
+  container. Corrected 2026-09-08.)*
 - [ ] **App Intents/Shortcuts** — "Boot <config>" from Spotlight/widgets.
 
 ## Power / energy
