@@ -113,7 +113,7 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     third-party trademarks in keywords are a rejection trigger; "amiga"
     is needed for search and is standard across shipping emulators.)
 
-## 0.7.7 — SUBMITTED FOR REVIEW 2026-09-08, build 20260908; all metadata verified by read-back
+## 0.7.7 — LIVE 2026-09-09 (submitted 09-08, build 20260908); all metadata verified by read-back
 
 > [!success] Submitted 2026-09-08 — `WAITING_FOR_REVIEW` with build `20260908` attached
 > **The Description went up separately.** `asc-push-metadata.py` pushes only

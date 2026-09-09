@@ -11,7 +11,7 @@ Planning home: the Obsidian vault (see ../CLAUDE.md) —
 `Amigo/Roadmap & Open Questions.md` for the long form. Kept in sync manually;
 this file is the repo-visible mirror.
 
-## 0.7.7 — SUBMITTED FOR REVIEW 2026-09-08 (build 20260908)
+## 0.7.7 — LIVE 2026-09-09 (submitted 09-08, build 20260908)
 
 The onboarding release. Both recent 2★ reviews stopped at the same two
 steps — a ROM imported but never selected, and an OCS-era floppy handed to
@@ -55,9 +55,10 @@ things where the user is standing. **No emulator-core change**;
 - [ ] **Next build number `20260909.1`** — a stray second upload took
   `20260909` (see `TESTFLIGHT.md`).
 - [ ] de-DE keywords still without `cd32`/`gamepad` — undecided.
-- [ ] When live: `gh release edit v0.7.7 --prerelease=false --latest`,
-  README version line, amiga-news.de follow-up (draft in the vault and on
-  the Desktop).
+- [x] Live 2026-09-09: GitHub release v0.7.7 flipped to Latest, README
+  version line updated, amiga-news.de follow-up rewritten as the full
+  since-launch story (DE + EN, in the vault and on the Desktop) — sending
+  it is Thomas's.
 
 ### Assessed today, not built
 
