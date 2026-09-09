@@ -1,6 +1,7 @@
 build/
 DerivedData/
 app/Amigo.xcodeproj/
+tvos/AmigoTV.xcodeproj/
 *.xcuserdatad/
 xcuserdata/
 .DS_Store
