@@ -96,7 +96,51 @@ over USB-C or AirPlay**, which already exists and is on the store page.
   UAESND, bsdsocket, the SDL3 video/audio layer, `ios_glue.cpp` — compiled
   for tvOS unchanged. The `TARGET_OS_IPHONE` guards cover tvOS because
   tvOS defines it too.
-  Not yet done: an `appletvos` SDL3 slice (milestone 2), so nothing has
-  been linked or run. The next step is `build-sdl3.sh` with a tvOS case
-  against an SDL 3.4.12 checkout, then an empty-window render test on the
-  tvOS simulator.
+- **2026-09-08 — milestones 2 and 3 green. The emulator runs on Apple TV
+  (simulator).** `docs/screenshots/tvos-probe-2026-09-08.png` is the AROS
+  boot screen, "Waiting for bootable media", drawn by the WinUAE core
+  through SDL3 on the Apple TV 4K (3rd generation, 1080p) simulator,
+  tvOS 26.5, with the LED bar and the layout log reporting
+  `out=1920x1080 safe=80,60 1760x960`. SDL audio initialised
+  (44100 Hz, 2 ch). PAL 50 Hz, 68020, AROS mapped at `00F80000` after the
+  usual "Failed to open :AROS" line (that is the built-in ROM path, same
+  as on the iPad).
+  - **Milestone 2 — SDL3 for tvOS.** `scripts/build-sdl3.sh` now builds
+    four slices from one SDL 3.4.12 checkout with the scene-connect patch
+    applied: `ios-arm64`, `ios-arm64_x86_64-simulator`, `tvos-arm64`,
+    `tvos-arm64-simulator`. `vendor/SDL3/SDL3.xcframework` was rebuilt with
+    all four. **The iOS slices were rebuilt too** — same source, same
+    patch, same flags, but not byte-identical to what 0.7.7 shipped; the
+    iPad app compiles against it (checked), and the next iOS release
+    should be tested on the device as usual before this branch merges.
+  - **Milestone 3 — the probe.** `tvos/project-tvos.yml` → target
+    `AmigoTVProbe` (tvOS 17+, device family 3, bundle
+    `de.amiga-imager.uae.tvprobe`): `TVMain.mm` is `UAEMain.mm` minus the
+    overlay, the Swift config healer and the touch environment;
+    `TVBridge.mm` provides the only three symbols the core needs from the
+    app layer (`ipaduae_host_set_pasteboard_image/text`, stubs — no
+    `UIPasteboard` on tvOS — and `ipaduae_hw_shift_state`, unchanged since
+    `GCKeyboard` exists on tvOS). Links `-lz -luaecore`, SDL3, ImageIO,
+    GameController. `scripts/build-ios-core.sh tvos-sim` builds the
+    simulator core (`build/tvos-sim/libuaecore.a`, platform 8).
+  - **To run it:**
+    ```
+    ./scripts/build-ios-core.sh tvos-sim
+    xcodegen -s tvos/project-tvos.yml
+    xcodebuild -project tvos/AmigoTV.xcodeproj -scheme AmigoTVProbe \
+      -destination 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation) (at 1080p)' \
+      -derivedDataPath build/DerivedData-tvos CODE_SIGNING_ALLOWED=NO build
+    xcrun simctl install booted build/DerivedData-tvos/Build/Products/Debug-appletvsimulator/AmigoTVProbe.app
+    xcrun simctl launch --console-pty booted de.amiga-imager.uae.tvprobe
+    ```
+    The tvOS 26.5 simulator runtime had to be downloaded first
+    (`xcodebuild -downloadPlatform tvOS`, 3.8 GB).
+  - **Not proven yet:** a real Apple TV (no device here), input of any
+    kind (no controller or mouse was attached to the simulator; SDL asked
+    for `UIApplicationSupportsIndirectInputEvents`, which the probe's
+    plist now sets), performance on A-series silicon, and iCloud (the
+    probe has no entitlement). The `hangdiag[stall]` lines in the log are
+    the watchdog seeing the CPU in STOP while AROS waits for media — the
+    same idle pattern as the iPad, not a hang.
+  Milestone 4 is a minimal AmigoTV with one config, a Bluetooth pad and a
+  save state; milestone 0 (iCloud on a second device) is still open.

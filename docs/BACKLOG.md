@@ -1540,11 +1540,17 @@ a market question, not a capability gap.
 - [ ] An external improvement plan was reviewed against this tree on
   2026-09-08: `docs/IMPROVEMENT-PLAN-REVIEW-2026-09-08.md`. Its tvOS section
   agrees with this assessment.
-- [x] **Branch `feature/tvos` opened 2026-09-08; milestone 1 green.** The
-  core compiles for `appletvos` (`scripts/build-ios-core.sh tvos`) with
-  CHD off and a two-line slirp guard. Plan, milestones and state:
-  `docs/TVOS.md`. Next: an `appletvos` SDL3 slice, then an empty-window
-  render on the tvOS simulator.
+- [x] **Branch `feature/tvos` opened 2026-09-08; milestones 1–3 green the
+  same day.** The core compiles for `appletvos` and `appletvsimulator`
+  (`scripts/build-ios-core.sh tvos | tvos-sim`, CHD off, two-line slirp
+  guard); `build-sdl3.sh` builds four slices and the vendored xcframework
+  carries them; and a probe app (`tvos/`) **boots AROS to "Waiting for
+  bootable media" on the Apple TV 4K simulator**, 1080p, audio
+  initialised. Screenshot `docs/screenshots/tvos-probe-2026-09-08.png`.
+  Plan, state and how to run: `docs/TVOS.md`. Not proven: a real Apple
+  TV, any input, performance, iCloud. Next: milestone 4, a minimal
+  AmigoTV with one config, a pad and a save state — and milestone 0, the
+  iCloud second-device check, before any library work.
 - [ ] Confirm current tvOS local-storage limits and whether an app may keep a
   multi-GB file across launches.
 

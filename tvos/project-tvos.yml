@@ -1,0 +1,52 @@
+# Apple TV probe (feature/tvos, docs/TVOS.md milestone 3).
+#
+# NOT the product. A tvOS app that links libuaecore.a and SDL3, boots the
+# bundled default.uae on the AROS ROM, and shows the Amiga in an empty
+# window — no overlay, no Files import, no Swift UI. It exists to answer
+# one question: does the emulator render and run on tvOS at all.
+#
+#   ./scripts/build-ios-core.sh tvos-sim      # or: tvos (device)
+#   xcodegen -s tvos/project-tvos.yml
+#   xcodebuild -project tvos/AmigoTV.xcodeproj -scheme AmigoTVProbe \
+#     -destination 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)' build
+name: AmigoTV
+options:
+  bundleIdPrefix: de.amiga-imager
+  deploymentTarget:
+    tvOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+targets:
+  AmigoTVProbe:
+    type: application
+    platform: tvOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Sources
+      - path: ../app/Resources/default.uae
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.amiga-imager.uae.tvprobe
+        TARGETED_DEVICE_FAMILY: "3"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: "Amigo TV probe"
+        # SDL3 needs this for GCMouse on tvOS ("You need UIApplicationSupportsIndirectInputEvents ... for mouse support").
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: "0.0.1"
+        OTHER_LDFLAGS: "-lz -luaecore"
+        "LIBRARY_SEARCH_PATHS[sdk=appletvos*]": "$(PROJECT_DIR)/../build/tvos"
+        "LIBRARY_SEARCH_PATHS[sdk=appletvsimulator*]": "$(PROJECT_DIR)/../build/tvos-sim"
+        HEADER_SEARCH_PATHS: "$(PROJECT_DIR)/../vendor/WinUAE $(PROJECT_DIR)/../vendor/WinUAE/od-unix $(PROJECT_DIR)/../vendor/WinUAE/od-unix/include $(PROJECT_DIR)/../vendor/WinUAE/include"
+        CLANG_CXX_LANGUAGE_STANDARD: "c++17"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: Y38P2BJ4DM
+    dependencies:
+      - framework: ../vendor/SDL3/SDL3.xcframework
+        embed: true
+      - sdk: GameController.framework
+      - sdk: CoreGraphics.framework
+      - sdk: ImageIO.framework

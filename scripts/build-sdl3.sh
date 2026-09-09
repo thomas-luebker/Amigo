@@ -34,9 +34,9 @@ common=(
 )
 
 build() {
-  local name="$1" sysroot="$2" archs="$3"
+  local name="$1" sysroot="$2" archs="$3" sysname="${4:-iOS}"
   cmake -S "$SRC" -B "$OUT/$name" -GXcode \
-    -DCMAKE_SYSTEM_NAME=iOS \
+    -DCMAKE_SYSTEM_NAME="$sysname" \
     -DCMAKE_OSX_SYSROOT="$sysroot" \
     -DCMAKE_OSX_ARCHITECTURES="$archs" \
     "${common[@]}" >/dev/null
@@ -55,21 +55,33 @@ echo "==> Building SDL3 (device, camera off)"
 build device iphoneos arm64
 echo "==> Building SDL3 (simulator, camera off)"
 build sim iphonesimulator "arm64;x86_64"
+# Apple TV slice (feature/tvos). Same source, same patch; SDL3's UIKit
+# backend carries its own tvOS conditionals, so nothing else changes.
+echo "==> Building SDL3 (tvOS device, camera off)"
+build tvos appletvos arm64 tvOS
+echo "==> Building SDL3 (tvOS simulator, camera off)"
+build tvsim appletvsimulator arm64 tvOS
 
 # Locate the dSYM (unambiguous), then derive the real framework as its
 # sibling — avoids matching the EagerLinkingTBDs stub framework.
 DEV_DSYM=$(find "$OUT/device" -name "SDL3.framework.dSYM" -type d | head -1)
 SIM_DSYM=$(find "$OUT/sim" -name "SDL3.framework.dSYM" -type d | head -1)
+TV_DSYM=$(find "$OUT/tvos" -name "SDL3.framework.dSYM" -type d | head -1)
+TVSIM_DSYM=$(find "$OUT/tvsim" -name "SDL3.framework.dSYM" -type d | head -1)
 DEV_FW="${DEV_DSYM%.dSYM}"
 SIM_FW="${SIM_DSYM%.dSYM}"
+TV_FW="${TV_DSYM%.dSYM}"
+TVSIM_FW="${TVSIM_DSYM%.dSYM}"
 echo "device: $DEV_FW  dSYM: $DEV_DSYM"
 echo "sim:    $SIM_FW  dSYM: $SIM_DSYM"
-[ -d "$DEV_FW" ] && [ -d "$SIM_FW" ] || { echo "framework(s) not found — aborting"; exit 1; }
-[ -d "$DEV_DSYM" ] && [ -d "$SIM_DSYM" ] || { echo "dSYM(s) not found — aborting"; exit 1; }
+echo "tvos:   $TV_FW  dSYM: $TV_DSYM"
+echo "tvsim:  $TVSIM_FW  dSYM: $TVSIM_DSYM"
+[ -d "$DEV_FW" ] && [ -d "$SIM_FW" ] && [ -d "$TV_FW" ] && [ -d "$TVSIM_FW" ] || { echo "framework(s) not found — aborting"; exit 1; }
+[ -d "$DEV_DSYM" ] && [ -d "$SIM_DSYM" ] && [ -d "$TV_DSYM" ] && [ -d "$TVSIM_DSYM" ] || { echo "dSYM(s) not found — aborting"; exit 1; }
 
 # dSYMs now hold the debug info; strip it from the shipped binaries so the
 # framework stays small (UUID is preserved, so the dSYM still matches).
-strip -x "$DEV_FW/SDL3" "$SIM_FW/SDL3"
+strip -x "$DEV_FW/SDL3" "$SIM_FW/SDL3" "$TV_FW/SDL3" "$TVSIM_FW/SDL3"
 
 # Build into a temp path first; only replace vendor/ once it succeeds.
 # -debug-symbols bundles the dSYMs into the xcframework so the app archive
@@ -79,6 +91,8 @@ rm -rf "$TMP_XC"
 xcodebuild -create-xcframework \
   -framework "$DEV_FW" -debug-symbols "$DEV_DSYM" \
   -framework "$SIM_FW" -debug-symbols "$SIM_DSYM" \
+  -framework "$TV_FW" -debug-symbols "$TV_DSYM" \
+  -framework "$TVSIM_FW" -debug-symbols "$TVSIM_DSYM" \
   -output "$TMP_XC"
 
 # The CMake SDL_FRAMEWORK build omits CFBundleVersion / CFBundle
@@ -95,4 +109,4 @@ done
 rm -rf "$ROOT/vendor/SDL3/SDL3.xcframework"
 cp -R "$TMP_XC" "$ROOT/vendor/SDL3/SDL3.xcframework"
 
-echo "==> vendor/SDL3/SDL3.xcframework rebuilt (SDL_CAMERA=OFF, versioned)"
+echo "==> vendor/SDL3/SDL3.xcframework rebuilt (SDL_CAMERA=OFF, versioned, ios + sim + tvos + tvos-sim slices)"

@@ -1,17 +1,17 @@
 ---
 triple:          'x86_64-apple-darwin'
-binary-path:     '/Users/loki/Development/iPadUAE/build/sdl3/sim/RelWithDebInfo-iphonesimulator/SDL3.framework/SDL3'
+binary-path:     '/Users/loki/Development/Amigo/build/sdl3/sim/RelWithDebInfo-iphonesimulator/SDL3.framework/SDL3'
 relocations:
   - { offset: 0xA93A, size: 0x8, addend: 0x0, symName: _SDL_InitMainThread, symObjAddr: 0x380, symBinAddr: 0x14E0, symSize: 0xF0 }
-  - { offset: 0xA95D, size: 0x8, addend: 0x0, symName: _SDL_InitMainThread.done_info, symObjAddr: 0x65A0, symBinAddr: 0x1EFC40, symSize: 0x0 }
+  - { offset: 0xA95D, size: 0x8, addend: 0x0, symName: _SDL_InitMainThread.done_info, symObjAddr: 0x6620, symBinAddr: 0x1EFC40, symSize: 0x0 }
   - { offset: 0xAA4D, size: 0x8, addend: 0x0, symName: _SDL_GetSandbox, symObjAddr: 0xEE0, symBinAddr: 0x2040, symSize: 0x18 }
-  - { offset: 0xAA81, size: 0x8, addend: 0x0, symName: _SDL_GetSandbox.sandbox_initialized, symObjAddr: 0x65D1, symBinAddr: 0x1EFC71, symSize: 0x0 }
-  - { offset: 0xAA9E, size: 0x8, addend: 0x0, symName: _SDL_SubsystemRefCount, symObjAddr: 0x65B0, symBinAddr: 0x1EFC50, symSize: 0x0 }
-  - { offset: 0xAAC6, size: 0x8, addend: 0x0, symName: _SDL_MainIsReady, symObjAddr: 0x6580, symBinAddr: 0x1EFC20, symSize: 0x0 }
-  - { offset: 0xAAE2, size: 0x8, addend: 0x0, symName: _SDL_MainThreadID, symObjAddr: 0x6588, symBinAddr: 0x1EFC28, symSize: 0x0 }
-  - { offset: 0xAAFE, size: 0x8, addend: 0x0, symName: _SDL_VideoThreadID, symObjAddr: 0x6590, symBinAddr: 0x1EFC30, symSize: 0x0 }
-  - { offset: 0xAB13, size: 0x8, addend: 0x0, symName: _SDL_EventsThreadID, symObjAddr: 0x6598, symBinAddr: 0x1EFC38, symSize: 0x0 }
-  - { offset: 0xAB28, size: 0x8, addend: 0x0, symName: _SDL_bInMainQuit, symObjAddr: 0x65D0, symBinAddr: 0x1EFC70, symSize: 0x0 }
+  - { offset: 0xAA81, size: 0x8, addend: 0x0, symName: _SDL_GetSandbox.sandbox_initialized, symObjAddr: 0x6651, symBinAddr: 0x1EFC71, symSize: 0x0 }
+  - { offset: 0xAA9E, size: 0x8, addend: 0x0, symName: _SDL_SubsystemRefCount, symObjAddr: 0x6630, symBinAddr: 0x1EFC50, symSize: 0x0 }
+  - { offset: 0xAAC6, size: 0x8, addend: 0x0, symName: _SDL_MainIsReady, symObjAddr: 0x6600, symBinAddr: 0x1EFC20, symSize: 0x0 }
+  - { offset: 0xAAE2, size: 0x8, addend: 0x0, symName: _SDL_MainThreadID, symObjAddr: 0x6608, symBinAddr: 0x1EFC28, symSize: 0x0 }
+  - { offset: 0xAAFE, size: 0x8, addend: 0x0, symName: _SDL_VideoThreadID, symObjAddr: 0x6610, symBinAddr: 0x1EFC30, symSize: 0x0 }
+  - { offset: 0xAB13, size: 0x8, addend: 0x0, symName: _SDL_EventsThreadID, symObjAddr: 0x6618, symBinAddr: 0x1EFC38, symSize: 0x0 }
+  - { offset: 0xAB28, size: 0x8, addend: 0x0, symName: _SDL_bInMainQuit, symObjAddr: 0x6650, symBinAddr: 0x1EFC70, symSize: 0x0 }
   - { offset: 0xAB6C, size: 0x8, addend: 0x0, symName: _SDL_SetAppMetadata, symObjAddr: 0x10, symBinAddr: 0x1190, symSize: 0xE0 }
   - { offset: 0xACD3, size: 0x8, addend: 0x0, symName: _SDL_ValidMetadataProperty, symObjAddr: 0x140, symBinAddr: 0x12C0, symSize: 0xB0 }
   - { offset: 0xADC8, size: 0x8, addend: 0x0, symName: _SDL_SetAppMetadataProperty, symObjAddr: 0xF0, symBinAddr: 0x1270, symSize: 0x50 }
@@ -30,12 +30,12 @@ relocations:
   - { offset: 0xC065, size: 0x8, addend: 0x0, symName: _SDL_IsTV, symObjAddr: 0xED0, symBinAddr: 0x2030, symSize: 0x10 }
   - { offset: 0xC0BF, size: 0x8, addend: 0x0, symName: _SDL_ReportAssertion, symObjAddr: 0x0, symBinAddr: 0x2060, symSize: 0x120 }
   - { offset: 0xC0CC, size: 0x8, addend: 0x0, symName: _SDL_ReportAssertion, symObjAddr: 0x0, symBinAddr: 0x2060, symSize: 0x120 }
-  - { offset: 0xC0F3, size: 0x8, addend: 0x0, symName: _SDL_ReportAssertion.assertion_running, symObjAddr: 0x4C58, symBinAddr: 0x1EFC78, symSize: 0x0 }
-  - { offset: 0xC109, size: 0x8, addend: 0x0, symName: _SDL_ReportAssertion.spinlock, symObjAddr: 0x4C5C, symBinAddr: 0x1EFC7C, symSize: 0x0 }
-  - { offset: 0xC220, size: 0x8, addend: 0x0, symName: _assertion_mutex, symObjAddr: 0x4C60, symBinAddr: 0x1EFC80, symSize: 0x0 }
+  - { offset: 0xC0F3, size: 0x8, addend: 0x0, symName: _SDL_ReportAssertion.assertion_running, symObjAddr: 0x4CD8, symBinAddr: 0x1EFC78, symSize: 0x0 }
+  - { offset: 0xC109, size: 0x8, addend: 0x0, symName: _SDL_ReportAssertion.spinlock, symObjAddr: 0x4CDC, symBinAddr: 0x1EFC7C, symSize: 0x0 }
+  - { offset: 0xC220, size: 0x8, addend: 0x0, symName: _assertion_mutex, symObjAddr: 0x4CE0, symBinAddr: 0x1EFC80, symSize: 0x0 }
   - { offset: 0xC23A, size: 0x8, addend: 0x0, symName: _assertion_handler, symObjAddr: 0x830, symBinAddr: 0x1EA740, symSize: 0x0 }
-  - { offset: 0xC25A, size: 0x8, addend: 0x0, symName: _assertion_userdata, symObjAddr: 0x4C68, symBinAddr: 0x1EFC88, symSize: 0x0 }
-  - { offset: 0xC27D, size: 0x8, addend: 0x0, symName: _triggered_assertions, symObjAddr: 0x4C70, symBinAddr: 0x1EFC90, symSize: 0x0 }
+  - { offset: 0xC25A, size: 0x8, addend: 0x0, symName: _assertion_userdata, symObjAddr: 0x4CE8, symBinAddr: 0x1EFC88, symSize: 0x0 }
+  - { offset: 0xC27D, size: 0x8, addend: 0x0, symName: _triggered_assertions, symObjAddr: 0x4CF0, symBinAddr: 0x1EFC90, symSize: 0x0 }
   - { offset: 0xC2DD, size: 0x8, addend: 0x0, symName: _SDL_AbortAssertion, symObjAddr: 0x120, symBinAddr: 0x187EC0, symSize: 0x10 }
   - { offset: 0xC360, size: 0x8, addend: 0x0, symName: _SDL_AssertionsQuit, symObjAddr: 0x130, symBinAddr: 0x2180, symSize: 0x140 }
   - { offset: 0xC405, size: 0x8, addend: 0x0, symName: _debug_print, symObjAddr: 0x770, symBinAddr: 0x27C0, symSize: 0xBE }
@@ -69,7 +69,7 @@ relocations:
   - { offset: 0xE41C, size: 0x8, addend: 0x0, symName: _SDL_KeyMatchID, symObjAddr: 0xDD0, symBinAddr: 0x3FA0, symSize: 0x10 }
   - { offset: 0xE464, size: 0x8, addend: 0x0, symName: _SDL_DestroyHashKey, symObjAddr: 0xE00, symBinAddr: 0x3FB0, symSize: 0x10 }
   - { offset: 0xE4BF, size: 0x8, addend: 0x0, symName: _SDL_DestroyHashValue, symObjAddr: 0xE10, symBinAddr: 0x3FC0, symSize: 0xD }
-  - { offset: 0xE56C, size: 0x8, addend: 0x0, symName: _SDL_hint_props, symObjAddr: 0x479C, symBinAddr: 0x1EFC98, symSize: 0x0 }
+  - { offset: 0xE56C, size: 0x8, addend: 0x0, symName: _SDL_hint_props, symObjAddr: 0x481C, symBinAddr: 0x1EFC98, symSize: 0x0 }
   - { offset: 0xE605, size: 0x8, addend: 0x0, symName: _SDL_QuitHints, symObjAddr: 0x10, symBinAddr: 0x3FD0, symSize: 0x50 }
   - { offset: 0xE6FD, size: 0x8, addend: 0x0, symName: _SDL_SetHintWithPriority, symObjAddr: 0x60, symBinAddr: 0x4020, symSize: 0x250 }
   - { offset: 0xEA8D, size: 0x8, addend: 0x0, symName: _CleanupHintProperty, symObjAddr: 0x2B0, symBinAddr: 0x4270, symSize: 0x40 }
@@ -82,15 +82,15 @@ relocations:
   - { offset: 0xF0CB, size: 0x8, addend: 0x0, symName: _SDL_GetHintBoolean, symObjAddr: 0x700, symBinAddr: 0x4650, symSize: 0x40 }
   - { offset: 0xF157, size: 0x8, addend: 0x0, symName: _SDL_AddHintCallback, symObjAddr: 0x740, symBinAddr: 0x4690, symSize: 0x1A0 }
   - { offset: 0xF376, size: 0x8, addend: 0x0, symName: _SDL_RemoveHintCallback, symObjAddr: 0x8E0, symBinAddr: 0x4830, symSize: 0xAA }
-  - { offset: 0xF4CC, size: 0x8, addend: 0x0, symName: _SDL_log_init, symObjAddr: 0x6950, symBinAddr: 0x1EFCA0, symSize: 0x0 }
-  - { offset: 0xF4E1, size: 0x8, addend: 0x0, symName: _SDL_log_lock, symObjAddr: 0x6968, symBinAddr: 0x1EFCB8, symSize: 0x0 }
-  - { offset: 0xF4FB, size: 0x8, addend: 0x0, symName: _SDL_log_function_lock, symObjAddr: 0x6970, symBinAddr: 0x1EFCC0, symSize: 0x0 }
-  - { offset: 0xF510, size: 0x8, addend: 0x0, symName: _SDL_loglevels, symObjAddr: 0x69D0, symBinAddr: 0x1EFD20, symSize: 0x0 }
-  - { offset: 0xF56E, size: 0x8, addend: 0x0, symName: _SDL_log_priorities, symObjAddr: 0x6980, symBinAddr: 0x1EFCD0, symSize: 0x0 }
-  - { offset: 0xF58F, size: 0x8, addend: 0x0, symName: _SDL_log_default_priority, symObjAddr: 0x6978, symBinAddr: 0x1EFCC8, symSize: 0x0 }
-  - { offset: 0xF5A4, size: 0x8, addend: 0x0, symName: _SDL_priority_prefixes, symObjAddr: 0x69E0, symBinAddr: 0x1EFD30, symSize: 0x0 }
+  - { offset: 0xF4CC, size: 0x8, addend: 0x0, symName: _SDL_log_init, symObjAddr: 0x69D0, symBinAddr: 0x1EFCA0, symSize: 0x0 }
+  - { offset: 0xF4E1, size: 0x8, addend: 0x0, symName: _SDL_log_lock, symObjAddr: 0x69E8, symBinAddr: 0x1EFCB8, symSize: 0x0 }
+  - { offset: 0xF4FB, size: 0x8, addend: 0x0, symName: _SDL_log_function_lock, symObjAddr: 0x69F0, symBinAddr: 0x1EFCC0, symSize: 0x0 }
+  - { offset: 0xF510, size: 0x8, addend: 0x0, symName: _SDL_loglevels, symObjAddr: 0x6A50, symBinAddr: 0x1EFD20, symSize: 0x0 }
+  - { offset: 0xF56E, size: 0x8, addend: 0x0, symName: _SDL_log_priorities, symObjAddr: 0x6A00, symBinAddr: 0x1EFCD0, symSize: 0x0 }
+  - { offset: 0xF58F, size: 0x8, addend: 0x0, symName: _SDL_log_default_priority, symObjAddr: 0x69F8, symBinAddr: 0x1EFCC8, symSize: 0x0 }
+  - { offset: 0xF5A4, size: 0x8, addend: 0x0, symName: _SDL_priority_prefixes, symObjAddr: 0x6A60, symBinAddr: 0x1EFD30, symSize: 0x0 }
   - { offset: 0xF5D4, size: 0x8, addend: 0x0, symName: _SDL_log_function, symObjAddr: 0x15B0, symBinAddr: 0x1EA748, symSize: 0x0 }
-  - { offset: 0xF5EA, size: 0x8, addend: 0x0, symName: _SDL_log_userdata, symObjAddr: 0x6A20, symBinAddr: 0x1EFD70, symSize: 0x0 }
+  - { offset: 0xF5EA, size: 0x8, addend: 0x0, symName: _SDL_log_userdata, symObjAddr: 0x6AA0, symBinAddr: 0x1EFD70, symSize: 0x0 }
   - { offset: 0xF64C, size: 0x8, addend: 0x0, symName: _SDL_LoggingChanged, symObjAddr: 0x60, symBinAddr: 0x48E0, symSize: 0x10 }
   - { offset: 0xF69B, size: 0x8, addend: 0x0, symName: _SDL_ResetLogPriorities, symObjAddr: 0x430, symBinAddr: 0x4CB0, symSize: 0x580 }
   - { offset: 0xFAAA, size: 0x8, addend: 0x0, symName: _SDL_QuitLog, symObjAddr: 0x70, symBinAddr: 0x48F0, symSize: 0x180 }
@@ -114,10 +114,10 @@ relocations:
   - { offset: 0x1084C, size: 0x8, addend: 0x0, symName: _SDL_LogOutput, symObjAddr: 0x12E0, symBinAddr: 0x5B60, symSize: 0x50 }
   - { offset: 0x108D9, size: 0x8, addend: 0x0, symName: _SDL_GetLogOutputFunction, symObjAddr: 0x1330, symBinAddr: 0x5BB0, symSize: 0x50 }
   - { offset: 0x1092A, size: 0x8, addend: 0x0, symName: _SDL_SetLogOutputFunction, symObjAddr: 0x1380, symBinAddr: 0x5C00, symSize: 0x40 }
-  - { offset: 0x109E4, size: 0x8, addend: 0x0, symName: _SDL_properties_init, symObjAddr: 0x9C70, symBinAddr: 0x1EFD78, symSize: 0x0 }
-  - { offset: 0x109F9, size: 0x8, addend: 0x0, symName: _SDL_properties, symObjAddr: 0x9C88, symBinAddr: 0x1EFD90, symSize: 0x0 }
-  - { offset: 0x10A13, size: 0x8, addend: 0x0, symName: _SDL_last_properties_id, symObjAddr: 0x9C94, symBinAddr: 0x1EFD9C, symSize: 0x0 }
-  - { offset: 0x10A28, size: 0x8, addend: 0x0, symName: _SDL_global_properties, symObjAddr: 0x9C90, symBinAddr: 0x1EFD98, symSize: 0x0 }
+  - { offset: 0x109E4, size: 0x8, addend: 0x0, symName: _SDL_properties_init, symObjAddr: 0x9CE8, symBinAddr: 0x1EFD78, symSize: 0x0 }
+  - { offset: 0x109F9, size: 0x8, addend: 0x0, symName: _SDL_properties, symObjAddr: 0x9D00, symBinAddr: 0x1EFD90, symSize: 0x0 }
+  - { offset: 0x10A13, size: 0x8, addend: 0x0, symName: _SDL_last_properties_id, symObjAddr: 0x9D0C, symBinAddr: 0x1EFD9C, symSize: 0x0 }
+  - { offset: 0x10A28, size: 0x8, addend: 0x0, symName: _SDL_global_properties, symObjAddr: 0x9D08, symBinAddr: 0x1EFD98, symSize: 0x0 }
   - { offset: 0x10C57, size: 0x8, addend: 0x0, symName: _SDL_QuitProperties, symObjAddr: 0x60, symBinAddr: 0x5D90, symSize: 0xF0 }
   - { offset: 0x10E82, size: 0x8, addend: 0x0, symName: _SDL_DestroyProperties, symObjAddr: 0x150, symBinAddr: 0x5E80, symSize: 0x70 }
   - { offset: 0x10F34, size: 0x8, addend: 0x0, symName: _FreeOneProperties, symObjAddr: 0x1C0, symBinAddr: 0x5EF0, symSize: 0x30 }
@@ -149,13 +149,13 @@ relocations:
   - { offset: 0x12788, size: 0x8, addend: 0x0, symName: _SDL_EnumerateProperties, symObjAddr: 0x1360, symBinAddr: 0x6FE0, symSize: 0xE0 }
   - { offset: 0x1285E, size: 0x8, addend: 0x0, symName: _EnumerateOneProperty, symObjAddr: 0x1440, symBinAddr: 0x70C0, symSize: 0x20 }
   - { offset: 0x12908, size: 0x8, addend: 0x0, symName: _SDL_GetNextObjectID, symObjAddr: 0x1E0, symBinAddr: 0x7280, symSize: 0x30 }
-  - { offset: 0x1292D, size: 0x8, addend: 0x0, symName: _SDL_GetNextObjectID.last_id, symObjAddr: 0x6360, symBinAddr: 0x1EFDA0, symSize: 0x0 }
+  - { offset: 0x1292D, size: 0x8, addend: 0x0, symName: _SDL_GetNextObjectID.last_id, symObjAddr: 0x63E0, symBinAddr: 0x1EFDA0, symSize: 0x0 }
   - { offset: 0x1297A, size: 0x8, addend: 0x0, symName: _SDL_object_validation, symObjAddr: 0xD1E, symBinAddr: 0x1EA750, symSize: 0x0 }
   - { offset: 0x129A2, size: 0x8, addend: 0x0, symName: _SDL_CreateDeviceName, symObjAddr: 0x960, symBinAddr: 0x75F0, symSize: 0x3A0 }
   - { offset: 0x129C9, size: 0x8, addend: 0x0, symName: _SDL_CreateDeviceName.replacements, symObjAddr: 0xF10, symBinAddr: 0x1DFD60, symSize: 0x0 }
-  - { offset: 0x12C71, size: 0x8, addend: 0x0, symName: _SDL_objects_init, symObjAddr: 0x6368, symBinAddr: 0x1EFDA8, symSize: 0x0 }
-  - { offset: 0x12C86, size: 0x8, addend: 0x0, symName: _SDL_objects, symObjAddr: 0x6380, symBinAddr: 0x1EFDC0, symSize: 0x0 }
-  - { offset: 0x12CA1, size: 0x8, addend: 0x0, symName: _SDL_string_storage, symObjAddr: 0x6388, symBinAddr: 0x1EFDC8, symSize: 0x0 }
+  - { offset: 0x12C71, size: 0x8, addend: 0x0, symName: _SDL_objects_init, symObjAddr: 0x63E8, symBinAddr: 0x1EFDA8, symSize: 0x0 }
+  - { offset: 0x12C86, size: 0x8, addend: 0x0, symName: _SDL_objects, symObjAddr: 0x6400, symBinAddr: 0x1EFDC0, symSize: 0x0 }
+  - { offset: 0x12CA1, size: 0x8, addend: 0x0, symName: _SDL_string_storage, symObjAddr: 0x6408, symBinAddr: 0x1EFDC8, symSize: 0x0 }
   - { offset: 0x12D37, size: 0x8, addend: 0x0, symName: _SDL_CalculateGCD, symObjAddr: 0x40, symBinAddr: 0x70E0, symSize: 0x30 }
   - { offset: 0x12D72, size: 0x8, addend: 0x0, symName: _SDL_CalculateFraction, symObjAddr: 0x70, symBinAddr: 0x7110, symSize: 0xB0 }
   - { offset: 0x12E11, size: 0x8, addend: 0x0, symName: _SDL_startswith, symObjAddr: 0x120, symBinAddr: 0x71C0, symSize: 0x50 }
@@ -193,9 +193,9 @@ relocations:
   - { offset: 0x13B07, size: 0x8, addend: 0x0, symName: _SDL_GetNumAudioDrivers, symObjAddr: 0x0, symBinAddr: 0x7B10, symSize: 0xC0 }
   - { offset: 0x13B14, size: 0x8, addend: 0x0, symName: _SDL_GetNumAudioDrivers, symObjAddr: 0x0, symBinAddr: 0x7B10, symSize: 0xC0 }
   - { offset: 0x13B39, size: 0x8, addend: 0x0, symName: _SDL_GetNumAudioDrivers.num_drivers, symObjAddr: 0x4B24, symBinAddr: 0x1EA754, symSize: 0x0 }
-  - { offset: 0x13BD6, size: 0x8, addend: 0x0, symName: _current_audio, symObjAddr: 0x19DD0, symBinAddr: 0x1EFDF0, symSize: 0x0 }
-  - { offset: 0x14127, size: 0x8, addend: 0x0, symName: _deduped_bootstrap, symObjAddr: 0x19DB0, symBinAddr: 0x1EFDD0, symSize: 0x0 }
-  - { offset: 0x141BF, size: 0x8, addend: 0x0, symName: _last_device_instance_id, symObjAddr: 0x19EA8, symBinAddr: 0x1EFEC8, symSize: 0x0 }
+  - { offset: 0x13BD6, size: 0x8, addend: 0x0, symName: _current_audio, symObjAddr: 0x19E50, symBinAddr: 0x1EFDF0, symSize: 0x0 }
+  - { offset: 0x14127, size: 0x8, addend: 0x0, symName: _deduped_bootstrap, symObjAddr: 0x19E30, symBinAddr: 0x1EFDD0, symSize: 0x0 }
+  - { offset: 0x141BF, size: 0x8, addend: 0x0, symName: _last_device_instance_id, symObjAddr: 0x19F28, symBinAddr: 0x1EFEC8, symSize: 0x0 }
   - { offset: 0x141D5, size: 0x8, addend: 0x0, symName: _format_list, symObjAddr: 0x4FA0, symBinAddr: 0x1A2320, symSize: 0x0 }
   - { offset: 0x1432A, size: 0x8, addend: 0x0, symName: _SDL_GetAudioDriver, symObjAddr: 0xC0, symBinAddr: 0x7BD0, symSize: 0x50 }
   - { offset: 0x14380, size: 0x8, addend: 0x0, symName: _SDL_GetCurrentAudioDriver, symObjAddr: 0x110, symBinAddr: 0x7C20, symSize: 0x10 }
@@ -391,9 +391,9 @@ relocations:
   - { offset: 0x1FBC6, size: 0x8, addend: 0x0, symName: _FreeChunkedAudioBuffer, symObjAddr: 0xDB0, symBinAddr: 0x16910, symSize: 0x28 }
   - { offset: 0x1FC73, size: 0x8, addend: 0x0, symName: _SDL_SetupAudioResampler, symObjAddr: 0x0, symBinAddr: 0x16940, symSize: 0x3E0 }
   - { offset: 0x1FC80, size: 0x8, addend: 0x0, symName: _SDL_SetupAudioResampler, symObjAddr: 0x0, symBinAddr: 0x16940, symSize: 0x3E0 }
-  - { offset: 0x1FCA3, size: 0x8, addend: 0x0, symName: _SDL_SetupAudioResampler.init, symObjAddr: 0x4990, symBinAddr: 0x1EFED0, symSize: 0x0 }
-  - { offset: 0x1FE84, size: 0x8, addend: 0x0, symName: _ResamplerFilter, symObjAddr: 0x49F0, symBinAddr: 0x1EFF30, symSize: 0x0 }
-  - { offset: 0x1FEE6, size: 0x8, addend: 0x0, symName: _ResampleFrame, symObjAddr: 0x49B0, symBinAddr: 0x1EFEF0, symSize: 0x0 }
+  - { offset: 0x1FCA3, size: 0x8, addend: 0x0, symName: _SDL_SetupAudioResampler.init, symObjAddr: 0x4A10, symBinAddr: 0x1EFED0, symSize: 0x0 }
+  - { offset: 0x1FE84, size: 0x8, addend: 0x0, symName: _ResamplerFilter, symObjAddr: 0x4A70, symBinAddr: 0x1EFF30, symSize: 0x0 }
+  - { offset: 0x1FEE6, size: 0x8, addend: 0x0, symName: _ResampleFrame, symObjAddr: 0x4A30, symBinAddr: 0x1EFEF0, symSize: 0x0 }
   - { offset: 0x20195, size: 0x8, addend: 0x0, symName: _SDL_GetResampleRate, symObjAddr: 0x3E0, symBinAddr: 0x16D20, symSize: 0x30 }
   - { offset: 0x201FF, size: 0x8, addend: 0x0, symName: _SDL_GetResamplerHistoryFrames, symObjAddr: 0x410, symBinAddr: 0x16D50, symSize: 0x10 }
   - { offset: 0x20219, size: 0x8, addend: 0x0, symName: _SDL_GetResamplerPaddingFrames, symObjAddr: 0x420, symBinAddr: 0x16D60, symSize: 0x20 }
@@ -405,7 +405,7 @@ relocations:
   - { offset: 0x206BF, size: 0x8, addend: 0x0, symName: _ResampleFrame_Stereo, symObjAddr: 0xD40, symBinAddr: 0x17680, symSize: 0x27B }
   - { offset: 0x207B4, size: 0x8, addend: 0x0, symName: _ConvertAudioToFloat, symObjAddr: 0x0, symBinAddr: 0x17900, symSize: 0x8B0 }
   - { offset: 0x207C1, size: 0x8, addend: 0x0, symName: _SDL_ChooseAudioConverters, symObjAddr: 0x1720, symBinAddr: 0x19020, symSize: 0x16 }
-  - { offset: 0x207E4, size: 0x8, addend: 0x0, symName: _SDL_ChooseAudioConverters.converters_chosen, symObjAddr: 0x6433, symBinAddr: 0x1F0430, symSize: 0x0 }
+  - { offset: 0x207E4, size: 0x8, addend: 0x0, symName: _SDL_ChooseAudioConverters.converters_chosen, symObjAddr: 0x64B3, symBinAddr: 0x1F0430, symSize: 0x0 }
   - { offset: 0x20A20, size: 0x8, addend: 0x0, symName: _ConvertAudioToFloat, symObjAddr: 0x0, symBinAddr: 0x17900, symSize: 0x8B0 }
   - { offset: 0x20DC6, size: 0x8, addend: 0x0, symName: _ConvertAudioFromFloat, symObjAddr: 0x8B0, symBinAddr: 0x181B0, symSize: 0xC30 }
   - { offset: 0x2109B, size: 0x8, addend: 0x0, symName: _ConvertAudioSwapEndian, symObjAddr: 0x14E0, symBinAddr: 0x18DE0, symSize: 0x240 }
@@ -432,7 +432,7 @@ relocations:
   - { offset: 0x23D11, size: 0x8, addend: 0x0, symName: _IMA_ADPCM_CalculateSampleFrames, symObjAddr: 0x2CA0, symBinAddr: 0x1CB50, symSize: 0x12D }
   - { offset: 0x23E89, size: 0x8, addend: 0x0, symName: '-[SDLInterruptionListener audioSessionInterruption:]', symObjAddr: 0x0, symBinAddr: 0x1CC80, symSize: 0x160 }
   - { offset: 0x23EB2, size: 0x8, addend: 0x0, symName: _COREAUDIO_bootstrap, symObjAddr: 0x1D08, symBinAddr: 0x1EA7D0, symSize: 0x0 }
-  - { offset: 0x24B2D, size: 0x8, addend: 0x0, symName: _session_active, symObjAddr: 0xE6BF, symBinAddr: 0x1F0431, symSize: 0x0 }
+  - { offset: 0x24B2D, size: 0x8, addend: 0x0, symName: _session_active, symObjAddr: 0xE73F, symBinAddr: 0x1F0431, symSize: 0x0 }
   - { offset: 0x24F24, size: 0x8, addend: 0x0, symName: '-[SDLInterruptionListener audioSessionInterruption:]', symObjAddr: 0x0, symBinAddr: 0x1CC80, symSize: 0x160 }
   - { offset: 0x2520B, size: 0x8, addend: 0x0, symName: '-[SDLInterruptionListener applicationBecameActive:]', symObjAddr: 0x160, symBinAddr: 0x1CDE0, symSize: 0xB0 }
   - { offset: 0x252D4, size: 0x8, addend: 0x0, symName: '-[SDLInterruptionListener device]', symObjAddr: 0x210, symBinAddr: 0x1CE90, symSize: 0x10 }
@@ -472,7 +472,7 @@ relocations:
   - { offset: 0x27E8C, size: 0x8, addend: 0x0, symName: _DUMMYAUDIO_GetDeviceBuf, symObjAddr: 0x180, symBinAddr: 0x1E4A0, symSize: 0x10 }
   - { offset: 0x27EBF, size: 0x8, addend: 0x0, symName: _DUMMYAUDIO_RecordDevice, symObjAddr: 0x190, symBinAddr: 0x1E4B0, symSize: 0x26 }
   - { offset: 0x27F2C, size: 0x8, addend: 0x0, symName: _SDL_GetNumCameraDrivers, symObjAddr: 0x0, symBinAddr: 0x1E4E0, symSize: 0x10 }
-  - { offset: 0x27F53, size: 0x8, addend: 0x0, symName: _camera_driver, symObjAddr: 0xE4F0, symBinAddr: 0x1F0438, symSize: 0x0 }
+  - { offset: 0x27F53, size: 0x8, addend: 0x0, symName: _camera_driver, symObjAddr: 0xE570, symBinAddr: 0x1F0438, symSize: 0x0 }
   - { offset: 0x28245, size: 0x8, addend: 0x0, symName: _SDL_GetNumCameraDrivers, symObjAddr: 0x0, symBinAddr: 0x1E4E0, symSize: 0x10 }
   - { offset: 0x2825E, size: 0x8, addend: 0x0, symName: _SDL_GetCameraDriver, symObjAddr: 0x10, symBinAddr: 0x1E4F0, symSize: 0x20 }
   - { offset: 0x282A7, size: 0x8, addend: 0x0, symName: _SDL_GetCurrentCameraDriver, symObjAddr: 0x30, symBinAddr: 0x1E510, symSize: 0x10 }
@@ -525,14 +525,14 @@ relocations:
   - { offset: 0x2A6BA, size: 0x8, addend: 0x0, symName: _SDL_IsDeXMode, symObjAddr: 0x290, symBinAddr: 0x20250, symSize: 0x20 }
   - { offset: 0x2A6E2, size: 0x8, addend: 0x0, symName: _JNI_OnLoad, symObjAddr: 0x2B0, symBinAddr: 0x20270, symSize: 0xB }
   - { offset: 0x2A788, size: 0x8, addend: 0x0, symName: _SDL_GetNumLogicalCPUCores, symObjAddr: 0x0, symBinAddr: 0x20280, symSize: 0x70 }
-  - { offset: 0x2A7B0, size: 0x8, addend: 0x0, symName: _SDL_NumLogicalCPUCores, symObjAddr: 0x4D80, symBinAddr: 0x1F04C0, symSize: 0x0 }
-  - { offset: 0x2A7D6, size: 0x8, addend: 0x0, symName: _CPU_CPUIDFeatures.2, symObjAddr: 0x4DA0, symBinAddr: 0x1F04E0, symSize: 0x0 }
-  - { offset: 0x2A7E1, size: 0x8, addend: 0x0, symName: _CPU_CPUIDFeatures.3, symObjAddr: 0x4DA4, symBinAddr: 0x1F04E4, symSize: 0x0 }
-  - { offset: 0x2A805, size: 0x8, addend: 0x0, symName: _CPU_OSSavesYMM, symObjAddr: 0x4DA8, symBinAddr: 0x1F04E8, symSize: 0x0 }
-  - { offset: 0x2A81B, size: 0x8, addend: 0x0, symName: _CPU_OSSavesZMM, symObjAddr: 0x4DA9, symBinAddr: 0x1F04E9, symSize: 0x0 }
-  - { offset: 0x2A831, size: 0x8, addend: 0x0, symName: _CPU_CPUIDMaxFunction, symObjAddr: 0x4D98, symBinAddr: 0x1F04D8, symSize: 0x0 }
+  - { offset: 0x2A7B0, size: 0x8, addend: 0x0, symName: _SDL_NumLogicalCPUCores, symObjAddr: 0x4E00, symBinAddr: 0x1F04C0, symSize: 0x0 }
+  - { offset: 0x2A7D6, size: 0x8, addend: 0x0, symName: _CPU_CPUIDFeatures.2, symObjAddr: 0x4E20, symBinAddr: 0x1F04E0, symSize: 0x0 }
+  - { offset: 0x2A7E1, size: 0x8, addend: 0x0, symName: _CPU_CPUIDFeatures.3, symObjAddr: 0x4E24, symBinAddr: 0x1F04E4, symSize: 0x0 }
+  - { offset: 0x2A805, size: 0x8, addend: 0x0, symName: _CPU_OSSavesYMM, symObjAddr: 0x4E28, symBinAddr: 0x1F04E8, symSize: 0x0 }
+  - { offset: 0x2A81B, size: 0x8, addend: 0x0, symName: _CPU_OSSavesZMM, symObjAddr: 0x4E29, symBinAddr: 0x1F04E9, symSize: 0x0 }
+  - { offset: 0x2A831, size: 0x8, addend: 0x0, symName: _CPU_CPUIDMaxFunction, symObjAddr: 0x4E18, symBinAddr: 0x1F04D8, symSize: 0x0 }
   - { offset: 0x2A847, size: 0x8, addend: 0x0, symName: _SDL_CPUFeatures, symObjAddr: 0xDFC, symBinAddr: 0x1EA830, symSize: 0x0 }
-  - { offset: 0x2A864, size: 0x8, addend: 0x0, symName: _SDL_SystemRAM, symObjAddr: 0x4D84, symBinAddr: 0x1F04C4, symSize: 0x0 }
+  - { offset: 0x2A864, size: 0x8, addend: 0x0, symName: _SDL_SystemRAM, symObjAddr: 0x4E04, symBinAddr: 0x1F04C4, symSize: 0x0 }
   - { offset: 0x2A87A, size: 0x8, addend: 0x0, symName: _SDL_SystemPageSize, symObjAddr: 0xE00, symBinAddr: 0x1EA834, symSize: 0x0 }
   - { offset: 0x2A890, size: 0x8, addend: 0x0, symName: _SDL_SIMDAlignment, symObjAddr: 0xE04, symBinAddr: 0x1EA838, symSize: 0x0 }
   - { offset: 0x2A8A1, size: 0x8, addend: 0x0, symName: _SDL_GetNumLogicalCPUCores, symObjAddr: 0x0, symBinAddr: 0x20280, symSize: 0x70 }
@@ -574,26 +574,26 @@ relocations:
   - { offset: 0x2C34A, size: 0x8, addend: 0x0, symName: _SDL_SendDisplayEvent, symObjAddr: 0x0, symBinAddr: 0x21930, symSize: 0xEB }
   - { offset: 0x2D501, size: 0x8, addend: 0x0, symName: _SDL_SendDropFile, symObjAddr: 0x0, symBinAddr: 0x21A20, symSize: 0x20 }
   - { offset: 0x2D50E, size: 0x8, addend: 0x0, symName: _SDL_SendDrop, symObjAddr: 0x20, symBinAddr: 0x21A40, symSize: 0x280 }
-  - { offset: 0x2D533, size: 0x8, addend: 0x0, symName: _SDL_SendDrop.app_is_dropping, symObjAddr: 0x28CC, symBinAddr: 0x1F04EC, symSize: 0x0 }
-  - { offset: 0x2D54F, size: 0x8, addend: 0x0, symName: _SDL_SendDrop.last_drop_x, symObjAddr: 0x28D0, symBinAddr: 0x1F04F0, symSize: 0x0 }
-  - { offset: 0x2D564, size: 0x8, addend: 0x0, symName: _SDL_SendDrop.last_drop_y, symObjAddr: 0x28D4, symBinAddr: 0x1F04F4, symSize: 0x0 }
+  - { offset: 0x2D533, size: 0x8, addend: 0x0, symName: _SDL_SendDrop.app_is_dropping, symObjAddr: 0x2944, symBinAddr: 0x1F04EC, symSize: 0x0 }
+  - { offset: 0x2D54F, size: 0x8, addend: 0x0, symName: _SDL_SendDrop.last_drop_x, symObjAddr: 0x2948, symBinAddr: 0x1F04F0, symSize: 0x0 }
+  - { offset: 0x2D564, size: 0x8, addend: 0x0, symName: _SDL_SendDrop.last_drop_y, symObjAddr: 0x294C, symBinAddr: 0x1F04F4, symSize: 0x0 }
   - { offset: 0x2D681, size: 0x8, addend: 0x0, symName: _SDL_SendDropFile, symObjAddr: 0x0, symBinAddr: 0x21A20, symSize: 0x20 }
   - { offset: 0x2D743, size: 0x8, addend: 0x0, symName: _SDL_SendDropComplete, symObjAddr: 0x2E0, symBinAddr: 0x21CC0, symSize: 0x19 }
   - { offset: 0x2D7DB, size: 0x8, addend: 0x0, symName: _SDL_AllocateTemporaryMemory, symObjAddr: 0x0, symBinAddr: 0x21CE0, symSize: 0x20 }
   - { offset: 0x2D7F6, size: 0x8, addend: 0x0, symName: _SDL_GetEventDescription, symObjAddr: 0x210, symBinAddr: 0x21DD0, symSize: 0x1A30 }
-  - { offset: 0x2DEBA, size: 0x8, addend: 0x0, symName: _SDL_event_watchers, symObjAddr: 0x16680, symBinAddr: 0x1F0D10, symSize: 0x0 }
-  - { offset: 0x2DF81, size: 0x8, addend: 0x0, symName: _SDL_sentinel_pending, symObjAddr: 0x15E70, symBinAddr: 0x1F0500, symSize: 0x0 }
-  - { offset: 0x2DF96, size: 0x8, addend: 0x0, symName: _SDL_disabled_events, symObjAddr: 0x15E80, symBinAddr: 0x1F0510, symSize: 0x0 }
-  - { offset: 0x2DFEC, size: 0x8, addend: 0x0, symName: _SDL_userevents, symObjAddr: 0x166C8, symBinAddr: 0x1F0D58, symSize: 0x0 }
-  - { offset: 0x2E002, size: 0x8, addend: 0x0, symName: _SDL_main_callbacks_lock, symObjAddr: 0x166B0, symBinAddr: 0x1F0D40, symSize: 0x0 }
-  - { offset: 0x2E018, size: 0x8, addend: 0x0, symName: _SDL_main_callbacks_head, symObjAddr: 0x166C0, symBinAddr: 0x1F0D50, symSize: 0x0 }
-  - { offset: 0x2E094, size: 0x8, addend: 0x0, symName: _SDL_main_callbacks_tail, symObjAddr: 0x166B8, symBinAddr: 0x1F0D48, symSize: 0x0 }
-  - { offset: 0x2E0A9, size: 0x8, addend: 0x0, symName: _SDL_temporary_memory, symObjAddr: 0x166D0, symBinAddr: 0x1F0D60, symSize: 0x0 }
-  - { offset: 0x2E0BE, size: 0x8, addend: 0x0, symName: _SDL_EventQ, symObjAddr: 0x166D8, symBinAddr: 0x1F0D68, symSize: 0x0 }
-  - { offset: 0x2E1BC, size: 0x8, addend: 0x0, symName: _SDL_last_event_id, symObjAddr: 0x16708, symBinAddr: 0x1F0D98, symSize: 0x0 }
+  - { offset: 0x2DEBA, size: 0x8, addend: 0x0, symName: _SDL_event_watchers, symObjAddr: 0x16700, symBinAddr: 0x1F0D10, symSize: 0x0 }
+  - { offset: 0x2DF81, size: 0x8, addend: 0x0, symName: _SDL_sentinel_pending, symObjAddr: 0x15EF0, symBinAddr: 0x1F0500, symSize: 0x0 }
+  - { offset: 0x2DF96, size: 0x8, addend: 0x0, symName: _SDL_disabled_events, symObjAddr: 0x15F00, symBinAddr: 0x1F0510, symSize: 0x0 }
+  - { offset: 0x2DFEC, size: 0x8, addend: 0x0, symName: _SDL_userevents, symObjAddr: 0x16748, symBinAddr: 0x1F0D58, symSize: 0x0 }
+  - { offset: 0x2E002, size: 0x8, addend: 0x0, symName: _SDL_main_callbacks_lock, symObjAddr: 0x16730, symBinAddr: 0x1F0D40, symSize: 0x0 }
+  - { offset: 0x2E018, size: 0x8, addend: 0x0, symName: _SDL_main_callbacks_head, symObjAddr: 0x16740, symBinAddr: 0x1F0D50, symSize: 0x0 }
+  - { offset: 0x2E094, size: 0x8, addend: 0x0, symName: _SDL_main_callbacks_tail, symObjAddr: 0x16738, symBinAddr: 0x1F0D48, symSize: 0x0 }
+  - { offset: 0x2E0A9, size: 0x8, addend: 0x0, symName: _SDL_temporary_memory, symObjAddr: 0x16750, symBinAddr: 0x1F0D60, symSize: 0x0 }
+  - { offset: 0x2E0BE, size: 0x8, addend: 0x0, symName: _SDL_EventQ, symObjAddr: 0x16758, symBinAddr: 0x1F0D68, symSize: 0x0 }
+  - { offset: 0x2E1BC, size: 0x8, addend: 0x0, symName: _SDL_last_event_id, symObjAddr: 0x16788, symBinAddr: 0x1F0D98, symSize: 0x0 }
   - { offset: 0x2E1D2, size: 0x8, addend: 0x0, symName: _SDL_update_sensors, symObjAddr: 0x542A, symBinAddr: 0x1EA83C, symSize: 0x0 }
   - { offset: 0x2E1E8, size: 0x8, addend: 0x0, symName: _SDL_update_joysticks, symObjAddr: 0x542B, symBinAddr: 0x1EA83D, symSize: 0x0 }
-  - { offset: 0x2E1FE, size: 0x8, addend: 0x0, symName: _SDL_EventLoggingVerbosity, symObjAddr: 0x166CC, symBinAddr: 0x1F0D5C, symSize: 0x0 }
+  - { offset: 0x2E1FE, size: 0x8, addend: 0x0, symName: _SDL_EventLoggingVerbosity, symObjAddr: 0x1674C, symBinAddr: 0x1F0D5C, symSize: 0x0 }
   - { offset: 0x2E369, size: 0x8, addend: 0x0, symName: _SDL_AllocateTemporaryMemory, symObjAddr: 0x0, symBinAddr: 0x21CE0, symSize: 0x20 }
   - { offset: 0x2E3C2, size: 0x8, addend: 0x0, symName: _SDL_FreeLater, symObjAddr: 0x20, symBinAddr: 0x21D00, symSize: 0xA0 }
   - { offset: 0x2E546, size: 0x8, addend: 0x0, symName: _SDL_CreateTemporaryString, symObjAddr: 0xC0, symBinAddr: 0x21DA0, symSize: 0x30 }
@@ -639,11 +639,11 @@ relocations:
   - { offset: 0x32694, size: 0x8, addend: 0x0, symName: _SDL_AddEventWatchList, symObjAddr: 0x1C0, symBinAddr: 0x25B20, symSize: 0x80 }
   - { offset: 0x32767, size: 0x8, addend: 0x0, symName: _SDL_RemoveEventWatchList, symObjAddr: 0x240, symBinAddr: 0x25BA0, symSize: 0x85 }
   - { offset: 0x32870, size: 0x8, addend: 0x0, symName: _SDL_InitKeyboard, symObjAddr: 0x0, symBinAddr: 0x25C30, symSize: 0x50 }
-  - { offset: 0x32897, size: 0x8, addend: 0x0, symName: _SDL_keyboard, symObjAddr: 0xA7C8, symBinAddr: 0x1F0DA0, symSize: 0x0 }
-  - { offset: 0x329FF, size: 0x8, addend: 0x0, symName: _SDL_keyboard_count, symObjAddr: 0xAC00, symBinAddr: 0x1F11D8, symSize: 0x0 }
-  - { offset: 0x32A14, size: 0x8, addend: 0x0, symName: _SDL_keyboards, symObjAddr: 0xABF8, symBinAddr: 0x1F11D0, symSize: 0x0 }
-  - { offset: 0x32A2E, size: 0x8, addend: 0x0, symName: _SDL_keyboard_names, symObjAddr: 0xABF0, symBinAddr: 0x1F11C8, symSize: 0x0 }
-  - { offset: 0x32A43, size: 0x8, addend: 0x0, symName: _SDL_keyboard_quitting, symObjAddr: 0xAC04, symBinAddr: 0x1F11DC, symSize: 0x0 }
+  - { offset: 0x32897, size: 0x8, addend: 0x0, symName: _SDL_keyboard, symObjAddr: 0xA848, symBinAddr: 0x1F0DA0, symSize: 0x0 }
+  - { offset: 0x329FF, size: 0x8, addend: 0x0, symName: _SDL_keyboard_count, symObjAddr: 0xAC80, symBinAddr: 0x1F11D8, symSize: 0x0 }
+  - { offset: 0x32A14, size: 0x8, addend: 0x0, symName: _SDL_keyboards, symObjAddr: 0xAC78, symBinAddr: 0x1F11D0, symSize: 0x0 }
+  - { offset: 0x32A2E, size: 0x8, addend: 0x0, symName: _SDL_keyboard_names, symObjAddr: 0xAC70, symBinAddr: 0x1F11C8, symSize: 0x0 }
+  - { offset: 0x32A43, size: 0x8, addend: 0x0, symName: _SDL_keyboard_quitting, symObjAddr: 0xAC84, symBinAddr: 0x1F11DC, symSize: 0x0 }
   - { offset: 0x32A80, size: 0x8, addend: 0x0, symName: _SDL_InitKeyboard, symObjAddr: 0x0, symBinAddr: 0x25C30, symSize: 0x50 }
   - { offset: 0x32B0B, size: 0x8, addend: 0x0, symName: _SDL_KeycodeOptionsChanged, symObjAddr: 0x50, symBinAddr: 0x25C80, symSize: 0xA0 }
   - { offset: 0x32BF2, size: 0x8, addend: 0x0, symName: _SDL_AddKeyboard, symObjAddr: 0x100, symBinAddr: 0x25D20, symSize: 0x120 }
@@ -686,12 +686,12 @@ relocations:
   - { offset: 0x34E81, size: 0x8, addend: 0x0, symName: _SDL_GetKeyName, symObjAddr: 0xA70, symBinAddr: 0x27C70, symSize: 0x200 }
   - { offset: 0x35137, size: 0x8, addend: 0x0, symName: _SDL_GetKeyFromName, symObjAddr: 0xC70, symBinAddr: 0x27E70, symSize: 0x250 }
   - { offset: 0x353DD, size: 0x8, addend: 0x0, symName: _SDL_PreInitMouse, symObjAddr: 0x0, symBinAddr: 0x280C0, symSize: 0x1A0 }
-  - { offset: 0x35404, size: 0x8, addend: 0x0, symName: _SDL_mouse, symObjAddr: 0x137C8, symBinAddr: 0x1F1200, symSize: 0x0 }
-  - { offset: 0x3596D, size: 0x8, addend: 0x0, symName: _SDL_mouse_count, symObjAddr: 0x137C0, symBinAddr: 0x1F11F8, symSize: 0x0 }
-  - { offset: 0x35982, size: 0x8, addend: 0x0, symName: _SDL_mice, symObjAddr: 0x137B8, symBinAddr: 0x1F11F0, symSize: 0x0 }
-  - { offset: 0x3599C, size: 0x8, addend: 0x0, symName: _SDL_mouse_names, symObjAddr: 0x137B0, symBinAddr: 0x1F11E8, symSize: 0x0 }
-  - { offset: 0x359B1, size: 0x8, addend: 0x0, symName: _SDL_mouse_initialized, symObjAddr: 0x137A8, symBinAddr: 0x1F11E0, symSize: 0x0 }
-  - { offset: 0x359CD, size: 0x8, addend: 0x0, symName: _track_mouse_down, symObjAddr: 0x13900, symBinAddr: 0x1F1338, symSize: 0x0 }
+  - { offset: 0x35404, size: 0x8, addend: 0x0, symName: _SDL_mouse, symObjAddr: 0x13840, symBinAddr: 0x1F1200, symSize: 0x0 }
+  - { offset: 0x3596D, size: 0x8, addend: 0x0, symName: _SDL_mouse_count, symObjAddr: 0x13838, symBinAddr: 0x1F11F8, symSize: 0x0 }
+  - { offset: 0x35982, size: 0x8, addend: 0x0, symName: _SDL_mice, symObjAddr: 0x13830, symBinAddr: 0x1F11F0, symSize: 0x0 }
+  - { offset: 0x3599C, size: 0x8, addend: 0x0, symName: _SDL_mouse_names, symObjAddr: 0x13828, symBinAddr: 0x1F11E8, symSize: 0x0 }
+  - { offset: 0x359B1, size: 0x8, addend: 0x0, symName: _SDL_mouse_initialized, symObjAddr: 0x13820, symBinAddr: 0x1F11E0, symSize: 0x0 }
+  - { offset: 0x359CD, size: 0x8, addend: 0x0, symName: _track_mouse_down, symObjAddr: 0x13978, symBinAddr: 0x1F1338, symSize: 0x0 }
   - { offset: 0x359F4, size: 0x8, addend: 0x0, symName: _SDL_PreInitMouse, symObjAddr: 0x0, symBinAddr: 0x280C0, symSize: 0x1A0 }
   - { offset: 0x35BA3, size: 0x8, addend: 0x0, symName: _SDL_GetMouse, symObjAddr: 0x1A0, symBinAddr: 0x28260, symSize: 0x10 }
   - { offset: 0x35BBD, size: 0x8, addend: 0x0, symName: _SDL_MouseDoubleClickTimeChanged, symObjAddr: 0x1B0, symBinAddr: 0x28270, symSize: 0x30 }
@@ -749,11 +749,11 @@ relocations:
   - { offset: 0x38E60, size: 0x8, addend: 0x0, symName: _SDL_GetDefaultCursor, symObjAddr: 0x3680, symBinAddr: 0x2B4A0, symSize: 0x10 }
   - { offset: 0x38E87, size: 0x8, addend: 0x0, symName: _SDL_HideCursor, symObjAddr: 0x3690, symBinAddr: 0x2B4B0, symSize: 0x60 }
   - { offset: 0x38EF5, size: 0x8, addend: 0x0, symName: _SDL_CursorVisible, symObjAddr: 0x36F0, symBinAddr: 0x2B510, symSize: 0x10 }
-  - { offset: 0x38FBD, size: 0x8, addend: 0x0, symName: _pending_proximity_out, symObjAddr: 0x9964, symBinAddr: 0x1F135C, symSize: 0x0 }
-  - { offset: 0x38FD2, size: 0x8, addend: 0x0, symName: _pen_device_rwlock, symObjAddr: 0x9948, symBinAddr: 0x1F1340, symSize: 0x0 }
-  - { offset: 0x38FEC, size: 0x8, addend: 0x0, symName: _pen_device_count, symObjAddr: 0x9950, symBinAddr: 0x1F1348, symSize: 0x0 }
-  - { offset: 0x39008, size: 0x8, addend: 0x0, symName: _pen_devices, symObjAddr: 0x9958, symBinAddr: 0x1F1350, symSize: 0x0 }
-  - { offset: 0x39178, size: 0x8, addend: 0x0, symName: _pen_touching, symObjAddr: 0x9960, symBinAddr: 0x1F1358, symSize: 0x0 }
+  - { offset: 0x38FBD, size: 0x8, addend: 0x0, symName: _pending_proximity_out, symObjAddr: 0x99E4, symBinAddr: 0x1F135C, symSize: 0x0 }
+  - { offset: 0x38FD2, size: 0x8, addend: 0x0, symName: _pen_device_rwlock, symObjAddr: 0x99C8, symBinAddr: 0x1F1340, symSize: 0x0 }
+  - { offset: 0x38FEC, size: 0x8, addend: 0x0, symName: _pen_device_count, symObjAddr: 0x99D0, symBinAddr: 0x1F1348, symSize: 0x0 }
+  - { offset: 0x39008, size: 0x8, addend: 0x0, symName: _pen_devices, symObjAddr: 0x99D8, symBinAddr: 0x1F1350, symSize: 0x0 }
+  - { offset: 0x39178, size: 0x8, addend: 0x0, symName: _pen_touching, symObjAddr: 0x99E0, symBinAddr: 0x1F1358, symSize: 0x0 }
   - { offset: 0x391A4, size: 0x8, addend: 0x0, symName: _SDL_InitPen, symObjAddr: 0xF0, symBinAddr: 0x2B640, symSize: 0x40 }
   - { offset: 0x396A7, size: 0x8, addend: 0x0, symName: _SDL_PenTouchEventsChanged, symObjAddr: 0x130, symBinAddr: 0x2B680, symSize: 0xA0 }
   - { offset: 0x39837, size: 0x8, addend: 0x0, symName: _SDL_QuitPen, symObjAddr: 0x1D0, symBinAddr: 0x2B720, symSize: 0xC0 }
@@ -767,20 +767,20 @@ relocations:
   - { offset: 0x3A580, size: 0x8, addend: 0x0, symName: _SDL_SendPenMotion, symObjAddr: 0x1010, symBinAddr: 0x2C490, symSize: 0x2F0 }
   - { offset: 0x3A81E, size: 0x8, addend: 0x0, symName: _SDL_SendPendingPenProximity, symObjAddr: 0x15C0, symBinAddr: 0x2C780, symSize: 0xB6 }
   - { offset: 0x3A961, size: 0x8, addend: 0x0, symName: _SDL_InitQuit, symObjAddr: 0x0, symBinAddr: 0x2C840, symSize: 0x90 }
-  - { offset: 0x3A99C, size: 0x8, addend: 0x0, symName: _send_quit_pending, symObjAddr: 0x1108, symBinAddr: 0x1F1360, symSize: 0x0 }
+  - { offset: 0x3A99C, size: 0x8, addend: 0x0, symName: _send_quit_pending, symObjAddr: 0x1188, symBinAddr: 0x1F1360, symSize: 0x0 }
   - { offset: 0x3A9E5, size: 0x8, addend: 0x0, symName: _SDL_InitQuit, symObjAddr: 0x0, symBinAddr: 0x2C840, symSize: 0x90 }
   - { offset: 0x3AB6A, size: 0x8, addend: 0x0, symName: _SDL_QuitQuit, symObjAddr: 0x90, symBinAddr: 0x2C8D0, symSize: 0x80 }
   - { offset: 0x3AC61, size: 0x8, addend: 0x0, symName: _SDL_SendPendingSignalEvents, symObjAddr: 0x110, symBinAddr: 0x2C950, symSize: 0x30 }
   - { offset: 0x3ACAE, size: 0x8, addend: 0x0, symName: _SDL_SendQuit, symObjAddr: 0x140, symBinAddr: 0x2C980, symSize: 0x20 }
   - { offset: 0x3ACD7, size: 0x8, addend: 0x0, symName: _SDL_HandleSIG, symObjAddr: 0x160, symBinAddr: 0x2C9A0, symSize: 0x17 }
   - { offset: 0x3AD21, size: 0x8, addend: 0x0, symName: _SDL_InitTouch, symObjAddr: 0x0, symBinAddr: 0x2C9C0, symSize: 0x20 }
-  - { offset: 0x3AD48, size: 0x8, addend: 0x0, symName: _track_fingerid, symObjAddr: 0x9F30, symBinAddr: 0x1F1390, symSize: 0x0 }
-  - { offset: 0x3AD64, size: 0x8, addend: 0x0, symName: _track_touchid, symObjAddr: 0x9F28, symBinAddr: 0x1F1388, symSize: 0x0 }
-  - { offset: 0x3AD79, size: 0x8, addend: 0x0, symName: _SDL_touch_lock, symObjAddr: 0x9F08, symBinAddr: 0x1F1368, symSize: 0x0 }
-  - { offset: 0x3AD93, size: 0x8, addend: 0x0, symName: _SDL_touch_locked, symObjAddr: 0x9F38, symBinAddr: 0x1F1398, symSize: 0x0 }
-  - { offset: 0x3ADAF, size: 0x8, addend: 0x0, symName: _SDL_num_touch, symObjAddr: 0x9F10, symBinAddr: 0x1F1370, symSize: 0x0 }
-  - { offset: 0x3ADC4, size: 0x8, addend: 0x0, symName: _SDL_touchDevices, symObjAddr: 0x9F18, symBinAddr: 0x1F1378, symSize: 0x0 }
-  - { offset: 0x3AE4E, size: 0x8, addend: 0x0, symName: _finger_touching, symObjAddr: 0x9F20, symBinAddr: 0x1F1380, symSize: 0x0 }
+  - { offset: 0x3AD48, size: 0x8, addend: 0x0, symName: _track_fingerid, symObjAddr: 0x9FB0, symBinAddr: 0x1F1390, symSize: 0x0 }
+  - { offset: 0x3AD64, size: 0x8, addend: 0x0, symName: _track_touchid, symObjAddr: 0x9FA8, symBinAddr: 0x1F1388, symSize: 0x0 }
+  - { offset: 0x3AD79, size: 0x8, addend: 0x0, symName: _SDL_touch_lock, symObjAddr: 0x9F88, symBinAddr: 0x1F1368, symSize: 0x0 }
+  - { offset: 0x3AD93, size: 0x8, addend: 0x0, symName: _SDL_touch_locked, symObjAddr: 0x9FB8, symBinAddr: 0x1F1398, symSize: 0x0 }
+  - { offset: 0x3ADAF, size: 0x8, addend: 0x0, symName: _SDL_num_touch, symObjAddr: 0x9F90, symBinAddr: 0x1F1370, symSize: 0x0 }
+  - { offset: 0x3ADC4, size: 0x8, addend: 0x0, symName: _SDL_touchDevices, symObjAddr: 0x9F98, symBinAddr: 0x1F1378, symSize: 0x0 }
+  - { offset: 0x3AE4E, size: 0x8, addend: 0x0, symName: _finger_touching, symObjAddr: 0x9FA0, symBinAddr: 0x1F1380, symSize: 0x0 }
   - { offset: 0x3AEAF, size: 0x8, addend: 0x0, symName: _SDL_InitTouch, symObjAddr: 0x0, symBinAddr: 0x2C9C0, symSize: 0x20 }
   - { offset: 0x3AF10, size: 0x8, addend: 0x0, symName: _SDL_GetTouchDevices, symObjAddr: 0x60, symBinAddr: 0x2C9E0, symSize: 0x120 }
   - { offset: 0x3B019, size: 0x8, addend: 0x0, symName: _SDL_GetTouch, symObjAddr: 0x180, symBinAddr: 0x2CB00, symSize: 0xA0 }
@@ -794,7 +794,7 @@ relocations:
   - { offset: 0x3D2D2, size: 0x8, addend: 0x0, symName: _SDL_QuitTouch, symObjAddr: 0xEC0, symBinAddr: 0x2D840, symSize: 0x90 }
   - { offset: 0x3D372, size: 0x8, addend: 0x0, symName: _SDL_SendPinch, symObjAddr: 0xF50, symBinAddr: 0x2D8D0, symSize: 0xA3 }
   - { offset: 0x3D465, size: 0x8, addend: 0x0, symName: _SDL_InitWindowEventWatch, symObjAddr: 0x0, symBinAddr: 0x2D980, symSize: 0x20 }
-  - { offset: 0x3D48C, size: 0x8, addend: 0x0, symName: _SDL_window_event_watchers, symObjAddr: 0x61B0, symBinAddr: 0x1F13A0, symSize: 0x0 }
+  - { offset: 0x3D48C, size: 0x8, addend: 0x0, symName: _SDL_window_event_watchers, symObjAddr: 0x6230, symBinAddr: 0x1F13A0, symSize: 0x0 }
   - { offset: 0x3D5A6, size: 0x8, addend: 0x0, symName: _SDL_InitWindowEventWatch, symObjAddr: 0x0, symBinAddr: 0x2D980, symSize: 0x20 }
   - { offset: 0x3D60A, size: 0x8, addend: 0x0, symName: _SDL_QuitWindowEventWatch, symObjAddr: 0x20, symBinAddr: 0x2D9A0, symSize: 0x20 }
   - { offset: 0x3D665, size: 0x8, addend: 0x0, symName: _SDL_AddWindowEventWatch, symObjAddr: 0x40, symBinAddr: 0x2D9C0, symSize: 0x20 }
@@ -802,9 +802,9 @@ relocations:
   - { offset: 0x3D752, size: 0x8, addend: 0x0, symName: _SDL_SendWindowEvent, symObjAddr: 0x80, symBinAddr: 0x2DA00, symSize: 0x5C0 }
   - { offset: 0x3EB1D, size: 0x8, addend: 0x0, symName: _RemoveSupersededWindowEvents, symObjAddr: 0x640, symBinAddr: 0x2DFC0, symSize: 0x1A }
   - { offset: 0x3EB96, size: 0x8, addend: 0x0, symName: _SDL_RemovePath, symObjAddr: 0x0, symBinAddr: 0x2DFE0, symSize: 0x30 }
-  - { offset: 0x3EBBE, size: 0x8, addend: 0x0, symName: _CachedUserFolders, symObjAddr: 0x58B0, symBinAddr: 0x1F1410, symSize: 0x0 }
-  - { offset: 0x3EBE5, size: 0x8, addend: 0x0, symName: _CachedBasePath, symObjAddr: 0x58A0, symBinAddr: 0x1F1400, symSize: 0x0 }
-  - { offset: 0x3EBFB, size: 0x8, addend: 0x0, symName: _CachedExeName, symObjAddr: 0x5908, symBinAddr: 0x1F1468, symSize: 0x0 }
+  - { offset: 0x3EBBE, size: 0x8, addend: 0x0, symName: _CachedUserFolders, symObjAddr: 0x5930, symBinAddr: 0x1F1410, symSize: 0x0 }
+  - { offset: 0x3EBE5, size: 0x8, addend: 0x0, symName: _CachedBasePath, symObjAddr: 0x5920, symBinAddr: 0x1F1400, symSize: 0x0 }
+  - { offset: 0x3EBFB, size: 0x8, addend: 0x0, symName: _CachedExeName, symObjAddr: 0x5988, symBinAddr: 0x1F1468, symSize: 0x0 }
   - { offset: 0x3ED38, size: 0x8, addend: 0x0, symName: _SDL_RemovePath, symObjAddr: 0x0, symBinAddr: 0x2DFE0, symSize: 0x30 }
   - { offset: 0x3ED9E, size: 0x8, addend: 0x0, symName: _SDL_RenamePath, symObjAddr: 0x30, symBinAddr: 0x2E010, symSize: 0x40 }
   - { offset: 0x3EE06, size: 0x8, addend: 0x0, symName: _SDL_CopyFile, symObjAddr: 0x70, symBinAddr: 0x2E050, symSize: 0x40 }
@@ -1149,7 +1149,7 @@ relocations:
   - { offset: 0x4B0F2, size: 0x8, addend: 0x0, symName: _BlitFromCube_metallib, symObjAddr: 0xE570, symBinAddr: 0x1A7D70, symSize: 0x0 }
   - { offset: 0x4B116, size: 0x8, addend: 0x0, symName: _BlitFromCubeArray_metallib, symObjAddr: 0xF780, symBinAddr: 0x1A8F80, symSize: 0x0 }
   - { offset: 0x4B141, size: 0x8, addend: 0x0, symName: _MetalDriver, symObjAddr: 0x118F0, symBinAddr: 0x1EDCD0, symSize: 0x0 }
-  - { offset: 0x4F591, size: 0x8, addend: 0x0, symName: _SwapchainCompositionToColorSpace, symObjAddr: 0x45670, symBinAddr: 0x1F1470, symSize: 0x0 }
+  - { offset: 0x4F591, size: 0x8, addend: 0x0, symName: _SwapchainCompositionToColorSpace, symObjAddr: 0x456F0, symBinAddr: 0x1F1470, symSize: 0x0 }
   - { offset: 0x4F5C2, size: 0x8, addend: 0x0, symName: _METAL_CreateGraphicsPipeline, symObjAddr: 0x1360, symBinAddr: 0x38C40, symSize: 0xF10 }
   - { offset: 0x4F5E9, size: 0x8, addend: 0x0, symName: _METAL_CreateGraphicsPipeline.sdl_assert_data, symObjAddr: 0x11908, symBinAddr: 0x1EDCE8, symSize: 0x0 }
   - { offset: 0x4F5FF, size: 0x8, addend: 0x0, symName: _METAL_CreateGraphicsPipeline.sdl_assert_data.69, symObjAddr: 0x11938, symBinAddr: 0x1EDD18, symSize: 0x0 }
@@ -1273,12 +1273,12 @@ relocations:
   - { offset: 0x5B5AF, size: 0x8, addend: 0x0, symName: ___METAL_Submit_block_invoke, symObjAddr: 0x9830, symBinAddr: 0x41110, symSize: 0x20 }
   - { offset: 0x5C295, size: 0x8, addend: 0x0, symName: _VULKAN_PrepareDriver, symObjAddr: 0x0, symBinAddr: 0x41E60, symSize: 0xF0 }
   - { offset: 0x5C2BE, size: 0x8, addend: 0x0, symName: _VulkanDriver, symObjAddr: 0x2D3A0, symBinAddr: 0x1EDD78, symSize: 0x0 }
-  - { offset: 0x5D67B, size: 0x8, addend: 0x0, symName: _vkCreateInstance, symObjAddr: 0xB1F30, symBinAddr: 0x1F1498, symSize: 0x0 }
-  - { offset: 0x6034A, size: 0x8, addend: 0x0, symName: _vkEnumerateInstanceExtensionProperties, symObjAddr: 0xB1F38, symBinAddr: 0x1F14A0, symSize: 0x0 }
-  - { offset: 0x603C1, size: 0x8, addend: 0x0, symName: _vkEnumerateInstanceLayerProperties, symObjAddr: 0xB1F40, symBinAddr: 0x1F14A8, symSize: 0x0 }
+  - { offset: 0x5D67B, size: 0x8, addend: 0x0, symName: _vkCreateInstance, symObjAddr: 0xB1FB0, symBinAddr: 0x1F1498, symSize: 0x0 }
+  - { offset: 0x6034A, size: 0x8, addend: 0x0, symName: _vkEnumerateInstanceExtensionProperties, symObjAddr: 0xB1FB8, symBinAddr: 0x1F14A0, symSize: 0x0 }
+  - { offset: 0x603C1, size: 0x8, addend: 0x0, symName: _vkEnumerateInstanceLayerProperties, symObjAddr: 0xB1FC0, symBinAddr: 0x1F14A8, symSize: 0x0 }
   - { offset: 0x6043F, size: 0x8, addend: 0x0, symName: _VULKAN_INTERNAL_CreateInstance, symObjAddr: 0x1660, symBinAddr: 0x434C0, symSize: 0x870 }
   - { offset: 0x60466, size: 0x8, addend: 0x0, symName: _VULKAN_INTERNAL_CreateInstance.layerNames, symObjAddr: 0x2D3B8, symBinAddr: 0x1EDD90, symSize: 0x0 }
-  - { offset: 0x60905, size: 0x8, addend: 0x0, symName: _vkGetInstanceProcAddr, symObjAddr: 0xB1F28, symBinAddr: 0x1F1490, symSize: 0x0 }
+  - { offset: 0x60905, size: 0x8, addend: 0x0, symName: _vkGetInstanceProcAddr, symObjAddr: 0xB1FA8, symBinAddr: 0x1F1490, symSize: 0x0 }
   - { offset: 0x60941, size: 0x8, addend: 0x0, symName: _VULKAN_CreateGraphicsPipeline, symObjAddr: 0x69B0, symBinAddr: 0x48810, symSize: 0x1770 }
   - { offset: 0x60968, size: 0x8, addend: 0x0, symName: _VULKAN_CreateGraphicsPipeline.dynamicStates, symObjAddr: 0x2D430, symBinAddr: 0x1AAAE0, symSize: 0x0 }
   - { offset: 0x6097E, size: 0x8, addend: 0x0, symName: _VULKAN_CreateGraphicsPipeline.sdl_assert_data, symObjAddr: 0x2D3C0, symBinAddr: 0x1EDD98, symSize: 0x0 }
@@ -1456,7 +1456,7 @@ relocations:
   - { offset: 0x7D96F, size: 0x8, addend: 0x0, symName: _VULKAN_INTERNAL_FetchDescriptorSet, symObjAddr: 0x23A00, symBinAddr: 0x65860, symSize: 0xCD0 }
   - { offset: 0x7DD84, size: 0x8, addend: 0x0, symName: _VULKAN_INTERNAL_OnWindowResize, symObjAddr: 0x26990, symBinAddr: 0x687F0, symSize: 0x60 }
   - { offset: 0x7E14E, size: 0x8, addend: 0x0, symName: _SDL_InitHaptics, symObjAddr: 0x0, symBinAddr: 0x6A0C0, symSize: 0x10 }
-  - { offset: 0x7E175, size: 0x8, addend: 0x0, symName: _SDL_haptics, symObjAddr: 0x9300, symBinAddr: 0x1F14B0, symSize: 0x0 }
+  - { offset: 0x7E175, size: 0x8, addend: 0x0, symName: _SDL_haptics, symObjAddr: 0x9380, symBinAddr: 0x1F14B0, symSize: 0x0 }
   - { offset: 0x7E217, size: 0x8, addend: 0x0, symName: _SDL_InitHaptics, symObjAddr: 0x0, symBinAddr: 0x6A0C0, symSize: 0x10 }
   - { offset: 0x7E250, size: 0x8, addend: 0x0, symName: _SDL_GetHaptics, symObjAddr: 0x10, symBinAddr: 0x6A0D0, symSize: 0x80 }
   - { offset: 0x7E366, size: 0x8, addend: 0x0, symName: _SDL_GetHapticNameForID, symObjAddr: 0x90, symBinAddr: 0x6A150, symSize: 0x70 }
@@ -1509,11 +1509,11 @@ relocations:
   - { offset: 0x8071F, size: 0x8, addend: 0x0, symName: _SDL_SYS_HapticPause, symObjAddr: 0x1F0, symBinAddr: 0x6B920, symSize: 0x20 }
   - { offset: 0x8076A, size: 0x8, addend: 0x0, symName: _SDL_SYS_HapticResume, symObjAddr: 0x210, symBinAddr: 0x6B940, symSize: 0x20 }
   - { offset: 0x807B5, size: 0x8, addend: 0x0, symName: _SDL_SYS_HapticStopAll, symObjAddr: 0x230, symBinAddr: 0x6B960, symSize: 0x13 }
-  - { offset: 0x808A0, size: 0x8, addend: 0x0, symName: _SDL_hidapi_only_controllers, symObjAddr: 0x58B1, symBinAddr: 0x1F14B9, symSize: 0x0 }
-  - { offset: 0x808BD, size: 0x8, addend: 0x0, symName: _use_libusb_whitelist, symObjAddr: 0x58B0, symBinAddr: 0x1F14B8, symSize: 0x0 }
+  - { offset: 0x808A0, size: 0x8, addend: 0x0, symName: _SDL_hidapi_only_controllers, symObjAddr: 0x5929, symBinAddr: 0x1F14B9, symSize: 0x0 }
+  - { offset: 0x808BD, size: 0x8, addend: 0x0, symName: _use_libusb_whitelist, symObjAddr: 0x5928, symBinAddr: 0x1F14B8, symSize: 0x0 }
   - { offset: 0x808DA, size: 0x8, addend: 0x0, symName: _use_libusb_gamecube, symObjAddr: 0xC76, symBinAddr: 0x1EDDF8, symSize: 0x0 }
-  - { offset: 0x808F0, size: 0x8, addend: 0x0, symName: _SDL_hidapi_ignored_devices, symObjAddr: 0x58B8, symBinAddr: 0x1F14C0, symSize: 0x0 }
-  - { offset: 0x8090B, size: 0x8, addend: 0x0, symName: _SDL_hidapi_refcount, symObjAddr: 0x58C0, symBinAddr: 0x1F14C8, symSize: 0x0 }
+  - { offset: 0x808F0, size: 0x8, addend: 0x0, symName: _SDL_hidapi_ignored_devices, symObjAddr: 0x5930, symBinAddr: 0x1F14C0, symSize: 0x0 }
+  - { offset: 0x8090B, size: 0x8, addend: 0x0, symName: _SDL_hidapi_refcount, symObjAddr: 0x5938, symBinAddr: 0x1F14C8, symSize: 0x0 }
   - { offset: 0x80960, size: 0x8, addend: 0x0, symName: _SDL_hid_init, symObjAddr: 0x230, symBinAddr: 0x6B980, symSize: 0x80 }
   - { offset: 0x80A00, size: 0x8, addend: 0x0, symName: _OnlyControllersChanged, symObjAddr: 0x2B0, symBinAddr: 0x6BA00, symSize: 0x20 }
   - { offset: 0x80A7C, size: 0x8, addend: 0x0, symName: _IgnoredDevicesChanged, symObjAddr: 0x2D0, symBinAddr: 0x6BA20, symSize: 0x40 }
@@ -1630,15 +1630,15 @@ relocations:
   - { offset: 0x86B6A, size: 0x8, addend: 0x0, symName: _SDL_SYS_CreateAsyncIOQueue_Generic.SDL_AsyncIOQueue_Generic, symObjAddr: 0xA08, symBinAddr: 0x1E0130, symSize: 0x0 }
   - { offset: 0x86E30, size: 0x8, addend: 0x0, symName: _SDL_SYS_AsyncIOFromFile_Generic, symObjAddr: 0x540, symBinAddr: 0x70010, symSize: 0xA0 }
   - { offset: 0x86E57, size: 0x8, addend: 0x0, symName: _SDL_SYS_AsyncIOFromFile_Generic.SDL_AsyncIOFile_Generic, symObjAddr: 0xA38, symBinAddr: 0x1E0160, symSize: 0x0 }
-  - { offset: 0x86F1F, size: 0x8, addend: 0x0, symName: _threadpool_init, symObjAddr: 0x4958, symBinAddr: 0x1F14D0, symSize: 0x0 }
-  - { offset: 0x86F34, size: 0x8, addend: 0x0, symName: _max_threadpool_threads, symObjAddr: 0x4970, symBinAddr: 0x1F14E8, symSize: 0x0 }
-  - { offset: 0x86F49, size: 0x8, addend: 0x0, symName: _threadpool_lock, symObjAddr: 0x4978, symBinAddr: 0x1F14F0, symSize: 0x0 }
-  - { offset: 0x86F5E, size: 0x8, addend: 0x0, symName: _threadpool_condition, symObjAddr: 0x4980, symBinAddr: 0x1F14F8, symSize: 0x0 }
-  - { offset: 0x86F7F, size: 0x8, addend: 0x0, symName: _idle_threadpool_threads, symObjAddr: 0x4988, symBinAddr: 0x1F1500, symSize: 0x0 }
-  - { offset: 0x86F94, size: 0x8, addend: 0x0, symName: _running_threadpool_threads, symObjAddr: 0x498C, symBinAddr: 0x1F1504, symSize: 0x0 }
-  - { offset: 0x86FA9, size: 0x8, addend: 0x0, symName: _threadpool_threads_spun, symObjAddr: 0x4990, symBinAddr: 0x1F1508, symSize: 0x0 }
-  - { offset: 0x86FBE, size: 0x8, addend: 0x0, symName: _stop_threadpool, symObjAddr: 0x4994, symBinAddr: 0x1F150C, symSize: 0x0 }
-  - { offset: 0x86FDA, size: 0x8, addend: 0x0, symName: _threadpool_tasks, symObjAddr: 0x4998, symBinAddr: 0x1F1510, symSize: 0x0 }
+  - { offset: 0x86F1F, size: 0x8, addend: 0x0, symName: _threadpool_init, symObjAddr: 0x49D0, symBinAddr: 0x1F14D0, symSize: 0x0 }
+  - { offset: 0x86F34, size: 0x8, addend: 0x0, symName: _max_threadpool_threads, symObjAddr: 0x49E8, symBinAddr: 0x1F14E8, symSize: 0x0 }
+  - { offset: 0x86F49, size: 0x8, addend: 0x0, symName: _threadpool_lock, symObjAddr: 0x49F0, symBinAddr: 0x1F14F0, symSize: 0x0 }
+  - { offset: 0x86F5E, size: 0x8, addend: 0x0, symName: _threadpool_condition, symObjAddr: 0x49F8, symBinAddr: 0x1F14F8, symSize: 0x0 }
+  - { offset: 0x86F7F, size: 0x8, addend: 0x0, symName: _idle_threadpool_threads, symObjAddr: 0x4A00, symBinAddr: 0x1F1500, symSize: 0x0 }
+  - { offset: 0x86F94, size: 0x8, addend: 0x0, symName: _running_threadpool_threads, symObjAddr: 0x4A04, symBinAddr: 0x1F1504, symSize: 0x0 }
+  - { offset: 0x86FA9, size: 0x8, addend: 0x0, symName: _threadpool_threads_spun, symObjAddr: 0x4A08, symBinAddr: 0x1F1508, symSize: 0x0 }
+  - { offset: 0x86FBE, size: 0x8, addend: 0x0, symName: _stop_threadpool, symObjAddr: 0x4A0C, symBinAddr: 0x1F150C, symSize: 0x0 }
+  - { offset: 0x86FDA, size: 0x8, addend: 0x0, symName: _threadpool_tasks, symObjAddr: 0x4A10, symBinAddr: 0x1F1510, symSize: 0x0 }
   - { offset: 0x8705D, size: 0x8, addend: 0x0, symName: _PrepareThreadpool, symObjAddr: 0x90, symBinAddr: 0x6FB60, symSize: 0x160 }
   - { offset: 0x872B9, size: 0x8, addend: 0x0, symName: _generic_asyncioqueue_queue_task, symObjAddr: 0x1F0, symBinAddr: 0x6FCC0, symSize: 0x150 }
   - { offset: 0x87436, size: 0x8, addend: 0x0, symName: _generic_asyncioqueue_cancel_task, symObjAddr: 0x340, symBinAddr: 0x6FE10, symSize: 0xB0 }
@@ -1655,19 +1655,19 @@ relocations:
   - { offset: 0x87972, size: 0x8, addend: 0x0, symName: _SDL_SYS_QuitAsyncIO, symObjAddr: 0x7E0, symBinAddr: 0x702B0, symSize: 0x10 }
   - { offset: 0x87A0F, size: 0x8, addend: 0x0, symName: _AsyncIOThreadpoolWorker, symObjAddr: 0x7F0, symBinAddr: 0x702C0, symSize: 0x211 }
   - { offset: 0x87CC5, size: 0x8, addend: 0x0, symName: _SDL_PrivateGamepadAdded, symObjAddr: 0x0, symBinAddr: 0x704E0, symSize: 0x80 }
-  - { offset: 0x87CF8, size: 0x8, addend: 0x0, symName: _SDL_gamepads_initialized, symObjAddr: 0x2E518, symBinAddr: 0x1F1598, symSize: 0x0 }
-  - { offset: 0x87D1B, size: 0x8, addend: 0x0, symName: _s_zeroGUID, symObjAddr: 0x2E530, symBinAddr: 0x1F15B0, symSize: 0x0 }
-  - { offset: 0x87D30, size: 0x8, addend: 0x0, symName: _SDL_gamepads, symObjAddr: 0x2E520, symBinAddr: 0x1F15A0, symSize: 0x0 }
+  - { offset: 0x87CF8, size: 0x8, addend: 0x0, symName: _SDL_gamepads_initialized, symObjAddr: 0x2E598, symBinAddr: 0x1F1598, symSize: 0x0 }
+  - { offset: 0x87D1B, size: 0x8, addend: 0x0, symName: _s_zeroGUID, symObjAddr: 0x2E5B0, symBinAddr: 0x1F15B0, symSize: 0x0 }
+  - { offset: 0x87D30, size: 0x8, addend: 0x0, symName: _SDL_gamepads, symObjAddr: 0x2E5A0, symBinAddr: 0x1F15A0, symSize: 0x0 }
   - { offset: 0x88141, size: 0x8, addend: 0x0, symName: _map_StringForGamepadButton, symObjAddr: 0x7B60, symBinAddr: 0x1E0190, symSize: 0x0 }
-  - { offset: 0x88162, size: 0x8, addend: 0x0, symName: _s_mappingChangeTracker, symObjAddr: 0x2E558, symBinAddr: 0x1F15D8, symSize: 0x0 }
-  - { offset: 0x881D2, size: 0x8, addend: 0x0, symName: _s_pXInputMapping, symObjAddr: 0x2E560, symBinAddr: 0x1F15E0, symSize: 0x0 }
-  - { offset: 0x881E7, size: 0x8, addend: 0x0, symName: _s_pSupportedGamepads, symObjAddr: 0x2E528, symBinAddr: 0x1F15A8, symSize: 0x0 }
+  - { offset: 0x88162, size: 0x8, addend: 0x0, symName: _s_mappingChangeTracker, symObjAddr: 0x2E5D8, symBinAddr: 0x1F15D8, symSize: 0x0 }
+  - { offset: 0x881D2, size: 0x8, addend: 0x0, symName: _s_pXInputMapping, symObjAddr: 0x2E5E0, symBinAddr: 0x1F15E0, symSize: 0x0 }
+  - { offset: 0x881E7, size: 0x8, addend: 0x0, symName: _s_pSupportedGamepads, symObjAddr: 0x2E5A8, symBinAddr: 0x1F15A8, symSize: 0x0 }
   - { offset: 0x88208, size: 0x8, addend: 0x0, symName: _s_GamepadMappings, symObjAddr: 0x7C30, symBinAddr: 0x1E0260, symSize: 0x0 }
   - { offset: 0x88229, size: 0x8, addend: 0x0, symName: _SDL_allowed_gamepads, symObjAddr: 0xBAB8, symBinAddr: 0x1EDE00, symSize: 0x0 }
   - { offset: 0x882E3, size: 0x8, addend: 0x0, symName: _SDL_ignored_gamepads, symObjAddr: 0xBB00, symBinAddr: 0x1EDE48, symSize: 0x0 }
-  - { offset: 0x882F8, size: 0x8, addend: 0x0, symName: _SDL_gamepad_names, symObjAddr: 0x2E540, symBinAddr: 0x1F15C0, symSize: 0x0 }
-  - { offset: 0x88312, size: 0x8, addend: 0x0, symName: _s_pDefaultMapping, symObjAddr: 0x2E548, symBinAddr: 0x1F15C8, symSize: 0x0 }
-  - { offset: 0x88327, size: 0x8, addend: 0x0, symName: _s_gamepadInstanceIDs, symObjAddr: 0x2E550, symBinAddr: 0x1F15D0, symSize: 0x0 }
+  - { offset: 0x882F8, size: 0x8, addend: 0x0, symName: _SDL_gamepad_names, symObjAddr: 0x2E5C0, symBinAddr: 0x1F15C0, symSize: 0x0 }
+  - { offset: 0x88312, size: 0x8, addend: 0x0, symName: _s_pDefaultMapping, symObjAddr: 0x2E5C8, symBinAddr: 0x1F15C8, symSize: 0x0 }
+  - { offset: 0x88327, size: 0x8, addend: 0x0, symName: _s_gamepadInstanceIDs, symObjAddr: 0x2E5D0, symBinAddr: 0x1F15D0, symSize: 0x0 }
   - { offset: 0x8833C, size: 0x8, addend: 0x0, symName: _SDL_gamepad_blacklist_words, symObjAddr: 0x7D40, symBinAddr: 0x1E0370, symSize: 0x0 }
   - { offset: 0x883A8, size: 0x8, addend: 0x0, symName: _SDL_PrivateGamepadAdded, symObjAddr: 0x0, symBinAddr: 0x704E0, symSize: 0x80 }
   - { offset: 0x88411, size: 0x8, addend: 0x0, symName: _SDL_UpdateGamepadNameForID, symObjAddr: 0x80, symBinAddr: 0x70560, symSize: 0x100 }
@@ -1768,13 +1768,13 @@ relocations:
   - { offset: 0x9204F, size: 0x8, addend: 0x0, symName: _SDL_GetGamepadAppleSFSymbolsNameForButton, symObjAddr: 0x62C0, symBinAddr: 0x76750, symSize: 0x80 }
   - { offset: 0x9213C, size: 0x8, addend: 0x0, symName: _SDL_GetGamepadAppleSFSymbolsNameForAxis, symObjAddr: 0x6340, symBinAddr: 0x767D0, symSize: 0x80 }
   - { offset: 0x9263F, size: 0x8, addend: 0x0, symName: _SDL_GetJoystickGUID, symObjAddr: 0x5B20, symBinAddr: 0x7D480, symSize: 0xA0 }
-  - { offset: 0x9273F, size: 0x8, addend: 0x0, symName: _SDL_joystick_lock_pending, symObjAddr: 0x262FC, symBinAddr: 0x1F15EC, symSize: 0x0 }
-  - { offset: 0x92754, size: 0x8, addend: 0x0, symName: _SDL_joysticks_locked, symObjAddr: 0x26308, symBinAddr: 0x1F15F8, symSize: 0x0 }
-  - { offset: 0x92770, size: 0x8, addend: 0x0, symName: _SDL_joysticks_initialized, symObjAddr: 0x262F8, symBinAddr: 0x1F15E8, symSize: 0x0 }
-  - { offset: 0x92793, size: 0x8, addend: 0x0, symName: _SDL_joysticks_quitting, symObjAddr: 0x262F9, symBinAddr: 0x1F15E9, symSize: 0x0 }
-  - { offset: 0x927AF, size: 0x8, addend: 0x0, symName: _SDL_joystick_being_added, symObjAddr: 0x2632C, symBinAddr: 0x1F161C, symSize: 0x0 }
-  - { offset: 0x927CB, size: 0x8, addend: 0x0, symName: _SDL_joystick_lock, symObjAddr: 0x26300, symBinAddr: 0x1F15F0, symSize: 0x0 }
-  - { offset: 0x927E5, size: 0x8, addend: 0x0, symName: _SDL_joystick_names, symObjAddr: 0x26310, symBinAddr: 0x1F1600, symSize: 0x0 }
+  - { offset: 0x9273F, size: 0x8, addend: 0x0, symName: _SDL_joystick_lock_pending, symObjAddr: 0x2637C, symBinAddr: 0x1F15EC, symSize: 0x0 }
+  - { offset: 0x92754, size: 0x8, addend: 0x0, symName: _SDL_joysticks_locked, symObjAddr: 0x26388, symBinAddr: 0x1F15F8, symSize: 0x0 }
+  - { offset: 0x92770, size: 0x8, addend: 0x0, symName: _SDL_joysticks_initialized, symObjAddr: 0x26378, symBinAddr: 0x1F15E8, symSize: 0x0 }
+  - { offset: 0x92793, size: 0x8, addend: 0x0, symName: _SDL_joysticks_quitting, symObjAddr: 0x26379, symBinAddr: 0x1F15E9, symSize: 0x0 }
+  - { offset: 0x927AF, size: 0x8, addend: 0x0, symName: _SDL_joystick_being_added, symObjAddr: 0x263AC, symBinAddr: 0x1F161C, symSize: 0x0 }
+  - { offset: 0x927CB, size: 0x8, addend: 0x0, symName: _SDL_joystick_lock, symObjAddr: 0x26380, symBinAddr: 0x1F15F0, symSize: 0x0 }
+  - { offset: 0x927E5, size: 0x8, addend: 0x0, symName: _SDL_joystick_names, symObjAddr: 0x26390, symBinAddr: 0x1F1600, symSize: 0x0 }
   - { offset: 0x92800, size: 0x8, addend: 0x0, symName: _old_xboxone_controllers, symObjAddr: 0x6E68, symBinAddr: 0x1EE108, symSize: 0x0 }
   - { offset: 0x928CB, size: 0x8, addend: 0x0, symName: _initial_old_xboxone_controllers, symObjAddr: 0x6BF0, symBinAddr: 0x1EDE90, symSize: 0x0 }
   - { offset: 0x928ED, size: 0x8, addend: 0x0, symName: _arcadestick_devices, symObjAddr: 0x6F30, symBinAddr: 0x1EE1D0, symSize: 0x0 }
@@ -1793,10 +1793,10 @@ relocations:
   - { offset: 0x92A53, size: 0x8, addend: 0x0, symName: _initial_wheel_devices, symObjAddr: 0x72C0, symBinAddr: 0x1EE560, symSize: 0x0 }
   - { offset: 0x92A75, size: 0x8, addend: 0x0, symName: _zero_centered_devices, symObjAddr: 0x7428, symBinAddr: 0x1EE6C8, symSize: 0x0 }
   - { offset: 0x92A8B, size: 0x8, addend: 0x0, symName: _initial_zero_centered_devices, symObjAddr: 0x7420, symBinAddr: 0x1EE6C0, symSize: 0x0 }
-  - { offset: 0x92AAC, size: 0x8, addend: 0x0, symName: _SDL_joystick_allows_background_events, symObjAddr: 0x2632D, symBinAddr: 0x1F161D, symSize: 0x0 }
-  - { offset: 0x93096, size: 0x8, addend: 0x0, symName: _SDL_joysticks, symObjAddr: 0x26318, symBinAddr: 0x1F1608, symSize: 0x0 }
-  - { offset: 0x930AB, size: 0x8, addend: 0x0, symName: _SDL_joystick_players, symObjAddr: 0x26320, symBinAddr: 0x1F1610, symSize: 0x0 }
-  - { offset: 0x930C5, size: 0x8, addend: 0x0, symName: _SDL_joystick_player_count, symObjAddr: 0x26328, symBinAddr: 0x1F1618, symSize: 0x0 }
+  - { offset: 0x92AAC, size: 0x8, addend: 0x0, symName: _SDL_joystick_allows_background_events, symObjAddr: 0x263AD, symBinAddr: 0x1F161D, symSize: 0x0 }
+  - { offset: 0x93096, size: 0x8, addend: 0x0, symName: _SDL_joysticks, symObjAddr: 0x26398, symBinAddr: 0x1F1608, symSize: 0x0 }
+  - { offset: 0x930AB, size: 0x8, addend: 0x0, symName: _SDL_joystick_players, symObjAddr: 0x263A0, symBinAddr: 0x1F1610, symSize: 0x0 }
+  - { offset: 0x930C5, size: 0x8, addend: 0x0, symName: _SDL_joystick_player_count, symObjAddr: 0x263A8, symBinAddr: 0x1F1618, symSize: 0x0 }
   - { offset: 0x93192, size: 0x8, addend: 0x0, symName: _SDL_LockJoysticks, symObjAddr: 0x20, symBinAddr: 0x77DE0, symSize: 0x40 }
   - { offset: 0x93210, size: 0x8, addend: 0x0, symName: _SDL_UnlockJoysticks, symObjAddr: 0x60, symBinAddr: 0x77E20, symSize: 0x80 }
   - { offset: 0x932E9, size: 0x8, addend: 0x0, symName: _SDL_InitJoysticks, symObjAddr: 0x100, symBinAddr: 0x77EA0, symSize: 0x140 }
@@ -1914,23 +1914,23 @@ relocations:
   - { offset: 0x9AD72, size: 0x8, addend: 0x0, symName: _SDL_VIDPIDIncludedHintChanged, symObjAddr: 0x65E0, symBinAddr: 0x7DE80, symSize: 0xD0 }
   - { offset: 0x9AE8C, size: 0x8, addend: 0x0, symName: _SDL_VIDPIDExcludedHintChanged, symObjAddr: 0x66B0, symBinAddr: 0x7DF50, symSize: 0xCA }
   - { offset: 0x9AFF3, size: 0x8, addend: 0x0, symName: _SDL_InitSteamVirtualGamepadInfo, symObjAddr: 0x0, symBinAddr: 0x7E020, symSize: 0x40 }
-  - { offset: 0x9B01A, size: 0x8, addend: 0x0, symName: _SDL_steam_virtual_gamepad_info_file, symObjAddr: 0x3428, symBinAddr: 0x1F1620, symSize: 0x0 }
-  - { offset: 0x9B034, size: 0x8, addend: 0x0, symName: _SDL_steam_virtual_gamepad_info, symObjAddr: 0x3430, symBinAddr: 0x1F1628, symSize: 0x0 }
-  - { offset: 0x9B0B1, size: 0x8, addend: 0x0, symName: _SDL_steam_virtual_gamepad_info_check_time, symObjAddr: 0x3438, symBinAddr: 0x1F1630, symSize: 0x0 }
-  - { offset: 0x9B0C6, size: 0x8, addend: 0x0, symName: _SDL_steam_virtual_gamepad_info_file_mtime, symObjAddr: 0x3440, symBinAddr: 0x1F1638, symSize: 0x0 }
-  - { offset: 0x9B0DB, size: 0x8, addend: 0x0, symName: _SDL_steam_virtual_gamepad_info_count, symObjAddr: 0x3448, symBinAddr: 0x1F1640, symSize: 0x0 }
+  - { offset: 0x9B01A, size: 0x8, addend: 0x0, symName: _SDL_steam_virtual_gamepad_info_file, symObjAddr: 0x34A0, symBinAddr: 0x1F1620, symSize: 0x0 }
+  - { offset: 0x9B034, size: 0x8, addend: 0x0, symName: _SDL_steam_virtual_gamepad_info, symObjAddr: 0x34A8, symBinAddr: 0x1F1628, symSize: 0x0 }
+  - { offset: 0x9B0B1, size: 0x8, addend: 0x0, symName: _SDL_steam_virtual_gamepad_info_check_time, symObjAddr: 0x34B0, symBinAddr: 0x1F1630, symSize: 0x0 }
+  - { offset: 0x9B0C6, size: 0x8, addend: 0x0, symName: _SDL_steam_virtual_gamepad_info_file_mtime, symObjAddr: 0x34B8, symBinAddr: 0x1F1638, symSize: 0x0 }
+  - { offset: 0x9B0DB, size: 0x8, addend: 0x0, symName: _SDL_steam_virtual_gamepad_info_count, symObjAddr: 0x34C0, symBinAddr: 0x1F1640, symSize: 0x0 }
   - { offset: 0x9B0ED, size: 0x8, addend: 0x0, symName: _SDL_InitSteamVirtualGamepadInfo, symObjAddr: 0x0, symBinAddr: 0x7E020, symSize: 0x40 }
   - { offset: 0x9B194, size: 0x8, addend: 0x0, symName: _SDL_UpdateSteamVirtualGamepadInfo, symObjAddr: 0x40, symBinAddr: 0x7E060, symSize: 0x520 }
   - { offset: 0x9B82E, size: 0x8, addend: 0x0, symName: _SDL_SteamVirtualGamepadEnabled, symObjAddr: 0x560, symBinAddr: 0x7E580, symSize: 0x20 }
   - { offset: 0x9B855, size: 0x8, addend: 0x0, symName: _SDL_GetSteamVirtualGamepadInfo, symObjAddr: 0x580, symBinAddr: 0x7E5A0, symSize: 0x30 }
   - { offset: 0x9B88C, size: 0x8, addend: 0x0, symName: _SDL_QuitSteamVirtualGamepadInfo, symObjAddr: 0x5B0, symBinAddr: 0x7E5D0, symSize: 0xAA }
   - { offset: 0x9B970, size: 0x8, addend: 0x0, symName: '-[SDL3_RumbleMotor cleanup]', symObjAddr: 0x0, symBinAddr: 0x7E680, symSize: 0x110 }
-  - { offset: 0x9B989, size: 0x8, addend: 0x0, symName: _connectObserver, symObjAddr: 0x1B438, symBinAddr: 0x1F1648, symSize: 0x0 }
-  - { offset: 0x9B9C7, size: 0x8, addend: 0x0, symName: _disconnectObserver, symObjAddr: 0x1B440, symBinAddr: 0x1F1650, symSize: 0x0 }
-  - { offset: 0x9BA41, size: 0x8, addend: 0x0, symName: _SDL_AppleTVRemoteOpenedAsJoystick, symObjAddr: 0x1B454, symBinAddr: 0x1F1D60, symSize: 0x0 }
+  - { offset: 0x9B989, size: 0x8, addend: 0x0, symName: _connectObserver, symObjAddr: 0x1B4B8, symBinAddr: 0x1F1648, symSize: 0x0 }
+  - { offset: 0x9B9C7, size: 0x8, addend: 0x0, symName: _disconnectObserver, symObjAddr: 0x1B4C0, symBinAddr: 0x1F1650, symSize: 0x0 }
+  - { offset: 0x9BA41, size: 0x8, addend: 0x0, symName: _SDL_AppleTVRemoteOpenedAsJoystick, symObjAddr: 0x1B4D4, symBinAddr: 0x1F1D60, symSize: 0x0 }
   - { offset: 0x9BA6D, size: 0x8, addend: 0x0, symName: _SDL_IOS_JoystickDriver, symObjAddr: 0x7798, symBinAddr: 0x1EE710, symSize: 0x0 }
-  - { offset: 0x9D3DA, size: 0x8, addend: 0x0, symName: _numjoysticks, symObjAddr: 0x1B450, symBinAddr: 0x1F1660, symSize: 0x0 }
-  - { offset: 0x9D3EF, size: 0x8, addend: 0x0, symName: _deviceList, symObjAddr: 0x1B448, symBinAddr: 0x1F1658, symSize: 0x0 }
+  - { offset: 0x9D3DA, size: 0x8, addend: 0x0, symName: _numjoysticks, symObjAddr: 0x1B4D0, symBinAddr: 0x1F1660, symSize: 0x0 }
+  - { offset: 0x9D3EF, size: 0x8, addend: 0x0, symName: _deviceList, symObjAddr: 0x1B4C8, symBinAddr: 0x1F1658, symSize: 0x0 }
   - { offset: 0x9D7D2, size: 0x8, addend: 0x0, symName: '-[SDL3_RumbleMotor cleanup]', symObjAddr: 0x0, symBinAddr: 0x7E680, symSize: 0x110 }
   - { offset: 0x9D8C2, size: 0x8, addend: 0x0, symName: '-[SDL3_RumbleMotor setIntensity:]', symObjAddr: 0x110, symBinAddr: 0x7E790, symSize: 0x580 }
   - { offset: 0x9DD57, size: 0x8, addend: 0x0, symName: '-[SDL3_RumbleMotor initWithController:locality:]', symObjAddr: 0x690, symBinAddr: 0x7ED10, symSize: 0x2F0 }
@@ -2007,11 +2007,11 @@ relocations:
   - { offset: 0xA37FA, size: 0x8, addend: 0x0, symName: _SDL_SYS_GetPreferredLocales, symObjAddr: 0x0, symBinAddr: 0x84820, symSize: 0x14D }
   - { offset: 0xA382F, size: 0x8, addend: 0x0, symName: _SDL_SYS_GetPreferredLocales, symObjAddr: 0x0, symBinAddr: 0x84820, symSize: 0x14D }
   - { offset: 0xA3A56, size: 0x8, addend: 0x0, symName: _SDL_HasMainCallbacks, symObjAddr: 0x0, symBinAddr: 0x84970, symSize: 0x20 }
-  - { offset: 0xA3A6F, size: 0x8, addend: 0x0, symName: _SDL_main_event_callback, symObjAddr: 0x2180, symBinAddr: 0x1F1670, symSize: 0x0 }
-  - { offset: 0xA3A8A, size: 0x8, addend: 0x0, symName: _SDL_main_iteration_callback, symObjAddr: 0x2178, symBinAddr: 0x1F1668, symSize: 0x0 }
-  - { offset: 0xA3A9F, size: 0x8, addend: 0x0, symName: _SDL_main_quit_callback, symObjAddr: 0x2188, symBinAddr: 0x1F1678, symSize: 0x0 }
-  - { offset: 0xA3AB4, size: 0x8, addend: 0x0, symName: _apprc, symObjAddr: 0x2190, symBinAddr: 0x1F1680, symSize: 0x0 }
-  - { offset: 0xA3AC9, size: 0x8, addend: 0x0, symName: _SDL_main_appstate, symObjAddr: 0x2198, symBinAddr: 0x1F1688, symSize: 0x0 }
+  - { offset: 0xA3A6F, size: 0x8, addend: 0x0, symName: _SDL_main_event_callback, symObjAddr: 0x2200, symBinAddr: 0x1F1670, symSize: 0x0 }
+  - { offset: 0xA3A8A, size: 0x8, addend: 0x0, symName: _SDL_main_iteration_callback, symObjAddr: 0x21F8, symBinAddr: 0x1F1668, symSize: 0x0 }
+  - { offset: 0xA3A9F, size: 0x8, addend: 0x0, symName: _SDL_main_quit_callback, symObjAddr: 0x2208, symBinAddr: 0x1F1678, symSize: 0x0 }
+  - { offset: 0xA3AB4, size: 0x8, addend: 0x0, symName: _apprc, symObjAddr: 0x2210, symBinAddr: 0x1F1680, symSize: 0x0 }
+  - { offset: 0xA3AC9, size: 0x8, addend: 0x0, symName: _SDL_main_appstate, symObjAddr: 0x2218, symBinAddr: 0x1F1688, symSize: 0x0 }
   - { offset: 0xA3AE6, size: 0x8, addend: 0x0, symName: _SDL_HasMainCallbacks, symObjAddr: 0x0, symBinAddr: 0x84970, symSize: 0x20 }
   - { offset: 0xA3B00, size: 0x8, addend: 0x0, symName: _SDL_InitMainCallbacks, symObjAddr: 0x20, symBinAddr: 0x84990, symSize: 0xC0 }
   - { offset: 0xA3CCE, size: 0x8, addend: 0x0, symName: _SDL_MainCallbackEventWatcher, symObjAddr: 0xE0, symBinAddr: 0x84A50, symSize: 0x80 }
@@ -2020,7 +2020,7 @@ relocations:
   - { offset: 0xA3F8F, size: 0x8, addend: 0x0, symName: _SDL_QuitMainCallbacks, symObjAddr: 0x2D0, symBinAddr: 0x84C40, symSize: 0x40 }
   - { offset: 0xA4030, size: 0x8, addend: 0x0, symName: _SDL_CallMainFunction, symObjAddr: 0x310, symBinAddr: 0x84C80, symSize: 0x44 }
   - { offset: 0xA40E7, size: 0x8, addend: 0x0, symName: '-[SDLIosMainCallbacksDisplayLink init:quitfunc:]', symObjAddr: 0x0, symBinAddr: 0x84CD0, symSize: 0x180 }
-  - { offset: 0xA4100, size: 0x8, addend: 0x0, symName: _globalDisplayLink, symObjAddr: 0x86C0, symBinAddr: 0x1F1690, symSize: 0x0 }
+  - { offset: 0xA4100, size: 0x8, addend: 0x0, symName: _globalDisplayLink, symObjAddr: 0x8740, symBinAddr: 0x1F1690, symSize: 0x0 }
   - { offset: 0xA4FDB, size: 0x8, addend: 0x0, symName: '-[SDLIosMainCallbacksDisplayLink init:quitfunc:]', symObjAddr: 0x0, symBinAddr: 0x84CD0, symSize: 0x180 }
   - { offset: 0xA524E, size: 0x8, addend: 0x0, symName: '-[SDLIosMainCallbacksDisplayLink appIteration:]', symObjAddr: 0x180, symBinAddr: 0x84E50, symSize: 0xC0 }
   - { offset: 0xA538A, size: 0x8, addend: 0x0, symName: '-[SDLIosMainCallbacksDisplayLink displayLink]', symObjAddr: 0x240, symBinAddr: 0x84F10, symSize: 0x10 }
@@ -2035,7 +2035,7 @@ relocations:
   - { offset: 0xA71E5, size: 0x8, addend: 0x0, symName: _SDL_GetPowerInfo, symObjAddr: 0x0, symBinAddr: 0x85140, symSize: 0x58 }
   - { offset: 0xA720D, size: 0x8, addend: 0x0, symName: _SDL_GetPowerInfo, symObjAddr: 0x0, symBinAddr: 0x85140, symSize: 0x58 }
   - { offset: 0xA72B0, size: 0x8, addend: 0x0, symName: _SDL_UIKit_UpdateBatteryMonitoring, symObjAddr: 0x0, symBinAddr: 0x851A0, symSize: 0x80 }
-  - { offset: 0xA72E3, size: 0x8, addend: 0x0, symName: _SDL_UIKitLastPowerInfoQuery, symObjAddr: 0x17F0, symBinAddr: 0x1F1698, symSize: 0x0 }
+  - { offset: 0xA72E3, size: 0x8, addend: 0x0, symName: _SDL_UIKitLastPowerInfoQuery, symObjAddr: 0x1870, symBinAddr: 0x1F1698, symSize: 0x0 }
   - { offset: 0xA73E7, size: 0x8, addend: 0x0, symName: _SDL_UIKit_UpdateBatteryMonitoring, symObjAddr: 0x0, symBinAddr: 0x851A0, symSize: 0x80 }
   - { offset: 0xA745B, size: 0x8, addend: 0x0, symName: _SDL_GetPowerInfo_UIKit, symObjAddr: 0x80, symBinAddr: 0x85220, symSize: 0xF3 }
   - { offset: 0xA7736, size: 0x8, addend: 0x0, symName: _SDL_CreateProcess, symObjAddr: 0x0, symBinAddr: 0x85320, symSize: 0xA0 }
@@ -2059,7 +2059,7 @@ relocations:
   - { offset: 0xA917E, size: 0x8, addend: 0x0, symName: _SDL_SYS_DestroyProcess, symObjAddr: 0xA20, symBinAddr: 0x861C0, symSize: 0x80 }
   - { offset: 0xA9234, size: 0x8, addend: 0x0, symName: _CleanupStream, symObjAddr: 0xAA0, symBinAddr: 0x86240, symSize: 0x13 }
   - { offset: 0xA92E9, size: 0x8, addend: 0x0, symName: _SDL_QuitRender, symObjAddr: 0x0, symBinAddr: 0x86260, symSize: 0x30 }
-  - { offset: 0xA9310, size: 0x8, addend: 0x0, symName: _SDL_renderers, symObjAddr: 0x44EC0, symBinAddr: 0x1F16A0, symSize: 0x0 }
+  - { offset: 0xA9310, size: 0x8, addend: 0x0, symName: _SDL_renderers, symObjAddr: 0x44F40, symBinAddr: 0x1F16A0, symSize: 0x0 }
   - { offset: 0xA97EB, size: 0x8, addend: 0x0, symName: _render_drivers, symObjAddr: 0xF630, symBinAddr: 0x1E2910, symSize: 0x0 }
   - { offset: 0xA985F, size: 0x8, addend: 0x0, symName: _rect_index_order, symObjAddr: 0xF660, symBinAddr: 0x1AB340, symSize: 0x0 }
   - { offset: 0xA9885, size: 0x8, addend: 0x0, symName: _SDL_RenderDebugTextFontData, symObjAddr: 0xF680, symBinAddr: 0x1AB360, symSize: 0x0 }
@@ -2507,104 +2507,104 @@ relocations:
   - { offset: 0xE3DB9, size: 0x8, addend: 0x0, symName: _SDL_BlitTriangle_Slow, symObjAddr: 0x35B0, symBinAddr: 0xCACC0, symSize: 0x10B4 }
   - { offset: 0xE439A, size: 0x8, addend: 0x0, symName: _VULKAN_CreateRenderer, symObjAddr: 0x0, symBinAddr: 0xCBD80, symSize: 0x310 }
   - { offset: 0xE43C3, size: 0x8, addend: 0x0, symName: _VULKAN_RenderDriver, symObjAddr: 0xE620, symBinAddr: 0x1EE850, symSize: 0x0 }
-  - { offset: 0xE46D0, size: 0x8, addend: 0x0, symName: _vkCreateImage, symObjAddr: 0x5AE50, symBinAddr: 0x1F16A8, symSize: 0x0 }
-  - { offset: 0xE80D9, size: 0x8, addend: 0x0, symName: _vkDestroyImageView, symObjAddr: 0x5AE78, symBinAddr: 0x1F16D0, symSize: 0x0 }
-  - { offset: 0xE8125, size: 0x8, addend: 0x0, symName: _vkDestroyImage, symObjAddr: 0x5AE80, symBinAddr: 0x1F16D8, symSize: 0x0 }
-  - { offset: 0xE815C, size: 0x8, addend: 0x0, symName: _vkFreeMemory, symObjAddr: 0x5AE88, symBinAddr: 0x1F16E0, symSize: 0x0 }
-  - { offset: 0xE81A8, size: 0x8, addend: 0x0, symName: _vkGetImageMemoryRequirements, symObjAddr: 0x5AE58, symBinAddr: 0x1F16B0, symSize: 0x0 }
-  - { offset: 0xE822C, size: 0x8, addend: 0x0, symName: _vkAllocateMemory, symObjAddr: 0x5AE60, symBinAddr: 0x1F16B8, symSize: 0x0 }
-  - { offset: 0xE82C5, size: 0x8, addend: 0x0, symName: _vkBindImageMemory, symObjAddr: 0x5AE68, symBinAddr: 0x1F16C0, symSize: 0x0 }
-  - { offset: 0xE8305, size: 0x8, addend: 0x0, symName: _vkResetCommandBuffer, symObjAddr: 0x5AE90, symBinAddr: 0x1F16E8, symSize: 0x0 }
-  - { offset: 0xE835C, size: 0x8, addend: 0x0, symName: _vkResetDescriptorPool, symObjAddr: 0x5AE98, symBinAddr: 0x1F16F0, symSize: 0x0 }
-  - { offset: 0xE83B8, size: 0x8, addend: 0x0, symName: _vkBeginCommandBuffer, symObjAddr: 0x5AEA0, symBinAddr: 0x1F16F8, symSize: 0x0 }
-  - { offset: 0xE8523, size: 0x8, addend: 0x0, symName: _vkDestroyBuffer, symObjAddr: 0x5AEA8, symBinAddr: 0x1F1700, symSize: 0x0 }
-  - { offset: 0xE856F, size: 0x8, addend: 0x0, symName: _vkCmdEndRenderPass, symObjAddr: 0x5AEB0, symBinAddr: 0x1F1708, symSize: 0x0 }
-  - { offset: 0xE859C, size: 0x8, addend: 0x0, symName: _vkCmdPipelineBarrier, symObjAddr: 0x5AEB8, symBinAddr: 0x1F1710, symSize: 0x0 }
-  - { offset: 0xE8808, size: 0x8, addend: 0x0, symName: _vkCreateImageView, symObjAddr: 0x5AE70, symBinAddr: 0x1F16C8, symSize: 0x0 }
-  - { offset: 0xE89C7, size: 0x8, addend: 0x0, symName: _vkCreateBuffer, symObjAddr: 0x5AEC8, symBinAddr: 0x1F1720, symSize: 0x0 }
-  - { offset: 0xE8AAC, size: 0x8, addend: 0x0, symName: _vkGetBufferMemoryRequirements, symObjAddr: 0x5AED0, symBinAddr: 0x1F1728, symSize: 0x0 }
-  - { offset: 0xE8AE3, size: 0x8, addend: 0x0, symName: _vkBindBufferMemory, symObjAddr: 0x5AED8, symBinAddr: 0x1F1730, symSize: 0x0 }
-  - { offset: 0xE8B23, size: 0x8, addend: 0x0, symName: _vkMapMemory, symObjAddr: 0x5AEE0, symBinAddr: 0x1F1738, symSize: 0x0 }
-  - { offset: 0xE8B79, size: 0x8, addend: 0x0, symName: _vkCmdCopyBufferToImage, symObjAddr: 0x5AEC0, symBinAddr: 0x1F1718, symSize: 0x0 }
-  - { offset: 0xE8CB4, size: 0x8, addend: 0x0, symName: _vkEndCommandBuffer, symObjAddr: 0x5AEE8, symBinAddr: 0x1F1740, symSize: 0x0 }
-  - { offset: 0xE8CE5, size: 0x8, addend: 0x0, symName: _vkQueueSubmit, symObjAddr: 0x5AEF0, symBinAddr: 0x1F1748, symSize: 0x0 }
-  - { offset: 0xE8E17, size: 0x8, addend: 0x0, symName: _vkQueueWaitIdle, symObjAddr: 0x5AEF8, symBinAddr: 0x1F1750, symSize: 0x0 }
-  - { offset: 0xE8E48, size: 0x8, addend: 0x0, symName: _vkCreateSamplerYcbcrConversionKHR, symObjAddr: 0x5AF00, symBinAddr: 0x1F1758, symSize: 0x0 }
-  - { offset: 0xE9061, size: 0x8, addend: 0x0, symName: _vkCreateSampler, symObjAddr: 0x5AF08, symBinAddr: 0x1F1760, symSize: 0x0 }
-  - { offset: 0xE92F9, size: 0x8, addend: 0x0, symName: _vkCreateDescriptorSetLayout, symObjAddr: 0x5AF10, symBinAddr: 0x1F1768, symSize: 0x0 }
-  - { offset: 0xE94ED, size: 0x8, addend: 0x0, symName: _vkCreatePipelineLayout, symObjAddr: 0x5AF18, symBinAddr: 0x1F1770, symSize: 0x0 }
-  - { offset: 0xE961F, size: 0x8, addend: 0x0, symName: _vkCreateRenderPass, symObjAddr: 0x5AF20, symBinAddr: 0x1F1778, symSize: 0x0 }
-  - { offset: 0xE99F9, size: 0x8, addend: 0x0, symName: _vkCreateFramebuffer, symObjAddr: 0x5AF28, symBinAddr: 0x1F1780, symSize: 0x0 }
-  - { offset: 0xE9AE9, size: 0x8, addend: 0x0, symName: _vkCmdBeginRenderPass, symObjAddr: 0x5AF38, symBinAddr: 0x1F1790, symSize: 0x0 }
-  - { offset: 0xE9D30, size: 0x8, addend: 0x0, symName: _vkCmdBindVertexBuffers, symObjAddr: 0x5AF30, symBinAddr: 0x1F1788, symSize: 0x0 }
-  - { offset: 0xE9DB0, size: 0x8, addend: 0x0, symName: _vkCreateGraphicsPipelines, symObjAddr: 0x5AF58, symBinAddr: 0x1F17B0, symSize: 0x0 }
-  - { offset: 0xEB0A8, size: 0x8, addend: 0x0, symName: _vkCmdBindPipeline, symObjAddr: 0x5AF40, symBinAddr: 0x1F1798, symSize: 0x0 }
-  - { offset: 0xEB0DF, size: 0x8, addend: 0x0, symName: _vkCmdSetViewport, symObjAddr: 0x5AF60, symBinAddr: 0x1F17B8, symSize: 0x0 }
-  - { offset: 0xEB11B, size: 0x8, addend: 0x0, symName: _vkCmdSetScissor, symObjAddr: 0x5AF68, symBinAddr: 0x1F17C0, symSize: 0x0 }
-  - { offset: 0xEB157, size: 0x8, addend: 0x0, symName: _vkCmdPushConstants, symObjAddr: 0x5AF48, symBinAddr: 0x1F17A0, symSize: 0x0 }
-  - { offset: 0xEB225, size: 0x8, addend: 0x0, symName: _vkAllocateDescriptorSets, symObjAddr: 0x5AF70, symBinAddr: 0x1F17C8, symSize: 0x0 }
-  - { offset: 0xEB2DB, size: 0x8, addend: 0x0, symName: _vkCreateDescriptorPool, symObjAddr: 0x5AF80, symBinAddr: 0x1F17D8, symSize: 0x0 }
-  - { offset: 0xEB3D4, size: 0x8, addend: 0x0, symName: _vkUpdateDescriptorSets, symObjAddr: 0x5AF78, symBinAddr: 0x1F17D0, symSize: 0x0 }
-  - { offset: 0xEB5F9, size: 0x8, addend: 0x0, symName: _vkCmdBindDescriptorSets, symObjAddr: 0x5AF50, symBinAddr: 0x1F17A8, symSize: 0x0 }
-  - { offset: 0xEB653, size: 0x8, addend: 0x0, symName: _vkCmdDraw, symObjAddr: 0x5AF88, symBinAddr: 0x1F17E0, symSize: 0x0 }
-  - { offset: 0xEB694, size: 0x8, addend: 0x0, symName: _vkCmdCopyImageToBuffer, symObjAddr: 0x5AF90, symBinAddr: 0x1F17E8, symSize: 0x0 }
-  - { offset: 0xEB6DA, size: 0x8, addend: 0x0, symName: _vkResetFences, symObjAddr: 0x5AF98, symBinAddr: 0x1F17F0, symSize: 0x0 }
-  - { offset: 0xEB71F, size: 0x8, addend: 0x0, symName: _vkDestroySwapchainKHR, symObjAddr: 0x5AFB0, symBinAddr: 0x1F1808, symSize: 0x0 }
-  - { offset: 0xEB76C, size: 0x8, addend: 0x0, symName: _vkDestroyFence, symObjAddr: 0x5AFB8, symBinAddr: 0x1F1810, symSize: 0x0 }
-  - { offset: 0xEB7A3, size: 0x8, addend: 0x0, symName: _vkDestroyFramebuffer, symObjAddr: 0x5AFC0, symBinAddr: 0x1F1818, symSize: 0x0 }
-  - { offset: 0xEB7DA, size: 0x8, addend: 0x0, symName: _vkDestroySampler, symObjAddr: 0x5AFC8, symBinAddr: 0x1F1820, symSize: 0x0 }
-  - { offset: 0xEB811, size: 0x8, addend: 0x0, symName: _vkDestroyRenderPass, symObjAddr: 0x5AFD0, symBinAddr: 0x1F1828, symSize: 0x0 }
-  - { offset: 0xEB848, size: 0x8, addend: 0x0, symName: _vkDestroySemaphore, symObjAddr: 0x5AFD8, symBinAddr: 0x1F1830, symSize: 0x0 }
-  - { offset: 0xEB87F, size: 0x8, addend: 0x0, symName: _vkFreeCommandBuffers, symObjAddr: 0x5AFE0, symBinAddr: 0x1F1838, symSize: 0x0 }
-  - { offset: 0xEB8D0, size: 0x8, addend: 0x0, symName: _vkDestroyCommandPool, symObjAddr: 0x5AFE8, symBinAddr: 0x1F1840, symSize: 0x0 }
-  - { offset: 0xEB907, size: 0x8, addend: 0x0, symName: _vkDestroyDescriptorPool, symObjAddr: 0x5AFF0, symBinAddr: 0x1F1848, symSize: 0x0 }
-  - { offset: 0xEB93E, size: 0x8, addend: 0x0, symName: _vkDestroyShaderModule, symObjAddr: 0x5AFF8, symBinAddr: 0x1F1850, symSize: 0x0 }
-  - { offset: 0xEB975, size: 0x8, addend: 0x0, symName: _vkDestroyDescriptorSetLayout, symObjAddr: 0x5B000, symBinAddr: 0x1F1858, symSize: 0x0 }
-  - { offset: 0xEB9AC, size: 0x8, addend: 0x0, symName: _vkDestroyPipelineLayout, symObjAddr: 0x5B008, symBinAddr: 0x1F1860, symSize: 0x0 }
-  - { offset: 0xEB9E3, size: 0x8, addend: 0x0, symName: _vkDestroyPipeline, symObjAddr: 0x5B010, symBinAddr: 0x1F1868, symSize: 0x0 }
-  - { offset: 0xEBA1A, size: 0x8, addend: 0x0, symName: _vkDestroyDevice, symObjAddr: 0x5B018, symBinAddr: 0x1F1870, symSize: 0x0 }
-  - { offset: 0xEBA4C, size: 0x8, addend: 0x0, symName: _vkDestroySurfaceKHR, symObjAddr: 0x5B020, symBinAddr: 0x1F1878, symSize: 0x0 }
-  - { offset: 0xEBAAE, size: 0x8, addend: 0x0, symName: _vkDestroyInstance, symObjAddr: 0x5B028, symBinAddr: 0x1F1880, symSize: 0x0 }
-  - { offset: 0xEBAE0, size: 0x8, addend: 0x0, symName: _vkQueuePresentKHR, symObjAddr: 0x5AFA0, symBinAddr: 0x1F17F8, symSize: 0x0 }
-  - { offset: 0xEBBAD, size: 0x8, addend: 0x0, symName: _vkWaitForFences, symObjAddr: 0x5AFA8, symBinAddr: 0x1F1800, symSize: 0x0 }
-  - { offset: 0xEBBF2, size: 0x8, addend: 0x0, symName: _vkAcquireNextImageKHR, symObjAddr: 0x5B030, symBinAddr: 0x1F1888, symSize: 0x0 }
-  - { offset: 0xEBC41, size: 0x8, addend: 0x0, symName: _vkDestroySamplerYcbcrConversionKHR, symObjAddr: 0x5B038, symBinAddr: 0x1F1890, symSize: 0x0 }
-  - { offset: 0xEBC78, size: 0x8, addend: 0x0, symName: _vkDeviceWaitIdle, symObjAddr: 0x5B040, symBinAddr: 0x1F1898, symSize: 0x0 }
+  - { offset: 0xE46D0, size: 0x8, addend: 0x0, symName: _vkCreateImage, symObjAddr: 0x5AEC8, symBinAddr: 0x1F16A8, symSize: 0x0 }
+  - { offset: 0xE80D9, size: 0x8, addend: 0x0, symName: _vkDestroyImageView, symObjAddr: 0x5AEF0, symBinAddr: 0x1F16D0, symSize: 0x0 }
+  - { offset: 0xE8125, size: 0x8, addend: 0x0, symName: _vkDestroyImage, symObjAddr: 0x5AEF8, symBinAddr: 0x1F16D8, symSize: 0x0 }
+  - { offset: 0xE815C, size: 0x8, addend: 0x0, symName: _vkFreeMemory, symObjAddr: 0x5AF00, symBinAddr: 0x1F16E0, symSize: 0x0 }
+  - { offset: 0xE81A8, size: 0x8, addend: 0x0, symName: _vkGetImageMemoryRequirements, symObjAddr: 0x5AED0, symBinAddr: 0x1F16B0, symSize: 0x0 }
+  - { offset: 0xE822C, size: 0x8, addend: 0x0, symName: _vkAllocateMemory, symObjAddr: 0x5AED8, symBinAddr: 0x1F16B8, symSize: 0x0 }
+  - { offset: 0xE82C5, size: 0x8, addend: 0x0, symName: _vkBindImageMemory, symObjAddr: 0x5AEE0, symBinAddr: 0x1F16C0, symSize: 0x0 }
+  - { offset: 0xE8305, size: 0x8, addend: 0x0, symName: _vkResetCommandBuffer, symObjAddr: 0x5AF08, symBinAddr: 0x1F16E8, symSize: 0x0 }
+  - { offset: 0xE835C, size: 0x8, addend: 0x0, symName: _vkResetDescriptorPool, symObjAddr: 0x5AF10, symBinAddr: 0x1F16F0, symSize: 0x0 }
+  - { offset: 0xE83B8, size: 0x8, addend: 0x0, symName: _vkBeginCommandBuffer, symObjAddr: 0x5AF18, symBinAddr: 0x1F16F8, symSize: 0x0 }
+  - { offset: 0xE8523, size: 0x8, addend: 0x0, symName: _vkDestroyBuffer, symObjAddr: 0x5AF20, symBinAddr: 0x1F1700, symSize: 0x0 }
+  - { offset: 0xE856F, size: 0x8, addend: 0x0, symName: _vkCmdEndRenderPass, symObjAddr: 0x5AF28, symBinAddr: 0x1F1708, symSize: 0x0 }
+  - { offset: 0xE859C, size: 0x8, addend: 0x0, symName: _vkCmdPipelineBarrier, symObjAddr: 0x5AF30, symBinAddr: 0x1F1710, symSize: 0x0 }
+  - { offset: 0xE8808, size: 0x8, addend: 0x0, symName: _vkCreateImageView, symObjAddr: 0x5AEE8, symBinAddr: 0x1F16C8, symSize: 0x0 }
+  - { offset: 0xE89C7, size: 0x8, addend: 0x0, symName: _vkCreateBuffer, symObjAddr: 0x5AF40, symBinAddr: 0x1F1720, symSize: 0x0 }
+  - { offset: 0xE8AAC, size: 0x8, addend: 0x0, symName: _vkGetBufferMemoryRequirements, symObjAddr: 0x5AF48, symBinAddr: 0x1F1728, symSize: 0x0 }
+  - { offset: 0xE8AE3, size: 0x8, addend: 0x0, symName: _vkBindBufferMemory, symObjAddr: 0x5AF50, symBinAddr: 0x1F1730, symSize: 0x0 }
+  - { offset: 0xE8B23, size: 0x8, addend: 0x0, symName: _vkMapMemory, symObjAddr: 0x5AF58, symBinAddr: 0x1F1738, symSize: 0x0 }
+  - { offset: 0xE8B79, size: 0x8, addend: 0x0, symName: _vkCmdCopyBufferToImage, symObjAddr: 0x5AF38, symBinAddr: 0x1F1718, symSize: 0x0 }
+  - { offset: 0xE8CB4, size: 0x8, addend: 0x0, symName: _vkEndCommandBuffer, symObjAddr: 0x5AF60, symBinAddr: 0x1F1740, symSize: 0x0 }
+  - { offset: 0xE8CE5, size: 0x8, addend: 0x0, symName: _vkQueueSubmit, symObjAddr: 0x5AF68, symBinAddr: 0x1F1748, symSize: 0x0 }
+  - { offset: 0xE8E17, size: 0x8, addend: 0x0, symName: _vkQueueWaitIdle, symObjAddr: 0x5AF70, symBinAddr: 0x1F1750, symSize: 0x0 }
+  - { offset: 0xE8E48, size: 0x8, addend: 0x0, symName: _vkCreateSamplerYcbcrConversionKHR, symObjAddr: 0x5AF78, symBinAddr: 0x1F1758, symSize: 0x0 }
+  - { offset: 0xE9061, size: 0x8, addend: 0x0, symName: _vkCreateSampler, symObjAddr: 0x5AF80, symBinAddr: 0x1F1760, symSize: 0x0 }
+  - { offset: 0xE92F9, size: 0x8, addend: 0x0, symName: _vkCreateDescriptorSetLayout, symObjAddr: 0x5AF88, symBinAddr: 0x1F1768, symSize: 0x0 }
+  - { offset: 0xE94ED, size: 0x8, addend: 0x0, symName: _vkCreatePipelineLayout, symObjAddr: 0x5AF90, symBinAddr: 0x1F1770, symSize: 0x0 }
+  - { offset: 0xE961F, size: 0x8, addend: 0x0, symName: _vkCreateRenderPass, symObjAddr: 0x5AF98, symBinAddr: 0x1F1778, symSize: 0x0 }
+  - { offset: 0xE99F9, size: 0x8, addend: 0x0, symName: _vkCreateFramebuffer, symObjAddr: 0x5AFA0, symBinAddr: 0x1F1780, symSize: 0x0 }
+  - { offset: 0xE9AE9, size: 0x8, addend: 0x0, symName: _vkCmdBeginRenderPass, symObjAddr: 0x5AFB0, symBinAddr: 0x1F1790, symSize: 0x0 }
+  - { offset: 0xE9D30, size: 0x8, addend: 0x0, symName: _vkCmdBindVertexBuffers, symObjAddr: 0x5AFA8, symBinAddr: 0x1F1788, symSize: 0x0 }
+  - { offset: 0xE9DB0, size: 0x8, addend: 0x0, symName: _vkCreateGraphicsPipelines, symObjAddr: 0x5AFD0, symBinAddr: 0x1F17B0, symSize: 0x0 }
+  - { offset: 0xEB0A8, size: 0x8, addend: 0x0, symName: _vkCmdBindPipeline, symObjAddr: 0x5AFB8, symBinAddr: 0x1F1798, symSize: 0x0 }
+  - { offset: 0xEB0DF, size: 0x8, addend: 0x0, symName: _vkCmdSetViewport, symObjAddr: 0x5AFD8, symBinAddr: 0x1F17B8, symSize: 0x0 }
+  - { offset: 0xEB11B, size: 0x8, addend: 0x0, symName: _vkCmdSetScissor, symObjAddr: 0x5AFE0, symBinAddr: 0x1F17C0, symSize: 0x0 }
+  - { offset: 0xEB157, size: 0x8, addend: 0x0, symName: _vkCmdPushConstants, symObjAddr: 0x5AFC0, symBinAddr: 0x1F17A0, symSize: 0x0 }
+  - { offset: 0xEB225, size: 0x8, addend: 0x0, symName: _vkAllocateDescriptorSets, symObjAddr: 0x5AFE8, symBinAddr: 0x1F17C8, symSize: 0x0 }
+  - { offset: 0xEB2DB, size: 0x8, addend: 0x0, symName: _vkCreateDescriptorPool, symObjAddr: 0x5AFF8, symBinAddr: 0x1F17D8, symSize: 0x0 }
+  - { offset: 0xEB3D4, size: 0x8, addend: 0x0, symName: _vkUpdateDescriptorSets, symObjAddr: 0x5AFF0, symBinAddr: 0x1F17D0, symSize: 0x0 }
+  - { offset: 0xEB5F9, size: 0x8, addend: 0x0, symName: _vkCmdBindDescriptorSets, symObjAddr: 0x5AFC8, symBinAddr: 0x1F17A8, symSize: 0x0 }
+  - { offset: 0xEB653, size: 0x8, addend: 0x0, symName: _vkCmdDraw, symObjAddr: 0x5B000, symBinAddr: 0x1F17E0, symSize: 0x0 }
+  - { offset: 0xEB694, size: 0x8, addend: 0x0, symName: _vkCmdCopyImageToBuffer, symObjAddr: 0x5B008, symBinAddr: 0x1F17E8, symSize: 0x0 }
+  - { offset: 0xEB6DA, size: 0x8, addend: 0x0, symName: _vkResetFences, symObjAddr: 0x5B010, symBinAddr: 0x1F17F0, symSize: 0x0 }
+  - { offset: 0xEB71F, size: 0x8, addend: 0x0, symName: _vkDestroySwapchainKHR, symObjAddr: 0x5B028, symBinAddr: 0x1F1808, symSize: 0x0 }
+  - { offset: 0xEB76C, size: 0x8, addend: 0x0, symName: _vkDestroyFence, symObjAddr: 0x5B030, symBinAddr: 0x1F1810, symSize: 0x0 }
+  - { offset: 0xEB7A3, size: 0x8, addend: 0x0, symName: _vkDestroyFramebuffer, symObjAddr: 0x5B038, symBinAddr: 0x1F1818, symSize: 0x0 }
+  - { offset: 0xEB7DA, size: 0x8, addend: 0x0, symName: _vkDestroySampler, symObjAddr: 0x5B040, symBinAddr: 0x1F1820, symSize: 0x0 }
+  - { offset: 0xEB811, size: 0x8, addend: 0x0, symName: _vkDestroyRenderPass, symObjAddr: 0x5B048, symBinAddr: 0x1F1828, symSize: 0x0 }
+  - { offset: 0xEB848, size: 0x8, addend: 0x0, symName: _vkDestroySemaphore, symObjAddr: 0x5B050, symBinAddr: 0x1F1830, symSize: 0x0 }
+  - { offset: 0xEB87F, size: 0x8, addend: 0x0, symName: _vkFreeCommandBuffers, symObjAddr: 0x5B058, symBinAddr: 0x1F1838, symSize: 0x0 }
+  - { offset: 0xEB8D0, size: 0x8, addend: 0x0, symName: _vkDestroyCommandPool, symObjAddr: 0x5B060, symBinAddr: 0x1F1840, symSize: 0x0 }
+  - { offset: 0xEB907, size: 0x8, addend: 0x0, symName: _vkDestroyDescriptorPool, symObjAddr: 0x5B068, symBinAddr: 0x1F1848, symSize: 0x0 }
+  - { offset: 0xEB93E, size: 0x8, addend: 0x0, symName: _vkDestroyShaderModule, symObjAddr: 0x5B070, symBinAddr: 0x1F1850, symSize: 0x0 }
+  - { offset: 0xEB975, size: 0x8, addend: 0x0, symName: _vkDestroyDescriptorSetLayout, symObjAddr: 0x5B078, symBinAddr: 0x1F1858, symSize: 0x0 }
+  - { offset: 0xEB9AC, size: 0x8, addend: 0x0, symName: _vkDestroyPipelineLayout, symObjAddr: 0x5B080, symBinAddr: 0x1F1860, symSize: 0x0 }
+  - { offset: 0xEB9E3, size: 0x8, addend: 0x0, symName: _vkDestroyPipeline, symObjAddr: 0x5B088, symBinAddr: 0x1F1868, symSize: 0x0 }
+  - { offset: 0xEBA1A, size: 0x8, addend: 0x0, symName: _vkDestroyDevice, symObjAddr: 0x5B090, symBinAddr: 0x1F1870, symSize: 0x0 }
+  - { offset: 0xEBA4C, size: 0x8, addend: 0x0, symName: _vkDestroySurfaceKHR, symObjAddr: 0x5B098, symBinAddr: 0x1F1878, symSize: 0x0 }
+  - { offset: 0xEBAAE, size: 0x8, addend: 0x0, symName: _vkDestroyInstance, symObjAddr: 0x5B0A0, symBinAddr: 0x1F1880, symSize: 0x0 }
+  - { offset: 0xEBAE0, size: 0x8, addend: 0x0, symName: _vkQueuePresentKHR, symObjAddr: 0x5B018, symBinAddr: 0x1F17F8, symSize: 0x0 }
+  - { offset: 0xEBBAD, size: 0x8, addend: 0x0, symName: _vkWaitForFences, symObjAddr: 0x5B020, symBinAddr: 0x1F1800, symSize: 0x0 }
+  - { offset: 0xEBBF2, size: 0x8, addend: 0x0, symName: _vkAcquireNextImageKHR, symObjAddr: 0x5B0A8, symBinAddr: 0x1F1888, symSize: 0x0 }
+  - { offset: 0xEBC41, size: 0x8, addend: 0x0, symName: _vkDestroySamplerYcbcrConversionKHR, symObjAddr: 0x5B0B0, symBinAddr: 0x1F1890, symSize: 0x0 }
+  - { offset: 0xEBC78, size: 0x8, addend: 0x0, symName: _vkDeviceWaitIdle, symObjAddr: 0x5B0B8, symBinAddr: 0x1F1898, symSize: 0x0 }
   - { offset: 0xEBC9E, size: 0x8, addend: 0x0, symName: _VULKAN_CreateDeviceResources, symObjAddr: 0x3BE0, symBinAddr: 0xCF960, symSize: 0x2030 }
   - { offset: 0xEBCC5, size: 0x8, addend: 0x0, symName: _VULKAN_CreateDeviceResources.deviceExtensionNames, symObjAddr: 0xE630, symBinAddr: 0x1E2B20, symSize: 0x0 }
   - { offset: 0xEBCDB, size: 0x8, addend: 0x0, symName: _VULKAN_CreateDeviceResources.queuePriority, symObjAddr: 0xE658, symBinAddr: 0x1C7208, symSize: 0x0 }
-  - { offset: 0xED201, size: 0x8, addend: 0x0, symName: _vkEnumerateInstanceExtensionProperties, symObjAddr: 0x5B088, symBinAddr: 0x1F18E0, symSize: 0x0 }
-  - { offset: 0xED280, size: 0x8, addend: 0x0, symName: _vkEnumerateInstanceLayerProperties, symObjAddr: 0x5B090, symBinAddr: 0x1F18E8, symSize: 0x0 }
-  - { offset: 0xED309, size: 0x8, addend: 0x0, symName: _vkCreateInstance, symObjAddr: 0x5B048, symBinAddr: 0x1F18A0, symSize: 0x0 }
-  - { offset: 0xED45D, size: 0x8, addend: 0x0, symName: _vkEnumerateDeviceExtensionProperties, symObjAddr: 0x5B098, symBinAddr: 0x1F18F0, symSize: 0x0 }
-  - { offset: 0xED4B2, size: 0x8, addend: 0x0, symName: _vkEnumeratePhysicalDevices, symObjAddr: 0x5B0A0, symBinAddr: 0x1F18F8, symSize: 0x0 }
-  - { offset: 0xED4F2, size: 0x8, addend: 0x0, symName: _vkGetDeviceProcAddr, symObjAddr: 0x5B0A8, symBinAddr: 0x1F1900, symSize: 0x0 }
-  - { offset: 0xED53A, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceQueueFamilyProperties, symObjAddr: 0x5B0B0, symBinAddr: 0x1F1908, symSize: 0x0 }
-  - { offset: 0xED5CC, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceSurfaceCapabilitiesKHR, symObjAddr: 0x5B0B8, symBinAddr: 0x1F1910, symSize: 0x0 }
-  - { offset: 0xED718, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceSurfaceFormatsKHR, symObjAddr: 0x5B0C0, symBinAddr: 0x1F1918, symSize: 0x0 }
-  - { offset: 0xED85D, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceSurfacePresentModesKHR, symObjAddr: 0x5B0C8, symBinAddr: 0x1F1920, symSize: 0x0 }
-  - { offset: 0xED8F2, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceSurfaceSupportKHR, symObjAddr: 0x5B0D0, symBinAddr: 0x1F1928, symSize: 0x0 }
-  - { offset: 0xED937, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceFeatures2KHR, symObjAddr: 0x5B0D8, symBinAddr: 0x1F1930, symSize: 0x0 }
-  - { offset: 0xEDC8C, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceFormatProperties2KHR, symObjAddr: 0x5B0E0, symBinAddr: 0x1F1938, symSize: 0x0 }
-  - { offset: 0xEDD4E, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceImageFormatProperties2KHR, symObjAddr: 0x5B0E8, symBinAddr: 0x1F1940, symSize: 0x0 }
-  - { offset: 0xEDEA9, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceMemoryProperties2KHR, symObjAddr: 0x5B0F0, symBinAddr: 0x1F1948, symSize: 0x0 }
-  - { offset: 0xEDFFB, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceProperties2KHR, symObjAddr: 0x5B0F8, symBinAddr: 0x1F1950, symSize: 0x0 }
-  - { offset: 0xEE772, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceProperties, symObjAddr: 0x5B050, symBinAddr: 0x1F18A8, symSize: 0x0 }
-  - { offset: 0xEE7A9, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceMemoryProperties, symObjAddr: 0x5B058, symBinAddr: 0x1F18B0, symSize: 0x0 }
-  - { offset: 0xEE7E0, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceFeatures, symObjAddr: 0x5B060, symBinAddr: 0x1F18B8, symSize: 0x0 }
-  - { offset: 0xEE817, size: 0x8, addend: 0x0, symName: _vkCreateDevice, symObjAddr: 0x5B068, symBinAddr: 0x1F18C0, symSize: 0x0 }
-  - { offset: 0xEE98E, size: 0x8, addend: 0x0, symName: _vkAllocateCommandBuffers, symObjAddr: 0x5B100, symBinAddr: 0x1F1958, symSize: 0x0 }
-  - { offset: 0xEEA5F, size: 0x8, addend: 0x0, symName: _vkCmdClearColorImage, symObjAddr: 0x5B108, symBinAddr: 0x1F1960, symSize: 0x0 }
-  - { offset: 0xEEAB9, size: 0x8, addend: 0x0, symName: _vkCreateFence, symObjAddr: 0x5B110, symBinAddr: 0x1F1968, symSize: 0x0 }
-  - { offset: 0xEEB51, size: 0x8, addend: 0x0, symName: _vkCreateSemaphore, symObjAddr: 0x5B118, symBinAddr: 0x1F1970, symSize: 0x0 }
-  - { offset: 0xEEBE9, size: 0x8, addend: 0x0, symName: _vkCreateSwapchainKHR, symObjAddr: 0x5B120, symBinAddr: 0x1F1978, symSize: 0x0 }
-  - { offset: 0xEED80, size: 0x8, addend: 0x0, symName: _vkGetFenceStatus, symObjAddr: 0x5B128, symBinAddr: 0x1F1980, symSize: 0x0 }
-  - { offset: 0xEEDB6, size: 0x8, addend: 0x0, symName: _vkGetSwapchainImagesKHR, symObjAddr: 0x5B130, symBinAddr: 0x1F1988, symSize: 0x0 }
-  - { offset: 0xEEDF6, size: 0x8, addend: 0x0, symName: _vkResetCommandPool, symObjAddr: 0x5B138, symBinAddr: 0x1F1990, symSize: 0x0 }
-  - { offset: 0xEEE3D, size: 0x8, addend: 0x0, symName: _vkUnmapMemory, symObjAddr: 0x5B140, symBinAddr: 0x1F1998, symSize: 0x0 }
-  - { offset: 0xEEE6F, size: 0x8, addend: 0x0, symName: _vkGetDeviceQueue, symObjAddr: 0x5B070, symBinAddr: 0x1F18C8, symSize: 0x0 }
-  - { offset: 0xEEEB0, size: 0x8, addend: 0x0, symName: _vkCreateCommandPool, symObjAddr: 0x5B078, symBinAddr: 0x1F18D0, symSize: 0x0 }
-  - { offset: 0xEEF55, size: 0x8, addend: 0x0, symName: _vkCreateShaderModule, symObjAddr: 0x5B080, symBinAddr: 0x1F18D8, symSize: 0x0 }
+  - { offset: 0xED201, size: 0x8, addend: 0x0, symName: _vkEnumerateInstanceExtensionProperties, symObjAddr: 0x5B100, symBinAddr: 0x1F18E0, symSize: 0x0 }
+  - { offset: 0xED280, size: 0x8, addend: 0x0, symName: _vkEnumerateInstanceLayerProperties, symObjAddr: 0x5B108, symBinAddr: 0x1F18E8, symSize: 0x0 }
+  - { offset: 0xED309, size: 0x8, addend: 0x0, symName: _vkCreateInstance, symObjAddr: 0x5B0C0, symBinAddr: 0x1F18A0, symSize: 0x0 }
+  - { offset: 0xED45D, size: 0x8, addend: 0x0, symName: _vkEnumerateDeviceExtensionProperties, symObjAddr: 0x5B110, symBinAddr: 0x1F18F0, symSize: 0x0 }
+  - { offset: 0xED4B2, size: 0x8, addend: 0x0, symName: _vkEnumeratePhysicalDevices, symObjAddr: 0x5B118, symBinAddr: 0x1F18F8, symSize: 0x0 }
+  - { offset: 0xED4F2, size: 0x8, addend: 0x0, symName: _vkGetDeviceProcAddr, symObjAddr: 0x5B120, symBinAddr: 0x1F1900, symSize: 0x0 }
+  - { offset: 0xED53A, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceQueueFamilyProperties, symObjAddr: 0x5B128, symBinAddr: 0x1F1908, symSize: 0x0 }
+  - { offset: 0xED5CC, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceSurfaceCapabilitiesKHR, symObjAddr: 0x5B130, symBinAddr: 0x1F1910, symSize: 0x0 }
+  - { offset: 0xED718, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceSurfaceFormatsKHR, symObjAddr: 0x5B138, symBinAddr: 0x1F1918, symSize: 0x0 }
+  - { offset: 0xED85D, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceSurfacePresentModesKHR, symObjAddr: 0x5B140, symBinAddr: 0x1F1920, symSize: 0x0 }
+  - { offset: 0xED8F2, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceSurfaceSupportKHR, symObjAddr: 0x5B148, symBinAddr: 0x1F1928, symSize: 0x0 }
+  - { offset: 0xED937, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceFeatures2KHR, symObjAddr: 0x5B150, symBinAddr: 0x1F1930, symSize: 0x0 }
+  - { offset: 0xEDC8C, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceFormatProperties2KHR, symObjAddr: 0x5B158, symBinAddr: 0x1F1938, symSize: 0x0 }
+  - { offset: 0xEDD4E, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceImageFormatProperties2KHR, symObjAddr: 0x5B160, symBinAddr: 0x1F1940, symSize: 0x0 }
+  - { offset: 0xEDEA9, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceMemoryProperties2KHR, symObjAddr: 0x5B168, symBinAddr: 0x1F1948, symSize: 0x0 }
+  - { offset: 0xEDFFB, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceProperties2KHR, symObjAddr: 0x5B170, symBinAddr: 0x1F1950, symSize: 0x0 }
+  - { offset: 0xEE772, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceProperties, symObjAddr: 0x5B0C8, symBinAddr: 0x1F18A8, symSize: 0x0 }
+  - { offset: 0xEE7A9, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceMemoryProperties, symObjAddr: 0x5B0D0, symBinAddr: 0x1F18B0, symSize: 0x0 }
+  - { offset: 0xEE7E0, size: 0x8, addend: 0x0, symName: _vkGetPhysicalDeviceFeatures, symObjAddr: 0x5B0D8, symBinAddr: 0x1F18B8, symSize: 0x0 }
+  - { offset: 0xEE817, size: 0x8, addend: 0x0, symName: _vkCreateDevice, symObjAddr: 0x5B0E0, symBinAddr: 0x1F18C0, symSize: 0x0 }
+  - { offset: 0xEE98E, size: 0x8, addend: 0x0, symName: _vkAllocateCommandBuffers, symObjAddr: 0x5B178, symBinAddr: 0x1F1958, symSize: 0x0 }
+  - { offset: 0xEEA5F, size: 0x8, addend: 0x0, symName: _vkCmdClearColorImage, symObjAddr: 0x5B180, symBinAddr: 0x1F1960, symSize: 0x0 }
+  - { offset: 0xEEAB9, size: 0x8, addend: 0x0, symName: _vkCreateFence, symObjAddr: 0x5B188, symBinAddr: 0x1F1968, symSize: 0x0 }
+  - { offset: 0xEEB51, size: 0x8, addend: 0x0, symName: _vkCreateSemaphore, symObjAddr: 0x5B190, symBinAddr: 0x1F1970, symSize: 0x0 }
+  - { offset: 0xEEBE9, size: 0x8, addend: 0x0, symName: _vkCreateSwapchainKHR, symObjAddr: 0x5B198, symBinAddr: 0x1F1978, symSize: 0x0 }
+  - { offset: 0xEED80, size: 0x8, addend: 0x0, symName: _vkGetFenceStatus, symObjAddr: 0x5B1A0, symBinAddr: 0x1F1980, symSize: 0x0 }
+  - { offset: 0xEEDB6, size: 0x8, addend: 0x0, symName: _vkGetSwapchainImagesKHR, symObjAddr: 0x5B1A8, symBinAddr: 0x1F1988, symSize: 0x0 }
+  - { offset: 0xEEDF6, size: 0x8, addend: 0x0, symName: _vkResetCommandPool, symObjAddr: 0x5B1B0, symBinAddr: 0x1F1990, symSize: 0x0 }
+  - { offset: 0xEEE3D, size: 0x8, addend: 0x0, symName: _vkUnmapMemory, symObjAddr: 0x5B1B8, symBinAddr: 0x1F1998, symSize: 0x0 }
+  - { offset: 0xEEE6F, size: 0x8, addend: 0x0, symName: _vkGetDeviceQueue, symObjAddr: 0x5B0E8, symBinAddr: 0x1F18C8, symSize: 0x0 }
+  - { offset: 0xEEEB0, size: 0x8, addend: 0x0, symName: _vkCreateCommandPool, symObjAddr: 0x5B0F0, symBinAddr: 0x1F18D0, symSize: 0x0 }
+  - { offset: 0xEEF55, size: 0x8, addend: 0x0, symName: _vkCreateShaderModule, symObjAddr: 0x5B0F8, symBinAddr: 0x1F18D8, symSize: 0x0 }
   - { offset: 0xEF96F, size: 0x8, addend: 0x0, symName: _VULKAN_CreateRenderer, symObjAddr: 0x0, symBinAddr: 0xCBD80, symSize: 0x310 }
   - { offset: 0xEFC7D, size: 0x8, addend: 0x0, symName: _VULKAN_CreateWindowSizeDependentResources, symObjAddr: 0x5C10, symBinAddr: 0xD1990, symSize: 0x13B0 }
   - { offset: 0xF08E6, size: 0x8, addend: 0x0, symName: _VULKAN_WindowEvent, symObjAddr: 0x310, symBinAddr: 0xCC090, symSize: 0x20 }
@@ -2665,11 +2665,11 @@ relocations:
   - { offset: 0xF79AB, size: 0x8, addend: 0x0, symName: _VULKAN_PixelShader_Advanced_YUV, symObjAddr: 0x4DA0, symBinAddr: 0x1CBEF0, symSize: 0x0 }
   - { offset: 0xF79F4, size: 0x8, addend: 0x0, symName: _VULKAN_GetVertexShader, symObjAddr: 0x0, symBinAddr: 0xD7A40, symSize: 0x20 }
   - { offset: 0xF7A35, size: 0x8, addend: 0x0, symName: _VULKAN_GetPixelShader, symObjAddr: 0x20, symBinAddr: 0xD7A60, symSize: 0x22 }
-  - { offset: 0xF7AD8, size: 0x8, addend: 0x0, symName: _SDL_sensor_lock_pending, symObjAddr: 0x5D0C, symBinAddr: 0x1F19A4, symSize: 0x0 }
-  - { offset: 0xF7AED, size: 0x8, addend: 0x0, symName: _SDL_sensors_locked, symObjAddr: 0x5D18, symBinAddr: 0x1F19B0, symSize: 0x0 }
-  - { offset: 0xF7B09, size: 0x8, addend: 0x0, symName: _SDL_sensors_initialized, symObjAddr: 0x5D08, symBinAddr: 0x1F19A0, symSize: 0x0 }
-  - { offset: 0xF7B2C, size: 0x8, addend: 0x0, symName: _SDL_sensor_lock, symObjAddr: 0x5D10, symBinAddr: 0x1F19A8, symSize: 0x0 }
-  - { offset: 0xF7C82, size: 0x8, addend: 0x0, symName: _SDL_sensors, symObjAddr: 0x5D20, symBinAddr: 0x1F19B8, symSize: 0x0 }
+  - { offset: 0xF7AD8, size: 0x8, addend: 0x0, symName: _SDL_sensor_lock_pending, symObjAddr: 0x5D84, symBinAddr: 0x1F19A4, symSize: 0x0 }
+  - { offset: 0xF7AED, size: 0x8, addend: 0x0, symName: _SDL_sensors_locked, symObjAddr: 0x5D90, symBinAddr: 0x1F19B0, symSize: 0x0 }
+  - { offset: 0xF7B09, size: 0x8, addend: 0x0, symName: _SDL_sensors_initialized, symObjAddr: 0x5D80, symBinAddr: 0x1F19A0, symSize: 0x0 }
+  - { offset: 0xF7B2C, size: 0x8, addend: 0x0, symName: _SDL_sensor_lock, symObjAddr: 0x5D88, symBinAddr: 0x1F19A8, symSize: 0x0 }
+  - { offset: 0xF7C82, size: 0x8, addend: 0x0, symName: _SDL_sensors, symObjAddr: 0x5D98, symBinAddr: 0x1F19B8, symSize: 0x0 }
   - { offset: 0xF7CBC, size: 0x8, addend: 0x0, symName: _SDL_UnlockSensors, symObjAddr: 0x50, symBinAddr: 0xD7A90, symSize: 0x80 }
   - { offset: 0xF7D91, size: 0x8, addend: 0x0, symName: _SDL_InitSensors, symObjAddr: 0xF0, symBinAddr: 0xD7B10, symSize: 0x90 }
   - { offset: 0xF7E7D, size: 0x8, addend: 0x0, symName: _SDL_QuitSensors, symObjAddr: 0x180, symBinAddr: 0xD7BA0, symSize: 0x80 }
@@ -2691,9 +2691,9 @@ relocations:
   - { offset: 0xF9134, size: 0x8, addend: 0x0, symName: _SDL_UpdateSensors, symObjAddr: 0xDF0, symBinAddr: 0xD8780, symSize: 0x8F }
   - { offset: 0xF9238, size: 0x8, addend: 0x0, symName: _SDL_COREMOTION_SensorInit, symObjAddr: 0x0, symBinAddr: 0xD8810, symSize: 0x130 }
   - { offset: 0xF9252, size: 0x8, addend: 0x0, symName: _SDL_COREMOTION_SensorDriver, symObjAddr: 0x428, symBinAddr: 0x1EE860, symSize: 0x0 }
-  - { offset: 0xF94FD, size: 0x8, addend: 0x0, symName: _SDL_motion_manager, symObjAddr: 0x34A8, symBinAddr: 0x1F19C0, symSize: 0x0 }
-  - { offset: 0xF9A97, size: 0x8, addend: 0x0, symName: _SDL_sensors, symObjAddr: 0x34B0, symBinAddr: 0x1F19C8, symSize: 0x0 }
-  - { offset: 0xF9AD9, size: 0x8, addend: 0x0, symName: _SDL_sensors_count, symObjAddr: 0x34B8, symBinAddr: 0x1F19D0, symSize: 0x0 }
+  - { offset: 0xF94FD, size: 0x8, addend: 0x0, symName: _SDL_motion_manager, symObjAddr: 0x3528, symBinAddr: 0x1F19C0, symSize: 0x0 }
+  - { offset: 0xF9A97, size: 0x8, addend: 0x0, symName: _SDL_sensors, symObjAddr: 0x3530, symBinAddr: 0x1F19C8, symSize: 0x0 }
+  - { offset: 0xF9AD9, size: 0x8, addend: 0x0, symName: _SDL_sensors_count, symObjAddr: 0x3538, symBinAddr: 0x1F19D0, symSize: 0x0 }
   - { offset: 0xF9AE3, size: 0x8, addend: 0x0, symName: _SDL_COREMOTION_SensorInit, symObjAddr: 0x0, symBinAddr: 0xD8810, symSize: 0x130 }
   - { offset: 0xF9BDB, size: 0x8, addend: 0x0, symName: _SDL_COREMOTION_SensorGetCount, symObjAddr: 0x130, symBinAddr: 0xD8940, symSize: 0x10 }
   - { offset: 0xF9BF5, size: 0x8, addend: 0x0, symName: _SDL_COREMOTION_SensorDetect, symObjAddr: 0x140, symBinAddr: 0xD8950, symSize: 0x10 }
@@ -2710,7 +2710,7 @@ relocations:
   - { offset: 0xFA04E, size: 0x8, addend: 0x0, symName: _SDL_crc32, symObjAddr: 0x0, symBinAddr: 0xD8D70, symSize: 0xE0 }
   - { offset: 0xFA095, size: 0x8, addend: 0x0, symName: _SDL_crc32, symObjAddr: 0x0, symBinAddr: 0xD8D70, symSize: 0xE0 }
   - { offset: 0xFA13E, size: 0x8, addend: 0x0, symName: _SDL_GetEnvironment, symObjAddr: 0x0, symBinAddr: 0xD8E50, symSize: 0x30 }
-  - { offset: 0xFA165, size: 0x8, addend: 0x0, symName: _SDL_environment, symObjAddr: 0x3DF8, symBinAddr: 0x1F19D8, symSize: 0x0 }
+  - { offset: 0xFA165, size: 0x8, addend: 0x0, symName: _SDL_environment, symObjAddr: 0x3E78, symBinAddr: 0x1F19D8, symSize: 0x0 }
   - { offset: 0xFA212, size: 0x8, addend: 0x0, symName: _SDL_GetEnvironment, symObjAddr: 0x0, symBinAddr: 0xD8E50, symSize: 0x30 }
   - { offset: 0xFA239, size: 0x8, addend: 0x0, symName: _SDL_CreateEnvironment, symObjAddr: 0x30, symBinAddr: 0xD8E80, symSize: 0x100 }
   - { offset: 0xFA441, size: 0x8, addend: 0x0, symName: _SDL_InitEnvironment, symObjAddr: 0x130, symBinAddr: 0xD8F80, symSize: 0x30 }
@@ -2766,8 +2766,8 @@ relocations:
   - { offset: 0xFF620, size: 0x8, addend: 0x0, symName: _SDL_bsearch_r, symObjAddr: 0x5130, symBinAddr: 0xDF9D0, symSize: 0x80 }
   - { offset: 0xFF720, size: 0x8, addend: 0x0, symName: _SDL_bsearch, symObjAddr: 0x51B0, symBinAddr: 0xDFA50, symSize: 0x80 }
   - { offset: 0xFF854, size: 0x8, addend: 0x0, symName: _SDL_srand, symObjAddr: 0x0, symBinAddr: 0xDFCF0, symSize: 0x30 }
-  - { offset: 0xFF86D, size: 0x8, addend: 0x0, symName: _SDL_rand_state, symObjAddr: 0x1420, symBinAddr: 0x1F19E0, symSize: 0x0 }
-  - { offset: 0xFF889, size: 0x8, addend: 0x0, symName: _SDL_rand_initialized, symObjAddr: 0x1428, symBinAddr: 0x1F19E8, symSize: 0x0 }
+  - { offset: 0xFF86D, size: 0x8, addend: 0x0, symName: _SDL_rand_state, symObjAddr: 0x14A0, symBinAddr: 0x1F19E0, symSize: 0x0 }
+  - { offset: 0xFF889, size: 0x8, addend: 0x0, symName: _SDL_rand_initialized, symObjAddr: 0x14A8, symBinAddr: 0x1F19E8, symSize: 0x0 }
   - { offset: 0xFF8AE, size: 0x8, addend: 0x0, symName: _SDL_srand, symObjAddr: 0x0, symBinAddr: 0xDFCF0, symSize: 0x30 }
   - { offset: 0xFF947, size: 0x8, addend: 0x0, symName: _SDL_rand, symObjAddr: 0x30, symBinAddr: 0xDFD20, symSize: 0x60 }
   - { offset: 0xFF9D6, size: 0x8, addend: 0x0, symName: _SDL_rand_r, symObjAddr: 0x90, symBinAddr: 0xDFD80, symSize: 0x40 }
@@ -3245,11 +3245,11 @@ relocations:
   - { offset: 0x107455, size: 0x8, addend: 0x0, symName: _GENERIC_GetStorageSpaceRemaining, symObjAddr: 0x710, symBinAddr: 0xE37C0, symSize: 0xD }
   - { offset: 0x1074C0, size: 0x8, addend: 0x0, symName: _SDL_InitTLSData, symObjAddr: 0x0, symBinAddr: 0xE37D0, symSize: 0x10 }
   - { offset: 0x1074DB, size: 0x8, addend: 0x0, symName: _SDL_GetErrBuf, symObjAddr: 0x500, symBinAddr: 0xE3CD0, symSize: 0x110 }
-  - { offset: 0x107502, size: 0x8, addend: 0x0, symName: _SDL_GetErrBuf.tls_errbuf, symObjAddr: 0x6D78, symBinAddr: 0x1F1A08, symSize: 0x0 }
-  - { offset: 0x107606, size: 0x8, addend: 0x0, symName: _SDL_tls_allocated, symObjAddr: 0x6D64, symBinAddr: 0x1F19F4, symSize: 0x0 }
-  - { offset: 0x10761B, size: 0x8, addend: 0x0, symName: _SDL_tls_id, symObjAddr: 0x6D60, symBinAddr: 0x1F19F0, symSize: 0x0 }
-  - { offset: 0x107630, size: 0x8, addend: 0x0, symName: _SDL_generic_TLS_mutex, symObjAddr: 0x6D68, symBinAddr: 0x1F19F8, symSize: 0x0 }
-  - { offset: 0x10764A, size: 0x8, addend: 0x0, symName: _SDL_generic_TLS, symObjAddr: 0x6D70, symBinAddr: 0x1F1A00, symSize: 0x0 }
+  - { offset: 0x107502, size: 0x8, addend: 0x0, symName: _SDL_GetErrBuf.tls_errbuf, symObjAddr: 0x6DF8, symBinAddr: 0x1F1A08, symSize: 0x0 }
+  - { offset: 0x107606, size: 0x8, addend: 0x0, symName: _SDL_tls_allocated, symObjAddr: 0x6DE4, symBinAddr: 0x1F19F4, symSize: 0x0 }
+  - { offset: 0x10761B, size: 0x8, addend: 0x0, symName: _SDL_tls_id, symObjAddr: 0x6DE0, symBinAddr: 0x1F19F0, symSize: 0x0 }
+  - { offset: 0x107630, size: 0x8, addend: 0x0, symName: _SDL_generic_TLS_mutex, symObjAddr: 0x6DE8, symBinAddr: 0x1F19F8, symSize: 0x0 }
+  - { offset: 0x10764A, size: 0x8, addend: 0x0, symName: _SDL_generic_TLS, symObjAddr: 0x6DF0, symBinAddr: 0x1F1A00, symSize: 0x0 }
   - { offset: 0x1077E8, size: 0x8, addend: 0x0, symName: _SDL_InitTLSData, symObjAddr: 0x0, symBinAddr: 0xE37D0, symSize: 0x10 }
   - { offset: 0x107810, size: 0x8, addend: 0x0, symName: _SDL_GetTLS, symObjAddr: 0x10, symBinAddr: 0xE37E0, symSize: 0x60 }
   - { offset: 0x1078B4, size: 0x8, addend: 0x0, symName: _SDL_SetTLS, symObjAddr: 0x70, symBinAddr: 0xE3840, symSize: 0x180 }
@@ -3308,8 +3308,8 @@ relocations:
   - { offset: 0x109BA8, size: 0x8, addend: 0x0, symName: _SDL_GetSemaphoreValue, symObjAddr: 0x200, symBinAddr: 0xE4AA0, symSize: 0x40 }
   - { offset: 0x109BFC, size: 0x8, addend: 0x0, symName: _SDL_SignalSemaphore, symObjAddr: 0x240, symBinAddr: 0xE4AE0, symSize: 0x38 }
   - { offset: 0x109C6E, size: 0x8, addend: 0x0, symName: _SDL_SYS_CreateThread, symObjAddr: 0x0, symBinAddr: 0xE4B20, symSize: 0xD0 }
-  - { offset: 0x109C95, size: 0x8, addend: 0x0, symName: _checked_setname, symObjAddr: 0x2B78, symBinAddr: 0x1F1B60, symSize: 0x0 }
-  - { offset: 0x109CB8, size: 0x8, addend: 0x0, symName: _ppthread_setname_np, symObjAddr: 0x2B80, symBinAddr: 0x1F1B68, symSize: 0x0 }
+  - { offset: 0x109C95, size: 0x8, addend: 0x0, symName: _checked_setname, symObjAddr: 0x2BF8, symBinAddr: 0x1F1B60, symSize: 0x0 }
+  - { offset: 0x109CB8, size: 0x8, addend: 0x0, symName: _ppthread_setname_np, symObjAddr: 0x2C00, symBinAddr: 0x1F1B68, symSize: 0x0 }
   - { offset: 0x109CFD, size: 0x8, addend: 0x0, symName: _SDL_SYS_CreateThread, symObjAddr: 0x0, symBinAddr: 0xE4B20, symSize: 0xD0 }
   - { offset: 0x109EC0, size: 0x8, addend: 0x0, symName: _RunThread, symObjAddr: 0xD0, symBinAddr: 0xE4BF0, symSize: 0x10 }
   - { offset: 0x109F0C, size: 0x8, addend: 0x0, symName: _SDL_SYS_SetupThread, symObjAddr: 0xE0, symBinAddr: 0xE4C00, symSize: 0x50 }
@@ -3319,7 +3319,7 @@ relocations:
   - { offset: 0x10A312, size: 0x8, addend: 0x0, symName: _SDL_SYS_DetachThread, symObjAddr: 0x300, symBinAddr: 0xE4E20, symSize: 0xE }
   - { offset: 0x10A383, size: 0x8, addend: 0x0, symName: _SDL_SYS_InitTLSData, symObjAddr: 0x0, symBinAddr: 0xE4E30, symSize: 0x50 }
   - { offset: 0x10A3AA, size: 0x8, addend: 0x0, symName: _thread_local_storage, symObjAddr: 0x100, symBinAddr: 0x1EE908, symSize: 0x0 }
-  - { offset: 0x10A3C6, size: 0x8, addend: 0x0, symName: _generic_local_storage, symObjAddr: 0xFD1, symBinAddr: 0x1F1B70, symSize: 0x0 }
+  - { offset: 0x10A3C6, size: 0x8, addend: 0x0, symName: _generic_local_storage, symObjAddr: 0x1049, symBinAddr: 0x1F1B70, symSize: 0x0 }
   - { offset: 0x10A448, size: 0x8, addend: 0x0, symName: _SDL_SYS_InitTLSData, symObjAddr: 0x0, symBinAddr: 0xE4E30, symSize: 0x50 }
   - { offset: 0x10A4A1, size: 0x8, addend: 0x0, symName: _SDL_SYS_GetTLSData, symObjAddr: 0x50, symBinAddr: 0xE4E80, symSize: 0x30 }
   - { offset: 0x10A4F2, size: 0x8, addend: 0x0, symName: _SDL_SYS_SetTLSData, symObjAddr: 0x80, symBinAddr: 0xE4EB0, symSize: 0x40 }
@@ -3337,12 +3337,12 @@ relocations:
   - { offset: 0x10AD8F, size: 0x8, addend: 0x0, symName: _SDL_GetCurrentTime, symObjAddr: 0xD0, symBinAddr: 0xE5700, symSize: 0xB0 }
   - { offset: 0x10AF6D, size: 0x8, addend: 0x0, symName: _SDL_TimeToDateTime, symObjAddr: 0x180, symBinAddr: 0xE57B0, symSize: 0xDF }
   - { offset: 0x10B0BB, size: 0x8, addend: 0x0, symName: _SDL_InitTimers, symObjAddr: 0x0, symBinAddr: 0xE5890, symSize: 0xB0 }
-  - { offset: 0x10B0E2, size: 0x8, addend: 0x0, symName: _SDL_timer_data, symObjAddr: 0x5768, symBinAddr: 0x1F1B78, symSize: 0x0 }
-  - { offset: 0x10B284, size: 0x8, addend: 0x0, symName: _tick_start, symObjAddr: 0x5848, symBinAddr: 0x1F1C58, symSize: 0x0 }
-  - { offset: 0x10B29A, size: 0x8, addend: 0x0, symName: _tick_numerator_ns, symObjAddr: 0x5850, symBinAddr: 0x1F1C60, symSize: 0x0 }
-  - { offset: 0x10B2B0, size: 0x8, addend: 0x0, symName: _tick_denominator_ns, symObjAddr: 0x5854, symBinAddr: 0x1F1C64, symSize: 0x0 }
-  - { offset: 0x10B2C6, size: 0x8, addend: 0x0, symName: _tick_numerator_ms, symObjAddr: 0x5858, symBinAddr: 0x1F1C68, symSize: 0x0 }
-  - { offset: 0x10B2DC, size: 0x8, addend: 0x0, symName: _tick_denominator_ms, symObjAddr: 0x585C, symBinAddr: 0x1F1C6C, symSize: 0x0 }
+  - { offset: 0x10B0E2, size: 0x8, addend: 0x0, symName: _SDL_timer_data, symObjAddr: 0x57E0, symBinAddr: 0x1F1B78, symSize: 0x0 }
+  - { offset: 0x10B284, size: 0x8, addend: 0x0, symName: _tick_start, symObjAddr: 0x58C0, symBinAddr: 0x1F1C58, symSize: 0x0 }
+  - { offset: 0x10B29A, size: 0x8, addend: 0x0, symName: _tick_numerator_ns, symObjAddr: 0x58C8, symBinAddr: 0x1F1C60, symSize: 0x0 }
+  - { offset: 0x10B2B0, size: 0x8, addend: 0x0, symName: _tick_denominator_ns, symObjAddr: 0x58CC, symBinAddr: 0x1F1C64, symSize: 0x0 }
+  - { offset: 0x10B2C6, size: 0x8, addend: 0x0, symName: _tick_numerator_ms, symObjAddr: 0x58D0, symBinAddr: 0x1F1C68, symSize: 0x0 }
+  - { offset: 0x10B2DC, size: 0x8, addend: 0x0, symName: _tick_denominator_ms, symObjAddr: 0x58D4, symBinAddr: 0x1F1C6C, symSize: 0x0 }
   - { offset: 0x10B2EA, size: 0x8, addend: 0x0, symName: _SDL_InitTimers, symObjAddr: 0x0, symBinAddr: 0xE5890, symSize: 0xB0 }
   - { offset: 0x10B44B, size: 0x8, addend: 0x0, symName: _SDL_QuitTimers, symObjAddr: 0x400, symBinAddr: 0xE5C90, symSize: 0x110 }
   - { offset: 0x10B580, size: 0x8, addend: 0x0, symName: _SDL_TimerThread, symObjAddr: 0xB0, symBinAddr: 0xE5940, symSize: 0x350 }
@@ -3360,12 +3360,12 @@ relocations:
   - { offset: 0x10BEE3, size: 0x8, addend: 0x0, symName: _SDL_DelayPrecise, symObjAddr: 0xA40, symBinAddr: 0xE62D0, symSize: 0x2E3 }
   - { offset: 0x10C0FD, size: 0x8, addend: 0x0, symName: _SDL_GetPerformanceCounter, symObjAddr: 0x0, symBinAddr: 0xE65C0, symSize: 0x70 }
   - { offset: 0x10C117, size: 0x8, addend: 0x0, symName: _mach_base_info, symBinAddr: 0x1F1D64, symSize: 0x0 }
-  - { offset: 0x10C15F, size: 0x8, addend: 0x0, symName: _checked_monotonic_time, symObjAddr: 0x1514, symBinAddr: 0x1F1C70, symSize: 0x0 }
-  - { offset: 0x10C182, size: 0x8, addend: 0x0, symName: _has_monotonic_time, symObjAddr: 0x1515, symBinAddr: 0x1F1C71, symSize: 0x0 }
+  - { offset: 0x10C15F, size: 0x8, addend: 0x0, symName: _checked_monotonic_time, symObjAddr: 0x1594, symBinAddr: 0x1F1C70, symSize: 0x0 }
+  - { offset: 0x10C182, size: 0x8, addend: 0x0, symName: _has_monotonic_time, symObjAddr: 0x1595, symBinAddr: 0x1F1C71, symSize: 0x0 }
   - { offset: 0x10C1A4, size: 0x8, addend: 0x0, symName: _SDL_GetPerformanceCounter, symObjAddr: 0x0, symBinAddr: 0xE65C0, symSize: 0x70 }
   - { offset: 0x10C29F, size: 0x8, addend: 0x0, symName: _SDL_GetPerformanceFrequency, symObjAddr: 0x70, symBinAddr: 0xE6630, symSize: 0x70 }
   - { offset: 0x10C2F2, size: 0x8, addend: 0x0, symName: _SDL_SYS_DelayNS, symObjAddr: 0xE0, symBinAddr: 0xE66A0, symSize: 0x75 }
-  - { offset: 0x10C3FE, size: 0x8, addend: 0x0, symName: _active_trays, symObjAddr: 0x284C, symBinAddr: 0x1F1C74, symSize: 0x0 }
+  - { offset: 0x10C3FE, size: 0x8, addend: 0x0, symName: _active_trays, symObjAddr: 0x28CC, symBinAddr: 0x1F1C74, symSize: 0x0 }
   - { offset: 0x10C455, size: 0x8, addend: 0x0, symName: _SDL_CleanupTrays, symObjAddr: 0xD0, symBinAddr: 0xE6720, symSize: 0xA0 }
   - { offset: 0x10C566, size: 0x8, addend: 0x0, symName: _SDL_HasActiveTrays, symObjAddr: 0x170, symBinAddr: 0xE67C0, symSize: 0x10 }
   - { offset: 0x10C5A5, size: 0x8, addend: 0x0, symName: _SDL_UpdateTrays, symObjAddr: 0x0, symBinAddr: 0xE67D0, symSize: 0x10 }
@@ -3725,8 +3725,8 @@ relocations:
   - { offset: 0x138BF1, size: 0x8, addend: 0x0, symName: _SDL_GetColorPrimariesConversionMatrix.matSMPTE431to2020, symObjAddr: 0x2DE0, symBinAddr: 0x1D3C70, symSize: 0x0 }
   - { offset: 0x138C07, size: 0x8, addend: 0x0, symName: _SDL_GetColorPrimariesConversionMatrix.matSMPTE432to709, symObjAddr: 0x2E10, symBinAddr: 0x1D3CA0, symSize: 0x0 }
   - { offset: 0x138C1D, size: 0x8, addend: 0x0, symName: _SDL_GetColorPrimariesConversionMatrix.matSMPTE432to2020, symObjAddr: 0x2E40, symBinAddr: 0x1D3CD0, symSize: 0x0 }
-  - { offset: 0x138C6A, size: 0x8, addend: 0x0, symName: _SDL_format_details_init, symObjAddr: 0xCEA8, symBinAddr: 0x1F1C78, symSize: 0x0 }
-  - { offset: 0x138C80, size: 0x8, addend: 0x0, symName: _SDL_format_details, symObjAddr: 0xCEC0, symBinAddr: 0x1F1C90, symSize: 0x0 }
+  - { offset: 0x138C6A, size: 0x8, addend: 0x0, symName: _SDL_format_details_init, symObjAddr: 0xCF28, symBinAddr: 0x1F1C78, symSize: 0x0 }
+  - { offset: 0x138C80, size: 0x8, addend: 0x0, symName: _SDL_format_details, symObjAddr: 0xCF40, symBinAddr: 0x1F1C90, symSize: 0x0 }
   - { offset: 0x138C9A, size: 0x8, addend: 0x0, symName: _lookup_0, symObjAddr: 0x2890, symBinAddr: 0x1D3720, symSize: 0x0 }
   - { offset: 0x138CBB, size: 0x8, addend: 0x0, symName: _lookup_1, symObjAddr: 0x2891, symBinAddr: 0x1D3721, symSize: 0x0 }
   - { offset: 0x138CDC, size: 0x8, addend: 0x0, symName: _lookup_2, symObjAddr: 0x2893, symBinAddr: 0x1D3723, symSize: 0x0 }
@@ -3861,7 +3861,7 @@ relocations:
   - { offset: 0x14961F, size: 0x8, addend: 0x0, symName: _get_scaler_datas, symObjAddr: 0xFE0, symBinAddr: 0x1540C0, symSize: 0xAE }
   - { offset: 0x14972B, size: 0x8, addend: 0x0, symName: _SDL_SurfaceValid, symObjAddr: 0x0, symBinAddr: 0x154170, symSize: 0x20 }
   - { offset: 0x149746, size: 0x8, addend: 0x0, symName: _SDL_BlitSurfaceUncheckedScaled, symObjAddr: 0x2010, symBinAddr: 0x155F80, symSize: 0x5C0 }
-  - { offset: 0x149CAC, size: 0x8, addend: 0x0, symName: _SDL_surface_magic, symObjAddr: 0x21D8A, symBinAddr: 0x1F1C98, symSize: 0x0 }
+  - { offset: 0x149CAC, size: 0x8, addend: 0x0, symName: _SDL_surface_magic, symObjAddr: 0x21E0A, symBinAddr: 0x1F1C98, symSize: 0x0 }
   - { offset: 0x149FF6, size: 0x8, addend: 0x0, symName: _SDL_SurfaceValid, symObjAddr: 0x0, symBinAddr: 0x154170, symSize: 0x20 }
   - { offset: 0x14A011, size: 0x8, addend: 0x0, symName: _SDL_UpdateSurfaceLockFlag, symObjAddr: 0x20, symBinAddr: 0x154190, symSize: 0x20 }
   - { offset: 0x14A0E4, size: 0x8, addend: 0x0, symName: _SDL_CalculateSurfaceSize, symObjAddr: 0x40, symBinAddr: 0x1541B0, symSize: 0x170 }
@@ -3952,11 +3952,11 @@ relocations:
   - { offset: 0x150285, size: 0x8, addend: 0x0, symName: _SDL_SetWindowTextureVSync, symObjAddr: 0x0, symBinAddr: 0x15AB60, symSize: 0xC0 }
   - { offset: 0x1502AC, size: 0x8, addend: 0x0, symName: _SDL_GetNumVideoDrivers, symObjAddr: 0x160, symBinAddr: 0x15ACC0, symSize: 0xC0 }
   - { offset: 0x1502D3, size: 0x8, addend: 0x0, symName: _SDL_GetNumVideoDrivers.num_drivers, symObjAddr: 0xD2DC, symBinAddr: 0x1EF948, symSize: 0x0 }
-  - { offset: 0x150366, size: 0x8, addend: 0x0, symName: _SDL_messagebox_count, symObjAddr: 0x41210, symBinAddr: 0x1F1CC0, symSize: 0x0 }
-  - { offset: 0x15037C, size: 0x8, addend: 0x0, symName: _deduped_bootstrap, symObjAddr: 0x411F0, symBinAddr: 0x1F1CA0, symSize: 0x0 }
+  - { offset: 0x150366, size: 0x8, addend: 0x0, symName: _SDL_messagebox_count, symObjAddr: 0x41280, symBinAddr: 0x1F1CC0, symSize: 0x0 }
+  - { offset: 0x15037C, size: 0x8, addend: 0x0, symName: _deduped_bootstrap, symObjAddr: 0x41260, symBinAddr: 0x1F1CA0, symSize: 0x0 }
   - { offset: 0x1514DE, size: 0x8, addend: 0x0, symName: _bootstrap, symObjAddr: 0xD2E0, symBinAddr: 0x1E4810, symSize: 0x0 }
-  - { offset: 0x151505, size: 0x8, addend: 0x0, symName: __this, symObjAddr: 0x41208, symBinAddr: 0x1F1CB8, symSize: 0x0 }
-  - { offset: 0x15151A, size: 0x8, addend: 0x0, symName: _syncHint, symObjAddr: 0x41214, symBinAddr: 0x1F1CC4, symSize: 0x0 }
+  - { offset: 0x151505, size: 0x8, addend: 0x0, symName: __this, symObjAddr: 0x41278, symBinAddr: 0x1F1CB8, symSize: 0x0 }
+  - { offset: 0x15151A, size: 0x8, addend: 0x0, symName: _syncHint, symObjAddr: 0x41284, symBinAddr: 0x1F1CC4, symSize: 0x0 }
   - { offset: 0x151530, size: 0x8, addend: 0x0, symName: _SDL_WindowFlagProperties, symObjAddr: 0xD300, symBinAddr: 0x1E4830, symSize: 0x0 }
   - { offset: 0x1516F3, size: 0x8, addend: 0x0, symName: _SDL_SetWindowTextureVSync, symObjAddr: 0x0, symBinAddr: 0x15AB60, symSize: 0xC0 }
   - { offset: 0x15185D, size: 0x8, addend: 0x0, symName: _SDL_GetWindowProperties, symObjAddr: 0xC0, symBinAddr: 0x15AC20, symSize: 0x80 }
@@ -4189,7 +4189,7 @@ relocations:
   - { offset: 0x162779, size: 0x8, addend: 0x0, symName: _DUMMY_PumpEvents, symObjAddr: 0x0, symBinAddr: 0x16ED70, symSize: 0x6 }
   - { offset: 0x163826, size: 0x8, addend: 0x0, symName: _SDL_DUMMY_CreateWindowFramebuffer, symObjAddr: 0x0, symBinAddr: 0x16ED80, symSize: 0x90 }
   - { offset: 0x163841, size: 0x8, addend: 0x0, symName: _SDL_DUMMY_UpdateWindowFramebuffer, symObjAddr: 0x90, symBinAddr: 0x16EE10, symSize: 0xE0 }
-  - { offset: 0x163866, size: 0x8, addend: 0x0, symName: _SDL_DUMMY_UpdateWindowFramebuffer.frame_number, symObjAddr: 0x5084, symBinAddr: 0x1F1CC8, symSize: 0x0 }
+  - { offset: 0x163866, size: 0x8, addend: 0x0, symName: _SDL_DUMMY_UpdateWindowFramebuffer.frame_number, symObjAddr: 0x50FC, symBinAddr: 0x1F1CC8, symSize: 0x0 }
   - { offset: 0x1639CB, size: 0x8, addend: 0x0, symName: _SDL_DUMMY_CreateWindowFramebuffer, symObjAddr: 0x0, symBinAddr: 0x16ED80, symSize: 0x90 }
   - { offset: 0x163C16, size: 0x8, addend: 0x0, symName: _SDL_DUMMY_DestroyWindowFramebuffer, symObjAddr: 0x170, symBinAddr: 0x16EEF0, symSize: 0x1B }
   - { offset: 0x164C94, size: 0x8, addend: 0x0, symName: _DUMMY_CreateDevice, symObjAddr: 0x0, symBinAddr: 0x16EF10, symSize: 0xD0 }
@@ -4205,7 +4205,7 @@ relocations:
   - { offset: 0x1665A5, size: 0x8, addend: 0x0, symName: _OFFSCREEN_PumpEvents, symObjAddr: 0x0, symBinAddr: 0x16F0C0, symSize: 0x6 }
   - { offset: 0x167652, size: 0x8, addend: 0x0, symName: _SDL_OFFSCREEN_CreateWindowFramebuffer, symObjAddr: 0x0, symBinAddr: 0x16F0D0, symSize: 0x90 }
   - { offset: 0x16766D, size: 0x8, addend: 0x0, symName: _SDL_OFFSCREEN_UpdateWindowFramebuffer, symObjAddr: 0x90, symBinAddr: 0x16F160, symSize: 0xE0 }
-  - { offset: 0x167692, size: 0x8, addend: 0x0, symName: _SDL_OFFSCREEN_UpdateWindowFramebuffer.frame_number, symObjAddr: 0x50BC, symBinAddr: 0x1F1CCC, symSize: 0x0 }
+  - { offset: 0x167692, size: 0x8, addend: 0x0, symName: _SDL_OFFSCREEN_UpdateWindowFramebuffer.frame_number, symObjAddr: 0x513C, symBinAddr: 0x1F1CCC, symSize: 0x0 }
   - { offset: 0x1677F7, size: 0x8, addend: 0x0, symName: _SDL_OFFSCREEN_CreateWindowFramebuffer, symObjAddr: 0x0, symBinAddr: 0x16F0D0, symSize: 0x90 }
   - { offset: 0x167A42, size: 0x8, addend: 0x0, symName: _SDL_OFFSCREEN_DestroyWindowFramebuffer, symObjAddr: 0x170, symBinAddr: 0x16F240, symSize: 0x1B }
   - { offset: 0x168AC0, size: 0x8, addend: 0x0, symName: _OFFSCREEN_CreateDevice, symObjAddr: 0x0, symBinAddr: 0x16F260, symSize: 0x120 }
@@ -4229,11 +4229,11 @@ relocations:
   - { offset: 0x16E3B8, size: 0x8, addend: 0x0, symName: _OFFSCREEN_SetWindowSize, symObjAddr: 0x90, symBinAddr: 0x16F890, symSize: 0x1E }
   - { offset: 0x16F440, size: 0x8, addend: 0x0, symName: _SDL_RunApp, symObjAddr: 0x0, symBinAddr: 0x16F8B0, symSize: 0xA0 }
   - { offset: 0x16F44E, size: 0x8, addend: 0x0, symName: '-[SDLUIKitSceneDelegate scene:willConnectToSession:options:]', symObjAddr: 0x11B0, symBinAddr: 0x170A60, symSize: 0x760 }
-  - { offset: 0x16F475, size: 0x8, addend: 0x0, symName: '_scene:willConnectToSession:options:.SDL_mainScheduled', symObjAddr: 0x1BBA4, symBinAddr: 0x1F1CEC, symSize: 0x0 }
-  - { offset: 0x16F94C, size: 0x8, addend: 0x0, symName: _forward_main, symObjAddr: 0x1BB88, symBinAddr: 0x1F1CD0, symSize: 0x0 }
-  - { offset: 0x16F99A, size: 0x8, addend: 0x0, symName: _forward_argc, symObjAddr: 0x1BB90, symBinAddr: 0x1F1CD8, symSize: 0x0 }
-  - { offset: 0x16F9AF, size: 0x8, addend: 0x0, symName: _forward_argv, symObjAddr: 0x1BB98, symBinAddr: 0x1F1CE0, symSize: 0x0 }
-  - { offset: 0x16F9C4, size: 0x8, addend: 0x0, symName: _exit_status, symObjAddr: 0x1BBA0, symBinAddr: 0x1F1CE8, symSize: 0x0 }
+  - { offset: 0x16F475, size: 0x8, addend: 0x0, symName: '_scene:willConnectToSession:options:.SDL_mainScheduled', symObjAddr: 0x1BC24, symBinAddr: 0x1F1CEC, symSize: 0x0 }
+  - { offset: 0x16F94C, size: 0x8, addend: 0x0, symName: _forward_main, symObjAddr: 0x1BC08, symBinAddr: 0x1F1CD0, symSize: 0x0 }
+  - { offset: 0x16F99A, size: 0x8, addend: 0x0, symName: _forward_argc, symObjAddr: 0x1BC10, symBinAddr: 0x1F1CD8, symSize: 0x0 }
+  - { offset: 0x16F9AF, size: 0x8, addend: 0x0, symName: _forward_argv, symObjAddr: 0x1BC18, symBinAddr: 0x1F1CE0, symSize: 0x0 }
+  - { offset: 0x16F9C4, size: 0x8, addend: 0x0, symName: _exit_status, symObjAddr: 0x1BC20, symBinAddr: 0x1F1CE8, symSize: 0x0 }
   - { offset: 0x171FFF, size: 0x8, addend: 0x0, symName: _SDL_RunApp, symObjAddr: 0x0, symBinAddr: 0x16F8B0, symSize: 0xA0 }
   - { offset: 0x1720D7, size: 0x8, addend: 0x0, symName: '-[SDLLaunchStoryboardViewController initWithStoryboardViewController:]', symObjAddr: 0xA0, symBinAddr: 0x16F950, symSize: 0x70 }
   - { offset: 0x172154, size: 0x8, addend: 0x0, symName: '-[SDLLaunchStoryboardViewController viewDidLoad]', symObjAddr: 0x110, symBinAddr: 0x16F9C0, symSize: 0x2A0 }
@@ -4283,17 +4283,17 @@ relocations:
   - { offset: 0x17777B, size: 0x8, addend: 0x0, symName: _UIKit_QuitClipboard, symObjAddr: 0x3A0, symBinAddr: 0x172350, symSize: 0xE0 }
   - { offset: 0x17A56F, size: 0x8, addend: 0x0, symName: '-[SDL_LifecycleObserver update]', symObjAddr: 0x0, symBinAddr: 0x172430, symSize: 0x1D0 }
   - { offset: 0x17A57C, size: 0x8, addend: 0x0, symName: _SDL_UpdateLifecycleObserver, symObjAddr: 0x260, symBinAddr: 0x172690, symSize: 0x30 }
-  - { offset: 0x17A59B, size: 0x8, addend: 0x0, symName: _SDL_UpdateLifecycleObserver.lifecycleObserver, symObjAddr: 0x11D80, symBinAddr: 0x1F1CF0, symSize: 0x0 }
-  - { offset: 0x17A5B0, size: 0x8, addend: 0x0, symName: _SDL_UpdateLifecycleObserver.onceToken, symObjAddr: 0x11D88, symBinAddr: 0x1F1CF8, symSize: 0x0 }
+  - { offset: 0x17A59B, size: 0x8, addend: 0x0, symName: _SDL_UpdateLifecycleObserver.lifecycleObserver, symObjAddr: 0x11E00, symBinAddr: 0x1F1CF0, symSize: 0x0 }
+  - { offset: 0x17A5B0, size: 0x8, addend: 0x0, symName: _SDL_UpdateLifecycleObserver.onceToken, symObjAddr: 0x11E08, symBinAddr: 0x1F1CF8, symSize: 0x0 }
   - { offset: 0x17A67D, size: 0x8, addend: 0x0, symName: _UIKit_GetEventTimestamp, symObjAddr: 0x300, symBinAddr: 0x172730, symSize: 0x80 }
-  - { offset: 0x17A6A2, size: 0x8, addend: 0x0, symName: _UIKit_GetEventTimestamp.timestamp_offset, symObjAddr: 0x11D90, symBinAddr: 0x1F1D00, symSize: 0x0 }
-  - { offset: 0x17A710, size: 0x8, addend: 0x0, symName: _keyboard_connect_observer, symObjAddr: 0x11D98, symBinAddr: 0x1F1D08, symSize: 0x0 }
-  - { offset: 0x17A744, size: 0x8, addend: 0x0, symName: _keyboard_disconnect_observer, symObjAddr: 0x11DA0, symBinAddr: 0x1F1D10, symSize: 0x0 }
-  - { offset: 0x17A75A, size: 0x8, addend: 0x0, symName: _mouse_connect_observer, symObjAddr: 0x11DA8, symBinAddr: 0x1F1D18, symSize: 0x0 }
-  - { offset: 0x17A770, size: 0x8, addend: 0x0, symName: _mouse_disconnect_observer, symObjAddr: 0x11DB0, symBinAddr: 0x1F1D20, symSize: 0x0 }
+  - { offset: 0x17A6A2, size: 0x8, addend: 0x0, symName: _UIKit_GetEventTimestamp.timestamp_offset, symObjAddr: 0x11E10, symBinAddr: 0x1F1D00, symSize: 0x0 }
+  - { offset: 0x17A710, size: 0x8, addend: 0x0, symName: _keyboard_connect_observer, symObjAddr: 0x11E18, symBinAddr: 0x1F1D08, symSize: 0x0 }
+  - { offset: 0x17A744, size: 0x8, addend: 0x0, symName: _keyboard_disconnect_observer, symObjAddr: 0x11E20, symBinAddr: 0x1F1D10, symSize: 0x0 }
+  - { offset: 0x17A75A, size: 0x8, addend: 0x0, symName: _mouse_connect_observer, symObjAddr: 0x11E28, symBinAddr: 0x1F1D18, symSize: 0x0 }
+  - { offset: 0x17A770, size: 0x8, addend: 0x0, symName: _mouse_disconnect_observer, symObjAddr: 0x11E30, symBinAddr: 0x1F1D20, symSize: 0x0 }
   - { offset: 0x17A785, size: 0x8, addend: 0x0, symName: _UIKit_EventPumpEnabled, symObjAddr: 0x1D50, symBinAddr: 0x1EFB20, symSize: 0x0 }
-  - { offset: 0x17A7A9, size: 0x8, addend: 0x0, symName: _mouse_scroll_direction, symObjAddr: 0x11DBC, symBinAddr: 0x1F1D2C, symSize: 0x0 }
-  - { offset: 0x17A7F1, size: 0x8, addend: 0x0, symName: _mouse_relative_mode, symObjAddr: 0x11DB8, symBinAddr: 0x1F1D28, symSize: 0x0 }
+  - { offset: 0x17A7A9, size: 0x8, addend: 0x0, symName: _mouse_scroll_direction, symObjAddr: 0x11E3C, symBinAddr: 0x1F1D2C, symSize: 0x0 }
+  - { offset: 0x17A7F1, size: 0x8, addend: 0x0, symName: _mouse_relative_mode, symObjAddr: 0x11E38, symBinAddr: 0x1F1D28, symSize: 0x0 }
   - { offset: 0x17B43D, size: 0x8, addend: 0x0, symName: '-[SDL_LifecycleObserver update]', symObjAddr: 0x0, symBinAddr: 0x172430, symSize: 0x1D0 }
   - { offset: 0x17C0B3, size: 0x8, addend: 0x0, symName: '-[SDL_LifecycleObserver applicationDidBecomeActive]', symObjAddr: 0x1D0, symBinAddr: 0x172600, symSize: 0x10 }
   - { offset: 0x17C0F7, size: 0x8, addend: 0x0, symName: '-[SDL_LifecycleObserver applicationWillResignActive]', symObjAddr: 0x1E0, symBinAddr: 0x172610, symSize: 0x10 }
@@ -4330,7 +4330,7 @@ relocations:
   - { offset: 0x17F6B9, size: 0x8, addend: 0x0, symName: ___OnGCMouseConnected_block_invoke_5, symObjAddr: 0x1790, symBinAddr: 0x173BC0, symSize: 0x70 }
   - { offset: 0x17F793, size: 0x8, addend: 0x0, symName: ___OnGCMouseConnected_block_invoke_6, symObjAddr: 0x1800, symBinAddr: 0x173C30, symSize: 0x70 }
   - { offset: 0x180102, size: 0x8, addend: 0x0, symName: _UIKit_ShowingMessageBox, symObjAddr: 0x0, symBinAddr: 0x173CA0, symSize: 0x10 }
-  - { offset: 0x180129, size: 0x8, addend: 0x0, symName: _s_showingMessageBox, symObjAddr: 0xB681, symBinAddr: 0x1F1D2D, symSize: 0x0 }
+  - { offset: 0x180129, size: 0x8, addend: 0x0, symName: _s_showingMessageBox, symObjAddr: 0xB701, symBinAddr: 0x1F1D2D, symSize: 0x0 }
   - { offset: 0x1816D9, size: 0x8, addend: 0x0, symName: _UIKit_ShowingMessageBox, symObjAddr: 0x0, symBinAddr: 0x173CA0, symSize: 0x10 }
   - { offset: 0x1816F2, size: 0x8, addend: 0x0, symName: _UIKit_ShowMessageBox, symObjAddr: 0x10, symBinAddr: 0x173CB0, symSize: 0x60 }
   - { offset: 0x183434, size: 0x8, addend: 0x0, symName: _UIKit_ShowMessageBoxMainThreadCallback, symObjAddr: 0x70, symBinAddr: 0x173D10, symSize: 0x630 }
@@ -4395,7 +4395,7 @@ relocations:
   - { offset: 0x193A79, size: 0x8, addend: 0x0, symName: '-[SDL_uikitopenglview backingWidth]', symObjAddr: 0xD80, symBinAddr: 0x1770A0, symSize: 0x10 }
   - { offset: 0x193AAE, size: 0x8, addend: 0x0, symName: '-[SDL_uikitopenglview backingHeight]', symObjAddr: 0xD90, symBinAddr: 0x1770B0, symSize: 0x10 }
   - { offset: 0x193AE3, size: 0x8, addend: 0x0, symName: '-[SDL_uikitopenglview .cxx_destruct]', symObjAddr: 0xDA0, symBinAddr: 0x1770C0, symSize: 0x11 }
-  - { offset: 0x193B97, size: 0x8, addend: 0x0, symName: _apple_pencil_id, symObjAddr: 0xEB18, symBinAddr: 0x1F1D30, symSize: 0x0 }
+  - { offset: 0x193B97, size: 0x8, addend: 0x0, symName: _apple_pencil_id, symObjAddr: 0xEB98, symBinAddr: 0x1F1D30, symSize: 0x0 }
   - { offset: 0x1947A1, size: 0x8, addend: 0x0, symName: _UIKit_HandlePenHover, symObjAddr: 0x10, symBinAddr: 0x1770E0, symSize: 0x140 }
   - { offset: 0x194925, size: 0x8, addend: 0x0, symName: _UIKit_HandlePenAxes, symObjAddr: 0x150, symBinAddr: 0x177220, symSize: 0x220 }
   - { offset: 0x1957C2, size: 0x8, addend: 0x0, symName: _UIKit_HandlePenMotion, symObjAddr: 0x370, symBinAddr: 0x177440, symSize: 0x10 }

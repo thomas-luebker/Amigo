@@ -41,8 +41,17 @@ case "$PLATFORM" in
     FLAC_LIB=""
     EXTRA=(-DWINUAE_UNIX_WITH_CHD=OFF -DWINUAE_UNIX_WITH_CHD_FLAC=OFF)
     ;;
+  tvos-sim)
+    BUILD="$ROOT/build/tvos-sim"
+    SYSROOT=appletvsimulator
+    ARCHS="$(uname -m)"
+    SYSTEM_NAME=tvOS
+    SDL_FRAMEWORK="$ROOT/vendor/SDL3/SDL3.xcframework/ios-arm64/SDL3.framework"
+    FLAC_LIB=""
+    EXTRA=(-DWINUAE_UNIX_WITH_CHD=OFF -DWINUAE_UNIX_WITH_CHD_FLAC=OFF)
+    ;;
   *)
-    echo "usage: $0 [device|simulator|tvos]" >&2; exit 1 ;;
+    echo "usage: $0 [device|simulator|tvos|tvos-sim]" >&2; exit 1 ;;
 esac
 SYSTEM_NAME="${SYSTEM_NAME:-iOS}"
 EXTRA=("${EXTRA[@]-}")
