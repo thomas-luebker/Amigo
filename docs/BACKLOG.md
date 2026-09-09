@@ -56,9 +56,12 @@ things where the user is standing. **No emulator-core change**;
   `20260909` (see `TESTFLIGHT.md`).
 - [ ] de-DE keywords still without `cd32`/`gamepad` — undecided.
 - [x] Live 2026-09-09: GitHub release v0.7.7 flipped to Latest, README
-  version line updated, amiga-news.de follow-up rewritten as the full
-  since-launch story (DE + EN, in the vault and on the Desktop) — sending
-  it is Thomas's.
+  version line updated.
+- [x] **amiga-news.de follow-up submitted 2026-09-09** (DE + EN, HTML): the
+  full since-launch story — iPhone, Mac, Vision Pro, controllers, CD32,
+  multi-HDD, Pencil pressure, AHI, clipboard, iCloud, the fixes, then
+  0.7.7's setup check and the Quick Start. Draft and submission record in
+  the vault (`Tracking/`). Awaiting publication.
 
 ### Assessed today, not built
 
