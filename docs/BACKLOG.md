@@ -49,7 +49,14 @@ things where the user is standing. **No emulator-core change**;
   (Latest), 0.7.7 (pre-release).
 - [x] Chad's 4★ and Dethmuerte's 2★ answered (see *From App Store
   reviews*).
-- [ ] **Run the boot-check sheet on the M4 iPad** from this build.
+- [x] **All four critical reviews carry a published response as of
+  2026-09-09** (Chad's 4★ and Dethmuerte's 2★ cleared moderation). Ratings
+  unchanged: 22 across nine territories, 4.55★; US 3 @ 3.33 is the
+  storefront to watch.
+- [x] **Numbers at go-live** (sales through 09-08): 1,066 lifetime — iPad
+  644 / iPhone 368 / Desktop 54; 0.7.6 at 232 installs, level with 0.6.5.
+- [ ] **Run the boot-check sheet on the M4 iPad** from the live build —
+  the only part of 0.7.7 never exercised on a device.
 - [ ] **Fold the Description into `asc-push-metadata.py`** (unwrap
   paragraphs, bullets one per line, read back).
 - [ ] **Next build number `20260909.1`** — a stray second upload took
