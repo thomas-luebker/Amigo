@@ -188,6 +188,34 @@ int main(void)
     printf("     at 19200 baud: %d bytes in one second (= 1920)\n", bytes);
     check(bytes <= 1920 + 32 && bytes > 1880, "pacing follows the guest's programmed baud");
 
+    // --- SC: the guest sets the output range ------------------------
+    // TVPaint's "Wacom A4+ Pressure" init sends SC15240,15240 and maps
+    // that range onto the whole screen; packets must follow it.
+    (void)drain();
+    send("SC15240,15240\r");
+    send("~C\r");
+    r = drain();
+    check(sscanf(r.c_str(), "~C%d,%d", &mx, &my) == 2 && mx == 15240 && my == 15240,
+          "~C reports the range SC set");
+    wacom_serial_pen(1.0f, 1.0f, 0.5f, 1, 1);
+    r = drain(2000);
+    p = (const unsigned char *)r.data();
+    x = ((p[0] & 0x03) << 14) | (p[1] << 7) | p[2];
+    y = ((p[3] & 0x03) << 14) | (p[4] << 7) | p[5];
+    printf("     after SC: corner decodes to x=%d y=%d\n", x, y);
+    check(x == 15240, "after SC, the right edge reaches the full X range");
+    check(y == 0 || y == 15240, "after SC, the bottom edge reaches the full Y range");
+    send("SC0,0\r");
+    send("~C\r");
+    r = drain();
+    check(sscanf(r.c_str(), "~C%d,%d", &mx, &my) == 2 && mx == 15240,
+          "a malformed SC leaves the range alone");
+    send("RE\r");
+    send("~C\r");
+    r = drain();
+    check(sscanf(r.c_str(), "~C%d,%d", &mx, &my) == 2 && mx == WACOM_MAX_X && my == WACOM_MAX_Y,
+          "RE restores the native range");
+
     printf("\n%s (%d failure%s)\n", fails ? "FAILURES" : "all checks passed",
            fails, fails == 1 ? "" : "s");
     return fails ? 1 : 0;

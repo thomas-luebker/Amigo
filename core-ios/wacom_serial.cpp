@@ -46,10 +46,26 @@
  * "Wacom A5 Pressure" the pointer pegged at the edge and ink landed
  * nowhere near the pen; **"Wacom A4+ Pressure" tracks correctly**, an A4
  * being about twice an A5. Change these numbers and that pairing changes
- * with them. */
+ * with them.
+ *
+ * Correction, 2026-10-07: with A4+ selected TVPaint *does* state its
+ * range — it sends SC15240,15240 — and "tracks correctly" above was only
+ * near the top-left, where 10160 x 7620 and 15240 x 15240 agree. These
+ * are now the native range before SC; see s_scale_x/y. */
 #define WACOM_MAX_X    10160
 #define WACOM_MAX_Y     7620
 #define WACOM_RES_LPI   1270
+
+/* Output range, as set by the guest's SC ("scale") command. A real
+ * Protocol IV tablet reports coordinates over whatever range SC asks for,
+ * and TVPaint relies on it: with "Wacom A4+ Pressure" its init sends
+ * "SC15240,15240" (12 x 12 inches at 1270 lpi) and maps 0..15240 onto the
+ * whole screen. Ignoring it kept us at 10160 x 7620, so the ink stopped
+ * at about two thirds across and half way down — "the Pencil does not
+ * line up" (2026-10-07, read off the device log). Until a guest sends SC,
+ * the native range applies. */
+static int s_scale_x = WACOM_MAX_X;
+static int s_scale_y = WACOM_MAX_Y;
 
 /* Protocol IV carries pressure as 6 bits in the last byte plus two more
  * spread across bytes 0 and 3 ("extra Z bits"), so 8 bits end to end.
@@ -149,8 +165,8 @@ static void emit_packet(void)
     }
     s_emits++;
 
-    const int x = s_pen_x < 0 ? 0 : (s_pen_x > WACOM_MAX_X ? WACOM_MAX_X : s_pen_x);
-    const int y = s_pen_y < 0 ? 0 : (s_pen_y > WACOM_MAX_Y ? WACOM_MAX_Y : s_pen_y);
+    const int x = s_pen_x < 0 ? 0 : (s_pen_x > s_scale_x ? s_scale_x : s_pen_x);
+    const int y = s_pen_y < 0 ? 0 : (s_pen_y > s_scale_y ? s_scale_y : s_pen_y);
     const int p = s_pressure_mode ? s_pen_pressure : 0;
     const bool tip = p > 0;
 
@@ -208,7 +224,9 @@ static void reply_model(void)
 static void reply_max_coords(void)
 {
     char buf[32];
-    snprintf(buf, sizeof buf, "~C%05d,%05d\r", WACOM_MAX_X, WACOM_MAX_Y);
+    /* The active range, so a guest that sets SC and then asks ~C hears
+     * the same numbers its packets will carry. */
+    snprintf(buf, sizeof buf, "~C%05d,%05d\r", s_scale_x, s_scale_y);
     rx_put_string(buf);
 }
 
@@ -221,6 +239,8 @@ static void tablet_reset(void)
 {
     s_started = false;
     s_pressure_mode = true;
+    s_scale_x = WACOM_MAX_X;
+    s_scale_y = WACOM_MAX_Y;
     s_cmdlen = 0;
     rx_clear();
 }
@@ -252,6 +272,20 @@ static void run_command(const char *cmd)
         s_started = false;
     } else if (!strncmp(cmd, "PH", 2)) {
         s_pressure_mode = cmd[2] != '0';
+    } else if (!strncmp(cmd, "SC", 2)) {
+        /* Packets carry 16 bits per axis; anything outside that, or a
+         * malformed argument, leaves the range alone. */
+        int sx = 0, sy = 0;
+        if (sscanf(cmd + 2, "%d,%d", &sx, &sy) == 2 &&
+            sx > 0 && sx <= 0xffff && sy > 0 && sy <= 0xffff) {
+            s_scale_x = sx;
+            s_scale_y = sy;
+        }
+    } else if (!strcmp(cmd, "RE")) {
+        /* Reset to the stored setup: on the device that means the native
+         * range again. Streaming state is left as it is. */
+        s_scale_x = WACOM_MAX_X;
+        s_scale_y = WACOM_MAX_Y;
     } else if (!strcmp(cmd, "#") || !strcmp(cmd, "$")) {
         tablet_reset();
     }
@@ -450,8 +484,8 @@ extern "C" void wacom_serial_pen(float nx, float ny, float pressure,
 #endif
 
     const bool was_in = s_pen_proximity;
-    s_pen_x = (int)(nx * WACOM_MAX_X + 0.5f);
-    s_pen_y = (int)(ty * WACOM_MAX_Y + 0.5f);
+    s_pen_x = (int)(nx * s_scale_x + 0.5f);
+    s_pen_y = (int)(ty * s_scale_y + 0.5f);
     s_pen_pressure = (int)(pressure * WACOM_MAX_PRESSURE + 0.5f);
     s_pen_buttons = buttons;
     s_pen_proximity = in_proximity != 0;
