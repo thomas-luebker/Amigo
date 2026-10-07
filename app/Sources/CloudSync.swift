@@ -58,6 +58,10 @@ enum CloudSync {
     private static let queue = DispatchQueue(label: "de.amiga-imager.uae.cloudsync",
                                              qos: .utility)
     private static var running = false
+    /// Follow-up passes left for files iCloud is still downloading. Bounded
+    /// so a download that never completes cannot keep a timer alive.
+    private static var followUps = 0
+    private static let maxFollowUps = 4
 
     /// A folder that participates in the sync.
     private struct Folder {
@@ -112,10 +116,22 @@ enum CloudSync {
                 return
             }
             running = true
-            let changed = syncBlocking()
+            let (changed, pending) = syncBlocking()
             running = false
+            scheduleFollowUp(pending: pending)
             DispatchQueue.main.async { completion?(changed) }
         }
+    }
+
+    /// A pass only asks iCloud for missing files; it cannot copy them until
+    /// they land. Without a second pass they would sit in the container
+    /// until the next foreground, which on a fresh device reads as "sync
+    /// does nothing" (issue #3).
+    private static func scheduleFollowUp(pending: Int) {
+        guard pending > 0 else { followUps = 0; return }
+        guard followUps < maxFollowUps else { return }
+        followUps += 1
+        queue.asyncAfter(deadline: .now() + 20) { sync() }
     }
 
     /// Propagate a local delete, so the file does not resurrect from the
@@ -177,14 +193,16 @@ enum CloudSync {
 
     // MARK: The pass
 
-    private static func syncBlocking() -> Bool {
+    /// Returns whether local files changed, and how many cloud files are
+    /// still downloading.
+    private static func syncBlocking() -> (Bool, Int) {
         // Logged either way: a silent early return here is indistinguishable
         // from a successful no-op pass, which cost real debugging time.
         guard let container = containerURL() else {
             available = false
             lastSummary = "iCloud unavailable — sign in to iCloud Drive."
             NSLog("iPadUAE cloud: container %@ did not resolve — signed out of iCloud, iCloud Drive off for the app, or the entitlement is missing", containerID)
-            return false
+            return (false, 0)
         }
         available = true
         NSLog("iPadUAE cloud: container at %@", container.path)
@@ -198,7 +216,7 @@ enum CloudSync {
         if syncMedia { folders += mediaFolders }
 
         var changedLocal = false
-        var pushed = 0, pulled = 0, skipped = 0
+        var pushed = 0, pulled = 0, skipped = 0, pending = 0
 
         for folder in folders {
             let result = syncFolder(folder, configText: configText)
@@ -206,15 +224,17 @@ enum CloudSync {
             pushed += result.pushed
             pulled += result.pulled
             skipped += result.skipped
+            pending += result.pending
         }
 
         var parts: [String] = []
         if pushed > 0 { parts.append("\(pushed) up") }
         if pulled > 0 { parts.append("\(pulled) down") }
+        if pending > 0 { parts.append("\(pending) downloading") }
         if skipped > 0 { parts.append("\(skipped) in use, skipped") }
         lastSummary = parts.isEmpty ? "Up to date" : parts.joined(separator: " · ")
         NSLog("iPadUAE cloud: %@", lastSummary ?? "")
-        return changedLocal
+        return (changedLocal, pending)
     }
 
     private struct FolderResult {
@@ -222,6 +242,7 @@ enum CloudSync {
         var pushed = 0
         var pulled = 0
         var skipped = 0
+        var pending = 0
     }
 
     private static func syncFolder(_ folder: Folder, configText: String) -> FolderResult {
@@ -235,12 +256,20 @@ enum CloudSync {
             try? fm.createDirectory(at: url, withIntermediateDirectories: true)
         }
 
-        // Ask iCloud to materialize anything still in the cloud. Those
-        // entries are picked up on a later pass, once local.
-        requestDownloads(in: remote)
-
         let locals = index(local, folder)
         let remotes = index(remote, folder)
+
+        // Ask iCloud to materialize anything still in the cloud. Those
+        // entries are picked up on a follow-up pass, once local.
+        for entry in remotes.values where !entry.current {
+            do {
+                try fm.startDownloadingUbiquitousItem(at: entry.url)
+                result.pending += 1
+            } catch {
+                NSLog("iPadUAE cloud: download request failed %@ (%@)",
+                      entry.url.lastPathComponent, String(describing: error))
+            }
+        }
 
         func inUse(_ name: String) -> Bool {
             folder.mountSensitive && configText.contains(name)
@@ -281,14 +310,20 @@ enum CloudSync {
         let modified: Date
         let size: Int64
         let downloaded: Bool
+        /// Downloaded and the latest version; anything else gets a
+        /// download request.
+        let current: Bool
     }
 
     /// Map of filename → entry for the syncable files in `dir`.
     ///
-    /// A file that iCloud has not downloaded yet is listed under a
-    /// placeholder name (".Disk.adf.icloud"); it is indexed under its real
-    /// name so it still compares against the local copy, but flagged
-    /// undownloaded so nothing tries to read it.
+    /// A file that iCloud has not downloaded yet is either listed under its
+    /// real name with a downloading status other than current (current
+    /// iOS), or under a placeholder name (".Disk.adf.icloud", older iOS).
+    /// Both are indexed under the real name so they still compare against
+    /// the local copy, but flagged undownloaded so nothing tries to read
+    /// them. The old code only recognised the placeholder form, so on a
+    /// second device nothing was ever requested and nothing came down.
     private static func index(_ dir: URL, _ folder: Folder) -> [String: Entry] {
         var map: [String: Entry] = [:]
         let keys: [URLResourceKey] = [.contentModificationDateKey, .fileSizeKey,
@@ -315,18 +350,10 @@ enum CloudSync {
             map[name] = Entry(url: placeholder ? dir.appendingPathComponent(name) : url,
                               modified: values?.contentModificationDate ?? .distantPast,
                               size: Int64(values?.fileSize ?? 0),
-                              downloaded: downloaded)
+                              downloaded: downloaded,
+                              current: downloaded && status != .downloaded)
         }
         return map
-    }
-
-    private static func requestDownloads(in dir: URL) {
-        guard let entries = try? FileManager.default.contentsOfDirectory(
-            at: dir, includingPropertiesForKeys: nil,
-            options: [.skipsSubdirectoryDescendants]) else { return }
-        for url in entries where url.lastPathComponent.hasSuffix(".icloud") {
-            try? FileManager.default.startDownloadingUbiquitousItem(at: url)
-        }
     }
 }
 
