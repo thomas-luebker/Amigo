@@ -113,6 +113,57 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     third-party trademarks in keywords are a rejection trigger; "amiga"
     is needed for search and is standard across shipping emulators.)
 
+## 0.7.8 — prepared 2026-10-07 (build 20261007), not yet built for TestFlight
+
+Build `20261007`, `MARKETING_VERSION 0.7.8`. Two fixes, drafted from
+`git log a5a8985..HEAD`:
+
+- **Apple Pencil in TVPaint now lines up.** Two causes, both fixed: the
+  tablet was fed window coordinates instead of picture coordinates, and
+  the virtual Wacom ignored TVPaint's `SC15240,15240` scale command, so
+  ink stopped about ⅔ across and ½ down. Checked on the M4 iPad
+  2026-10-07: "much better", strokes reach every edge of a 1280×720 RTG
+  screen, and line width follows pressure within a stroke.
+- **iCloud sync now pulls files onto a second device** (GitHub issue #3).
+  Files not yet downloaded were only recognised by the old `.icloud`
+  placeholder name, so on current iOS a second device never requested
+  them. **Not yet verified across two devices**, which is the case
+  TestFlight should cover.
+
+TestFlight "What to Test" (en):
+
+    Two fixes in this build:
+    • iCloud: on a SECOND device signed in to the same iCloud account,
+      open iCloud Sync… and tap Sync Now. Setups and save states from
+      your other device should arrive ("N downloading", then "N down"
+      about 20 seconds later). With "Also sync disks, hard drives &
+      ROMs" on, unmounted disk images should follow
+    • Apple Pencil in TVPaint: with Serial Tablet on and TVPaint's tablet
+      Type set to "Wacom A4+ Pressure", draw in all four corners and the
+      centre — the ink should land under the Pencil tip. Pressure should
+      change the line width
+    Nothing else changed since 0.7.7.
+
+en-US What's New, draft:
+
+    • iCloud sync now brings your setups, save states and (if enabled) disks down onto your other devices — before, a second iPad or iPhone could upload but never received anything
+    • Apple Pencil in TVPaint: the ink now lands under the Pencil tip across the whole screen. Set TVPaint's tablet type to "Wacom A4+ Pressure"
+    • The iCloud panel shows files that are still downloading
+
+Promotional text, draft:
+
+    New in 0.7.8: iCloud sync now reaches your other devices, and the Apple Pencil lines up in TVPaint across the whole screen.
+
+de-DE What's New, draft:
+
+    • Die iCloud-Synchronisierung holt Setups, Spielstände und (falls aktiviert) Disketten jetzt auch auf deine anderen Geräte — bisher konnte ein zweites iPad oder iPhone hochladen, aber nichts empfangen
+    • Apple Pencil in TVPaint: Die Farbe landet jetzt auf dem ganzen Bildschirm unter der Stiftspitze. In TVPaint den Tablet-Typ „Wacom A4+ Pressure" wählen
+    • Das iCloud-Panel zeigt Dateien, die noch geladen werden
+
+de-DE promotional text, draft:
+
+    Neu in 0.7.8: Die iCloud-Synchronisierung erreicht jetzt deine anderen Geräte, und der Apple Pencil trifft in TVPaint auf dem ganzen Bildschirm.
+
 ## 0.7.7 — LIVE 2026-09-09 (submitted 09-08, build 20260908); all metadata verified by read-back
 
 > [!success] Submitted 2026-09-08 — `WAITING_FOR_REVIEW` with build `20260908` attached
