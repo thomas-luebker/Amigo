@@ -50,6 +50,8 @@ extern "C" void ipaduae_set_tablet_runtime(int on)
  * mode; relative mode has no absolute pointer concept). Normalized [0,1]
  * window coordinates from the UIKit hover recognizer. */
 extern bool unix_video_pointer_abs_normalized(float nx, float ny);
+/* Window-normalized → picture-normalized, for the tablet feeds. */
+extern bool unix_video_window_norm_to_picture(float *nx, float *ny);
 /* Set by the touch layer while the Pencil tip is in contact. */
 extern bool unix_input_pen_stroke_active;
 extern "C" void ipaduae_pen_tablet(float nx, float ny, float pressure,
@@ -71,6 +73,7 @@ extern "C" void ipaduae_pointer_hover(float nx, float ny)
      * device as alternating rows; invisible to the self-test sweep,
      * which has no hover. */
     if (!unix_input_pen_stroke_active) {
+        unix_video_window_norm_to_picture(&nx, &ny);
         ipaduae_pen_tablet(nx, ny, 0.0f, 1, 0);
     }
 }
