@@ -113,7 +113,7 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     third-party trademarks in keywords are a rejection trigger; "amiga"
     is needed for search and is standard across shipping emulators.)
 
-## 0.7.8 — prepared 2026-10-07 (build 20261007), not yet built for TestFlight
+## 0.7.8 — SUBMITTED FOR REVIEW 2026-10-08 (by Thomas; build number not recorded here)
 
 Build `20261007`, `MARKETING_VERSION 0.7.8`. Two fixes, drafted from
 `git log a5a8985..HEAD`:
