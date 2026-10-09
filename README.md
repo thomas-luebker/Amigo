@@ -9,7 +9,7 @@ ads or accounts, and **GPL-2** like WinUAE itself.
 [User guide](docs/USER_GUIDE.md) ·
 [Report a problem](https://github.com/thomas-luebker/Amigo/issues)
 
-**0.7.7 is on the App Store** (live 2026-09-09 —
+**0.7.8 is on the App Store** (live 2026-10-08 —
 [release notes](https://github.com/thomas-luebker/Amigo/releases)).
 
 ## First start
