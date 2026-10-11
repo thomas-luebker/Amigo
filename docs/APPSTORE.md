@@ -113,6 +113,17 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     third-party trademarks in keywords are a rejection trigger; "amiga"
     is needed for search and is standard across shipping emulators.)
 
+## 0.7.9 — on TestFlight 2026-10-12 (build 20261012), not yet submitted
+
+### What's New / What to Test (en)
+
+New in 0.7.9:
+• Receives images from Amiga Imager: tap "Open in Amigo" there, then Boot here. Amigo switches to the image's CPU, memory and RTG. Your previous setup is kept as "Before Amiga Imager image" in Configurations.
+
+TestFlight: please try a build from Amiga Imager 0.61 → Open in Amigo → Boot, and check that it reaches Workbench without a "CPU library is missing" message.
+
+The App Store profile now carries App Group `group.de.amiga-imager` (needed by the handover).
+
 ## 0.7.8 — LIVE 2026-10-08 (submitted 10-08, build 20261007); What's New read back from the public store listing, matches the drafts below
 
 Build `20261007`, `MARKETING_VERSION 0.7.8`. Two fixes, drafted from
