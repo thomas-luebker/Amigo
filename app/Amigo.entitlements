@@ -14,5 +14,9 @@
 	<array>
 		<string>iCloud.de.amiga-imager.uae</string>
 	</array>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.de.amiga-imager</string>
+	</array>
 </dict>
 </plist>

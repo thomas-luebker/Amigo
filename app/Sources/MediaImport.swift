@@ -58,19 +58,7 @@ enum MediaImport {
         let dir = ConfigStore.winuaeDir.appendingPathComponent(folder, isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
 
-        var dest = dir.appendingPathComponent(url.lastPathComponent)
-        // Never clobber: an import that silently replaced a disk the user
-        // had saved games on would be unrecoverable.
-        if FileManager.default.fileExists(atPath: dest.path) {
-            let base = dest.deletingPathExtension().lastPathComponent
-            let ext = dest.pathExtension
-            var n = 2
-            repeat {
-                let name = ext.isEmpty ? "\(base) \(n)" : "\(base) \(n).\(ext)"
-                dest = dir.appendingPathComponent(name)
-                n += 1
-            } while FileManager.default.fileExists(atPath: dest.path) && n < 100
-        }
+        let dest = uniqueDestination(dir.appendingPathComponent(url.lastPathComponent))
         do {
             try FileManager.default.copyItem(at: url, to: dest)
             NSLog("iPadUAE import: %@ → %@", url.lastPathComponent, folder)
@@ -80,6 +68,23 @@ enum MediaImport {
                   url.lastPathComponent, String(describing: error))
             return nil
         }
+    }
+
+    /// Never clobber: an import that silently replaced a disk the user had
+    /// saved games on would be unrecoverable. "Name 2.hdf", "Name 3.hdf"…
+    static func uniqueDestination(_ wanted: URL) -> URL {
+        var dest = wanted
+        guard FileManager.default.fileExists(atPath: dest.path) else { return dest }
+        let dir = wanted.deletingLastPathComponent()
+        let base = wanted.deletingPathExtension().lastPathComponent
+        let ext = wanted.pathExtension
+        var n = 2
+        repeat {
+            let name = ext.isEmpty ? "\(base) \(n)" : "\(base) \(n).\(ext)"
+            dest = dir.appendingPathComponent(name)
+            n += 1
+        } while FileManager.default.fileExists(atPath: dest.path) && n < 100
+        return dest
     }
 
     /// Import a batch, then act on it: a single dropped floppy goes
