@@ -118,9 +118,9 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
 ### What's New / What to Test (en)
 
 New in 0.7.9:
-• Receives images from Amiga Imager: tap "Open in Amigo" there, then Boot here. Amigo switches to the image's CPU, memory and RTG. Your previous setup is kept as "Before Amiga Imager image" in Configurations.
+• Ready for the upcoming iPad version of Amiga Imager (not released yet): an image built there opens straight in Amigo, with the CPU, memory and RTG it was built for. Your previous setup is kept as "Before Amiga Imager image" in Configurations.
 
-TestFlight: please try a build from Amiga Imager 0.61 → Open in Amigo → Boot, and check that it reaches Workbench without a "CPU library is missing" message.
+TestFlight (What to Test): this only works with the iPad version of Amiga Imager, which is in TestFlight and not on the App Store yet. If you test both: build an image in Amiga Imager 0.61 → Open in Amigo → Boot, and check that it reaches Workbench without a "CPU library is missing" message. Without Amiga Imager for iPad, nothing changes in Amigo.
 
 The App Store profile now carries App Group `group.de.amiga-imager` (needed by the handover).
 

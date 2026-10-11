@@ -55,8 +55,13 @@ things where the user is standing. **No emulator-core change**;
   storefront to watch.
 - [x] **Numbers at go-live** (sales through 09-08): 1,066 lifetime — iPad
   644 / iPhone 368 / Desktop 54; 0.7.6 at 232 installs, level with 0.6.5.
-- [ ] **Run the boot-check sheet on the M4 iPad** from the live build —
-  the only part of 0.7.7 never exercised on a device.
+- [x] **Rollout day** (sales for 09-09, fetched 09-10): 16 new (DE 5, US 3,
+  GB 3), **249 updates** — the 0.7.7 wave; 1,082 lifetime, iPad 648 /
+  iPhone 380 / Desktop 54, 45 territories. New installs that day were 75 %
+  iPhone. Ratings unchanged: 22 / 4.55★. LinkedIn reply posted 09-09.
+- [x] **Run the boot-check sheet on the M4 iPad** — **done, Thomas
+  2026-09-11.** It was the only part of 0.7.7 never exercised on a device;
+  it has now run on one and works.
 - [ ] **Fold the Description into `asc-push-metadata.py`** (unwrap
   paragraphs, bullets one per line, read back).
 - [ ] **Next build number `20260909.1`** — a stray second upload took
@@ -78,7 +83,9 @@ things where the user is standing. **No emulator-core change**;
   volume (B3 — `fsdb_unix.cpp` is compiled in, only UI and a
   security-scoped bookmark are missing); integer scale for RTG (the core
   patch has the branch, unexposed).
-- tvOS: mouse supported (`GCMouse` tvOS 14+, SDL3 14.1+); blocker is the
+- tvOS: mouse supported (`GCMouse` tvOS 14+, SDL3 14.1+); the tvOS SDL3 build
+  is DONE on `feature/tvos` and AROS boots on the Apple TV simulator. The
+  remaining blocker is the
   ingest path and an `appletvos` SDL3 build.
 
 ## 0.7.2 — SHIPPED (live 2026-08-19; confirmed READY_FOR_SALE 2026-08-21)
@@ -157,7 +164,11 @@ whose job was to *read* the machine config wrote an inferred value back.
 
 ### Bugs found on device 2026-08-18 (not yet fixed)
 
-- [ ] **Clicks stop reaching the guest after pairing a controller.** The
+- [ ] **Clicks stop reaching the guest after pairing a controller.**
+  **Still open — re-confirmed 2026-09-08** in the improvement-plan review as
+  the top item. Note it is *not* the Pencil palm-rejection bug fixed in
+  0.7.6: this report says mouse and trackpad clicks die too. Any fresh
+  reproduction should be on a 0.7.6-or-later build, which has that fix. The
   cursor keeps moving; nothing is clickable, from *any* source — mouse,
   trackpad, Pencil, touch. Cleared by restarting the app; not persisted
   in the config.
@@ -269,10 +280,13 @@ is never raced against mid-write. All access goes through
   the first pass pushes, later passes report "Up to date" — idempotent.
   Note the first-ever `url(forUbiquityContainerIdentifier:)` call takes
   ~25 s, so an early log check reads as a failure when it is not.
-- [ ] **Still to check: the second device.** A setup saved on the iPad
-  appearing on the Mac, and a save state round-tripping. Also worth
-  watching the first sync with media enabled on a large HardDrives
-  folder.
+- [x] **Second device: iCloud confirmed working, Thomas 2026-09-11.**
+  From use rather than a structured pass, which for cross-device sync is
+  most of the test. Issue #3 ("iCloud sync is not working") is now stale
+  and wants closing by a human, not an agent.
+  - [ ] Still unwatched: the *first* sync with media enabled on a large
+    HardDrives folder — the slow, expensive case rather than the
+    correctness one.
 - [ ] **Mount exclusion is safe but awkward.** The most valuable thing to
   sync is usually the Workbench HDF that is currently mounted — exactly
   the file that is skipped. "Unmount to sync" is a workaround, not an
@@ -672,22 +686,34 @@ either set the tablet type to 0 first, or drive it through
   ceiling; worth re-checking with a hard press before assuming the scale
   reaches 1.0.)
 
-- [ ] ~~Does SDL report Pencil pressure at all on iOS?~~ (superseded) The feed keys
+- [x] ~~Does SDL report Pencil pressure at all on iOS?~~ (superseded) The feed keys
   off `event.tfinger.pressure` being strictly between 0 and 1
   (`touch_pressure_is_pen`). If iOS flattens finger and Pencil to the
   same value, the fallback is a UIKit-side `UITouch.force` feed from a
   passive recognizer in `PencilSupport.swift`. The existing `iPadUAE
   finger:` diag lines already print pressure — one Pencil session with a
   log answers this. New `iPadUAE pen: stroke start` line marks detection.
-- [ ] Test in DPaint (pressure-capable per upstream) and confirm whether
-  the `<< 15` scaling reads as full range on the Amiga side.
-- [ ] **Which tablet TVPaint's launch menu actually lists.** Protocol IV
+- [ ] Test in DPaint. **Only the DPaint run is outstanding** — the `<< 15`
+  scaling half is already answered above: TabTest read 97% of full range
+  through `tablet.library`, and a real Pencil reached 83%. The blocker is
+  that DPaint is not installed on this Mac or in the 8 GB system image.
+- [x] **Which tablet TVPaint's launch menu lists — ANSWERED.** The manual
+  §1.4.1 and the binary's own strings list Protocol IV models only; the
+  working entry is type 6, *Wacom A4+ Pressure*, confirmed on device and
+  shipped as user guidance in 0.7.6's notes. The original reasoning, kept
+  because it is how the answer was reached: Protocol IV
   is the educated bet from what people ran, but UD tablets also speak the
   older Wacom II-S, and a 1995 program may target that — or the menu may
   offer SummaSketch/Kurta instead. One photo of that right-click menu
   from Chad settles it; the II-S variant would be a second packet format
   in the same device, not a rewrite.
-- [ ] Chad's other report — Pencil clicks misbehaving in 1:1 mode — is a
+- [x] **Chad's Pencil clicks in 1:1 mode — FIXED in 0.7.6.** `FINGER_DOWN`
+  now cancels hover for a touch reporting analogue force instead of
+  palm-rejecting it (`vendor/WinUAE/od-unix/video_sdl.cpp:2516`). Measured
+  on device as 303 touches carrying Pencil pressure and not one recognised
+  stroke; strokes land immediately after. Shipped in 0.7.6's notes, and
+  `docs/BACKLOG.md` already records "0.7.6 fixed every line of it".
+  The original diagnosis: it is a
   separate bug: `FINGER_DOWN` palm-rejects the whole touch when
   `unix_input_pen_hover_active` is set, and nothing guarantees the hover
   recognizer reaches `.ended` before SDL delivers the tip's touch.
@@ -993,11 +1019,12 @@ either set the tablet type to 0 first, or drive it through
   wasteful for a large one. Needs the boot ROM instrumented, which means
   rebuilding `filesys.asm`.
 
-- [ ] **The in-app clipboard toggle has never been tested.** Sharing was
-  only ever enabled by pushing `default.uae` to the device with
-  `devicectl`. "Gear → Clipboard → Amiga Clipboard Sharing" is the path a
-  real user takes and it is unverified — and it is exactly what silently
-  reverted before the rollback fix below.
+- [x] **The in-app clipboard toggle works — tested, Thomas 2026-09-11.**
+  Copy and paste both directions from "Gear → Clipboard → Amiga Clipboard
+  Sharing", which is the path a real user takes, and the one that had only
+  ever been exercised by pushing `default.uae` with `devicectl`. The
+  `CBD_CHANGEHOOK` item below stays open, but it is now tidiness: the
+  once-a-second poll is doing the job correctly.
 
 - [x] **Config changes silently reverted after a force-quit.**
   `markBootStable()` ran once per app *launch*, 30s after the overlay
@@ -1010,10 +1037,27 @@ either set the tablet type to 0 first, or drive it through
 
 ## Quick wins — done 2026-08-18 (warp built, measured, dropped)
 
-- [~] **Warp button — BUILT, REMOVED 2026-08-18. The "slower" reading was
-  probably wrong; see below.** Wired to the core's own `warpmode()`. On
-  device it appeared to make the machine significantly slower, so it was
-  removed rather than shipped.
+- [~] **Warp button — BUILT, REMOVED 2026-08-18, and SUPERSEDED. Do not
+  revisit it.** Confirmed by Thomas 2026-09-13: it was dropped in favour of
+  a different way to speed up floppy reads, and that replacement shipped.
+
+  **What replaced it: `floppy_speed`** (`ipaduae_set_floppy_speed` in
+  `core-ios/ios_glue.cpp`, surfaced as the floppy-speed setting up to
+  "Turbo"). It touches only the emulated drive's timing, so sound keeps
+  playing and the display keeps drawing while the disk loads faster —
+  where warp uncapped the whole machine and made it *feel* slower. It
+  applies live through `changed_prefs`, and the core declines turbo for
+  non-standard ADFs, so copy-protected originals fall back on their own.
+  The reasoning is written out at `ios_glue.cpp:515`.
+
+  Everything below is kept because the *diagnosis* is still worth having —
+  it is why the replacement was designed the way it was — but it is
+  history, not a plan. The "if it is ever revisited" note at the end no
+  longer applies.
+
+  Original entry: wired to the core's own `warpmode()`. On device it
+  appeared to make the machine significantly slower, so it was removed
+  rather than shipped.
 
   **Revised 2026-08-19.** `warpmode()` sets `gfx_framerate = 10` whenever
   turbo is on — the display draws **one frame in ten**. At roughly 5 fps
@@ -1175,10 +1219,12 @@ crash was never reproduced and we still owe Toni no `reg`/`type` bits.
   *Gotcha:* Swift `NSLog` does NOT reach the file log — only the core's
   `write_log` does — so the stress driver's own lines are invisible there.
   The second boot sequence in the log is the proof it ran.
-- [ ] Try it with the HDF unmounted, to confirm the hardfile thread is
-  involved at all.
-- [ ] Try with RTG off — the hang follows uaegfx init, and every
-  reproduction so far has involved screen switching.
+- [x] Try it with the HDF unmounted — **answered by `afaa319` (2026-08-20)**:
+  the hardfile thread is definitively involved. `start_thread()` ignored
+  `uae_start_thread`'s failure return and spun forever.
+- [x] Try with RTG off — **not needed.** `afaa319` root-caused the hang, and
+  RTG was a coincidence of the reproduction recipe, not a cause.
+  **Still genuinely open above: WHY `pthread_create` fails.**
 
 Only found because the log is now written to a file. Three earlier
 attempts at this produced nothing because `devicectl --console` had gone
@@ -1297,7 +1343,11 @@ to `twilen@winuae.net`.
   all of them product calls: a shorter bar in portrait, fewer LEDs
   (hide disabled drives), or leave it.
 
-- [ ] **"1:1 Mouse: On" lies on Kickstart 1.3.** mousehack needs KS 2.0+;
+- [x] **"1:1 Mouse: On" no longer lies on Kickstart 1.3** — fixed in
+  `7fd5c9c` and shipped in 0.7.5. The row reads "On — not active" when
+  `mousehackLive` is false (`Overlay.swift:1199`), `ipaduae_mousehack_alive()`
+  backs it, and BootCheck names it as a finding. The original report:
+  mousehack needs KS 2.0+;
   below that `video_sdl.cpp` falls back to relative drag-hold, silently,
   while the menu row still claims 1:1. `mh_alive` is already known to the
   core. Reported from EAB as "1:1 touch doesn't seem to work on iPhone" —
@@ -1344,7 +1394,11 @@ to `twilen@winuae.net`.
   u/Working_Ladder_51 who reported it.
 
 
-- [ ] **Vision Pro "Designed for iPad"** — ASC availability checkbox, no
+- [x] **Vision Pro "Designed for iPad"** — **already enabled**, confirmed in
+  App Store Connect 2026-08-22, and verified on the visionOS 26.5 simulator
+  the same day; both facts are recorded further down this very file. Still
+  unverified: real eye and pinch input on a headset. Original note: ASC
+  availability checkbox, no
   build change. Verify on visionOS sim first: overlay UIWindow composites,
   right-click reachable (recommend Bluetooth mouse in help). Native
   target: 1-2 weeks, only if compat mode shows demand.
@@ -1545,10 +1599,16 @@ a market question, not a capability gap.
   worth starting. Draft reply is in the vault note.
 - [x] **Verify whether tvOS supports a mouse** (and whether SDL3 surfaces it).
   Yes on both counts — see the table above (2026-09-08).
-- [ ] **SDL3 for tvOS does not exist here.** `vendor/SDL3/SDL3.xcframework`
+- [x] **SDL3 for tvOS — BUILT on `feature/tvos` (2026-09-08).** That branch's
+  `build-sdl3.sh` produces four slices and its vendored xcframework carries
+  them. **`main`'s copy still has two**, so the sentence below is true of
+  this checkout and false of the project — which is exactly how a reader
+  concludes the spike has not started. Merge is blocked on a device test of
+  the rebuilt iOS slices, not on the tvOS work. Original:
+  `vendor/SDL3/SDL3.xcframework`
   carries `ios-arm64` and the iOS simulator slice only; `scripts/build-sdl3.sh`
   builds for `iphoneos`. A tvOS spike starts with an `appletvos` SDL3 build.
-- [ ] An external improvement plan was reviewed against this tree on
+- [x] An external improvement plan was reviewed against this tree on
   2026-09-08: `docs/IMPROVEMENT-PLAN-REVIEW-2026-09-08.md`. Its tvOS section
   agrees with this assessment.
 - [ ] Confirm current tvOS local-storage limits and whether an app may keep a
@@ -1630,7 +1690,10 @@ no Pencil) would have to be reworked.
 - [x] **Save-state UI** — shipped: 3 slots + 5-min autosave (quick-state
   machinery, StatePanel). Later polish: screen thumbnails per slot, pin
   the config per slot (states are fragile across config changes).
-- [ ] **CRT shader** — scanlines/phosphor Metal post-process on the SDL
+- [ ] **Phosphor / Metal post-process.** The *scanline* look already shipped
+  in 0.7.5 (`Overlay.swift:1097` — CRT Scanlines Off/Light/Medium/Heavy), so
+  what is left is the further step, and nobody has asked for it since.
+  Original entry: scanlines/phosphor Metal post-process on the SDL
   texture; the most-requested emulator feature.
 - [ ] **Disk-set swap strip** — detect "Disk 1 of 3" filename sets, show a
   one-tap swap bar when a game asks for the next disk.
