@@ -489,6 +489,23 @@ enum ConfigStore {
 
     static func apply(machine m: Machine) {
         snapshotBeforeRiskyChange()
+        writeMachine(m)
+        restart()
+    }
+
+    /// Boot an image handed over by Amiga Imager (ImagerHandoff): its
+    /// machine, the image as the only hard drive (DH0), one restart —
+    /// apply(machine:) + mountHardfile would restart twice.
+    static func bootHandedOverImage(url: URL, machine m: Machine) {
+        snapshotBeforeRiskyChange()
+        writeMachine(m)
+        removeAll("hardfile2")
+        let geo = isRDB(url: url) ? "0,0,0,512" : "32,1,2,512"
+        append("hardfile2", "rw,DH0:\(canonicalPath(url.path)),\(geo),0,,uae0")
+        restart()
+    }
+
+    private static func writeMachine(_ m: Machine) {
         // cpu_type would fight cpu_model/fpu_model — manage the explicit
         // keys only. 24-bit addressing only for small 68000/EC020 setups.
         removeAll("cpu_type")
@@ -549,7 +566,6 @@ enum ConfigStore {
             removeAll("gfxcard_hardware_sprite")
         }
         set("bsdsocket_emu", m.network ? "true" : "false")
-        restart()
     }
 
     /// A Rigid Disk Block ("RDSK") may sit in any of the first 16 blocks.

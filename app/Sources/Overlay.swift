@@ -114,7 +114,11 @@ final class OverlayInstaller {
             forName: UIApplication.didBecomeActiveNotification,
             object: nil, queue: .main) { _ in
             CloudSync.sync()
+            ImagerHandoff.checkInbox()
         }
+        // An image from Amiga Imager may be waiting (cold launch via
+        // amigo://import — SDL swallows the URL itself).
+        ImagerHandoff.checkInbox()
 
 
         // The overlay only installs once SDL's window (and thus video) is
