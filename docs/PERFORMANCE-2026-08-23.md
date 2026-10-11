@@ -379,3 +379,40 @@ cross-emulator comparison in §1, and an independent confirmation of it:
 Lower than §1's 2.23x/3.2–3.5x on an M1 Max, same shape: memory work pays
 roughly 1.5x the penalty instruction work does, consistent with fetch and data
 each being charged separately.
+
+## 9 · M4 iPad, guest 68060: a release-built image, 2026-10-12
+
+*Amigo 0.7.8 (20261007, branch `feat/open-in-amigo`, Release), M4 iPad Pro 13".
+Guest: an image built on the iPad by Amiga Imager 0.62 (OS 3.2.3, Kickstart
+47.115, CPU 68060 + FPU, RTG 1280×720, 256 MB Z3), handed over with Open in
+Amigo. `CPU` in the guest reports `68060 Rev6`, no MMU. amibench (the
+`dist/stage` binary: int/copy/set/read phases only, no FPU or Chip phases)
+uploaded through amiagent 0.13.1, four runs, first discarded, spread ≤0.8%.*
+
+| test | 68060, MMU off (today) | 68040, MMU off (§8, 08-23) | difference |
+|---|---|---|---|
+| int | 14.66 M ops/s | 15.42 | −4.9% |
+| copy | 1043.5 MiB/s | 1066.7 | −2.2% |
+| set | 2112.8 MiB/s | 2124.5 | −0.6% |
+| read | 748.5 MiB/s | 761.9 | −1.8% |
+
+**Same speed as the 040 on the same device**, within about 5%. Differences of
+this size are near amibench's noise floor across sessions and builds (`set`
+alone spreads ~9%), and the two runs differ in Amigo build, guest image and CPU
+model at once, so nothing here says a 68060 is slower than a 68040. The useful
+conclusion is the other way round: choosing a 68060 (which emulator images
+built by Amiga Imager are CPU-locked to) costs nothing measurable.
+
+For scale, against the amibench README (2026-08-08):
+
+| machine | int (M iter/s) | copy | set | read |
+|---|---:|---:|---:|---:|
+| Amigo, M4 iPad, 68060, MMU off | 14.66 | 1044 MiB/s | 2113 MiB/s | 749 MiB/s |
+| A4000, TF4060 at 100 MHz (overclocked) | 5.8 | 34.5 MB/s | 30.5 MB/s | 69.9 MB/s |
+| PiStorm32-lite, Emu68 JIT, Pi 4 | 151.7 | 1.18 GB/s | 1.10 GB/s | 4.01 GB/s |
+
+About **2.5× a real 060 at 100 MHz** on integer work, an order of magnitude
+behind Emu68's JIT (§3). Fast RAM is host RAM, so memory phases dwarf real
+hardware. Chip RAM and FPU were not measured: rerun with the current amibench
+(which has both phases) on all three machines for a like-for-like table.
+
