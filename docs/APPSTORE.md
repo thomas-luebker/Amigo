@@ -113,7 +113,7 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     third-party trademarks in keywords are a rejection trigger; "amiga"
     is needed for search and is standard across shipping emulators.)
 
-## 0.7.10 — archived 2026-10-15 (build 20261015; 20261014 lacked the window fix), for TestFlight; 0.7.9 was never submitted, so this one goes to review
+## 0.7.10 — on TestFlight 2026-10-15 (build 20261015; 20261014 lacked the window fix, never uploaded); 0.7.9 was never submitted, so this one goes to review
 
 ### What's New / What to Test (en)
 
