@@ -58,6 +58,8 @@ extern "C" void ipaduae_open_debug_log(const char *path);
 extern "C" void ipaduae_start_hang_watchdog(void);
 extern "C" void ipaduae_heal_config_paths(void);
 extern "C" void ipaduae_fast_exit(const char *why);
+extern "C" int ipaduae_handoff_pending(void);
+extern "C" void ipaduae_set_paused(int on);
 
 // SDL runs event watches synchronously from inside applicationWillTerminate,
 // so this fires even when the emulator loop is between pumps (or already
@@ -93,6 +95,11 @@ int main(int argc, char *argv[])
     // Rewrite stale container-UUID media paths (Kickstart/HDF) before the
     // core reads default.uae — reinstalls change the container UUID.
     ipaduae_heal_config_paths();
+    // Opened by Amiga Imager with an image waiting: start paused, so the
+    // previous setup does not boot behind the "Image from Amiga Imager"
+    // dialog (ImagerHandoff resumes or restarts once the user decides).
+    if (ipaduae_handoff_pending())
+        ipaduae_set_paused(1);
     fprintf(stderr, "iPadUAE: data dirs ready\n");
     // Touches feed the patched finger-event path in video_sdl.cpp
     // (trackpad-style); disabling SDL's synthesis keeps hardware

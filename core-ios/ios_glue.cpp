@@ -242,6 +242,30 @@ extern "C" void ipaduae_set_aspect_fit(int on)
     unix_video_aspect_fit = on != 0;
 }
 
+/* Hold the emulation while the "Image from Amiga Imager" dialog decides
+ * what boots. The paused vsync loop keeps pumping events, so UIKit stays
+ * live. Before real_main only the flag can be set (no prefs yet); that
+ * keeps the CPU from ever starting the previous setup on a cold launch
+ * through amigo://import. */
+extern int pause_emulation;
+extern void pausemode(int mode);
+static bool s_core_running = false;
+
+extern "C" void ipaduae_set_paused(int on)
+{
+    write_log(_T("iPadUAE pause: %d\n"), on);
+    if (s_core_running) {
+        pausemode(on ? 1 : 0);
+    } else {
+        pause_emulation = on ? 1 : 0;
+    }
+}
+
+extern "C" void ipaduae_mark_core_running(void)
+{
+    s_core_running = true;
+}
+
 /* Live toggle for the on-screen LED status line. */
 extern "C" void ipaduae_set_leds(int on)
 {

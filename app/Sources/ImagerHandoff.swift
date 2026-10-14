@@ -47,6 +47,20 @@ enum ImagerHandoff {
     }
 
     private static var presenting = false
+    /// The emulation is held for the dialog (from main() on a cold launch,
+    /// or when the dialog comes up over a running Amiga).
+    private static var holding = false
+
+    /// Hold or release the emulation. Holding means the previous setup
+    /// never boots behind the dialog — confusing when an image was just
+    /// handed over (Thomas, 2026-10-14).
+    static func heldFromLaunch() { holding = true }
+
+    static func hold(_ on: Bool) {
+        guard holding != on else { return }
+        holding = on
+        ipaduae_set_paused(on ? 1 : 0)
+    }
 
     static var inboxURL: URL? {
         FileManager.default
@@ -117,13 +131,17 @@ enum ImagerHandoff {
 
     /// Offer the newest handover, if any. Safe to call repeatedly.
     static func checkInbox() {
-        guard !presenting, let p = pending() else { return }
+        guard !presenting else { return }
+        guard let p = pending() else { hold(false); return }
         guard let root = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
             .flatMap({ $0.windows })
             .first(where: { $0 is PassthroughWindow })?.rootViewController,
               root.presentedViewController == nil else {
             NSLog("iPadUAE handoff: %@ waiting, nothing to present from yet", p.machine.imageFile)
+            // Never leave the Amiga frozen without a dialog to answer; the
+            // offer comes back the next time Amigo becomes active.
+            hold(false)
             return
         }
         presenting = true
@@ -135,9 +153,11 @@ enum ImagerHandoff {
                 + "Boot restarts the Amiga with this machine and this image as DH0. "
                 + "Your current setup is saved as “\(previousSetupName)” in Configurations.",
             preferredStyle: .alert)
+        hold(true)
         let done = {
             presenting = false
             OverlayState.shared.modalActive = false
+            hold(false)
         }
         alert.addAction(UIAlertAction(title: "Boot", style: .default) { _ in
             done()
@@ -164,4 +184,13 @@ enum ImagerHandoff {
         OverlayState.shared.expanded = false
         root.present(alert, animated: true)
     }
+}
+
+/// main() asks this before real_main: with a handover waiting, the core
+/// starts paused (ImagerHandoff.hold) instead of booting the previous setup.
+@_cdecl("ipaduae_handoff_pending")
+public func ipaduae_handoff_pending() -> Int32 {
+    guard ImagerHandoff.pending() != nil else { return 0 }
+    ImagerHandoff.heldFromLaunch()
+    return 1
 }

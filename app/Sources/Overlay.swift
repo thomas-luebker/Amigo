@@ -117,7 +117,9 @@ final class OverlayInstaller {
             ImagerHandoff.checkInbox()
         }
         // An image from Amiga Imager may be waiting (cold launch via
-        // amigo://import — SDL swallows the URL itself).
+        // amigo://import — SDL swallows the URL itself). The core is up by
+        // now, so pausing goes through pausemode from here on.
+        ipaduae_mark_core_running()
         ImagerHandoff.checkInbox()
 
 
