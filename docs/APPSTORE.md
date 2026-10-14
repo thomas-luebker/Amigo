@@ -155,7 +155,7 @@ de-DE promotional text, draft:
 
 The App Store profile now carries App Group `group.de.amiga-imager` (needed by the handover).
 
-## 0.7.8 — LIVE 2026-10-08 (submitted 10-08, build 20261007); What's New read back from the public store listing, matches the drafts below
+## 0.7.8 — NOT public (Thomas, 2026-10-15: the store still has 0.7.7); built 20261007. Earlier note claimed LIVE 2026-10-08, that was wrong
 
 Build `20261007`, `MARKETING_VERSION 0.7.8`. Two fixes, drafted from
 `git log a5a8985..HEAD`:
