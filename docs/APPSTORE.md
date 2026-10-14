@@ -113,22 +113,22 @@ Evergreen fallback, for when the 0.7.1 news goes stale:
     third-party trademarks in keywords are a rejection trigger; "amiga"
     is needed for search and is standard across shipping emulators.)
 
-## 0.7.10 — archived 2026-10-14 (build 20261014), for TestFlight; 0.7.9 was never submitted, so this one goes to review
+## 0.7.10 — archived 2026-10-15 (build 20261015; 20261014 lacked the window fix), for TestFlight; 0.7.9 was never submitted, so this one goes to review
 
 ### What's New / What to Test (en)
 
 New in 0.7.10:
 • Ready for the upcoming iPad version of Amiga Imager (not released yet): an image built there opens straight in Amigo, with the CPU, memory and RTG it was built for. Your previous setup is kept as "Before Amiga Imager image" in Configurations.
 • While Amigo asks what to do with such an image, the Amiga waits: your previous setup no longer starts booting behind the question.
-• Fixed a squashed picture with a lost mouse pointer after switching to Amigo in landscape.
+• Fixed: after minimising Amigo or opening the menu, the picture could end up squashed to one side with the mouse pointer out of step, even after a restart.
 
-TestFlight (What to Test): with Amiga Imager 0.64 for iPad, use Open in Amigo once with Amigo closed and once with it running. The Amiga behind the question should stay still; Boot starts the new image, Not Now carries on where you were. Also check the picture fills the screen in landscape.
+TestFlight (What to Test): with Amiga Imager 0.64 for iPad, use Open in Amigo once with Amigo closed and once with it running. The Amiga behind the question should stay still; Boot starts the new image, Not Now carries on where you were. Also minimise Amigo and open the menu with an RTG Workbench running: the picture should stay full size and the pointer should follow your finger.
 
 de-DE What's New, draft:
 
     • Vorbereitet für die kommende iPad-Version von Amiga Imager (noch nicht erschienen): Ein dort gebautes Image öffnet sich direkt in Amigo, mit der CPU, dem Speicher und der RTG-Grafik, für die es gebaut wurde. Dein bisheriges Setup bleibt unter „Before Amiga Imager image" in den Configurations erhalten.
     • Während Amigo fragt, was mit so einem Image passieren soll, wartet der Amiga: Dein bisheriges Setup bootet nicht mehr im Hintergrund.
-    • Behoben: gestauchtes Bild und verlorener Mauszeiger nach dem Wechsel zu Amigo im Querformat.
+    • Behoben: Nach dem Minimieren von Amigo oder dem Öffnen des Menüs konnte das Bild zur Seite gestaucht sein und der Mauszeiger nicht mehr stimmen, auch nach einem Neustart.
 
 Promotional texts: as for 0.7.9, with the version number changed.
 
