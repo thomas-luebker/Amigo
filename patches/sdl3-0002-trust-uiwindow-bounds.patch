@@ -1,0 +1,19 @@
+diff --git a/src/video/uikit/SDL_uikitvideo.m b/src/video/uikit/SDL_uikitvideo.m
+index 97aeb94..d6d0e56 100644
+--- a/src/video/uikit/SDL_uikitvideo.m
++++ b/src/video/uikit/SDL_uikitvideo.m
+@@ -225,7 +225,13 @@ CGRect UIKit_ComputeViewFrame(SDL_Window *window, UIScreen *screen)
+      * The uiwindow bounds may be smaller than the screen bounds when Split View
+      * is used on an iPad. */
+     if (data != nil && data.uiwindow != nil) {
+-        frame = data.uiwindow.bounds;
++        /* Amigo: a real UIWindow's bounds are authoritative. The flip below
++         * reads the deprecated statusBarOrientation, which apps linked
++         * against the iOS 27 SDK can no longer trust; it turned a landscape
++         * window's frame into a portrait one (picture cut to the portrait
++         * width, pointer mapped wrong) after minimising or opening a
++         * menu, and on launch. */
++        return data.uiwindow.bounds;
+     }
+ 
+ #ifndef SDL_PLATFORM_TVOS
